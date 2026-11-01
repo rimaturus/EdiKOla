@@ -1,2 +1,2 @@
-# Boot straight into KOReader (same early-boot hook KFMon uses)
+# EdiKOla: start KOReader in Nickel's place (same early-boot hook KFMon uses)
 KERNEL=="loop0", RUN+="/usr/local/koreader-autoboot/autoboot.sh"

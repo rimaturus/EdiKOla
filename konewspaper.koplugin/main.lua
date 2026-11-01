@@ -70,10 +70,21 @@ local function lockscreenDefaults(plugin_path)
     }
 end
 
+-- KOReader plugins EdiKOla never shows: each one costs start-up time and RAM. Applies from the next start.
+local UNUSED_PLUGINS = { "coverbrowser", "statistics", "vocabbuilder", "wallabag", "opds", "calibre", "kosync",
+    "terminal", "texteditor", "perceptionexpander", "newsdownloader", "japanese", "exporter", "profiles",
+    "hotkeys", "systemstat", "hello", "httpinspector" }
+local function slimDefaults()
+    local off = G_reader_settings:readSetting("plugins_disabled") or {}
+    for _, name in ipairs(UNUSED_PLUGINS) do off[name] = true end
+    return { plugins_disabled = off }
+end
+
 local function applyDefaults(plugin_path)
     local sets = {
         konewspaper_defaults_v1 = DEFAULTS,
         konewspaper_defaults_v2 = lockscreenDefaults(plugin_path),
+        konewspaper_defaults_v3 = slimDefaults(),
     }
     for flag, set in pairs(sets) do
         if not G_reader_settings:isTrue(flag) then

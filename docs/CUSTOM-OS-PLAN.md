@@ -3,7 +3,8 @@
 Goal: the Kobo Nia boots to the Edicola fast, and every tap feels immediate. The aim is to be quicker
 than the stock Kobo was when new, without losing a way back.
 
-Status: **plan only**. Nothing here is on the device yet.
+Status (2026-11-01, `dev`): **phases 0–2 built and tested on the PC, not installed on the device yet.**
+Phase 3 is on hold until the boot log has real numbers (see "Built so far" at the end).
 
 ## Where the time goes today (to measure first)
 
@@ -81,3 +82,44 @@ killed again. That guess needs measuring, so phase 0 comes first.
 - Each phase lands on `dev` first. It goes to `master` only after a week of daily use with no crash.
 - Every phase keeps a documented one-step way back (flag file, factory reset, or `dd` restore),
   logged in `CHANGES.md`.
+
+## Built so far (on `dev`)
+
+Source for the boot details: `/etc/init.d/rcS` from Kobo's own firmware zip for the Nia, 4.38.23852
+(the version on the device), from Kobo's update API (device ID `…0382`, the `kobo7` firmware).
+
+**Phase 1, done differently: Nickel is never started.** rcS runs our udev hook (`udevadm trigger`)
+about 190 lines before its last line, `nickel -platform kobo -skipFontLoad &`. The hook bind-mounts
+`autoboot.sh` over `/usr/local/Kobo/nickel` for this boot only, so rcS starts KOReader instead.
+No Kobo file is edited, which beats patching rcS: the firmware version doesn't matter, and nothing
+needs merging after an update. Details that came from reading rcS:
+- Onboard is already mounted when rcS reaches Nickel, so the hook checks `.adds/noautoboot` there.
+- rcS's boot animation (`on-animator.sh`) loops until something kills it, and `hindenburg` starts just
+  before Nickel. The hook stops both.
+- rcS creates the FIFO `/tmp/nickel-hardware-status`. With no Nickel reading it, udev and udhcpc
+  scripts block on it, so the hook removes it, as `koreader.sh` does when it stops Nickel.
+- `koreader.sh` then runs with `VIA_NICKEL=false`: rcS has already exported `PLATFORM`, `PRODUCT`,
+  `INTERFACE` and `WIFI_MODULE`. KOReader handles Wi-Fi, USB and power-off itself, and reboots on exit.
+- Side effect: with Nickel not running, firmware auto-updates stop (they wiped our hooks twice).
+  `KoboRoot.tgz` installs still work, because rcS handles them before Nickel.
+
+Ways back: `.adds/noautoboot` (Nickel boots as usual); after 3 KOReader starts in a row that don't stay
+up for 60 s, Nickel boots by itself until `.adds/edikola-bootfail` is deleted; factory reset.
+
+**Phase 0**: every boot appends timestamps (seconds since power-on) to `.adds/boot.log`: udev hook,
+end of rcS, KOReader starting. KOReader's own `crash.log` has the rest. The full image backup is a
+step on the device, done before installing (SSH plugin on, port 2222):
+`ssh -p 2222 root@<kobo-ip> "dd if=/dev/mmcblk0 bs=4M" | gzip > nia-mmcblk0.img.gz`.
+
+**Phase 2**: the plugin turns off 18 unused KOReader plugins once (`konewspaper_defaults_v3`, merged
+into any existing `plugins_disabled`). Fonts, CPU governor and waveform changes wait for measurements.
+
+**Phase 3, on hold.** Without Nickel, what rcS still does before KOReader is mostly needed (mounts,
+udev, `dosfsck` of the onboard partition) or cheap (dbus). A Buildroot rootfs would save only that
+remainder, at weeks of work. Candidates if `boot.log` shows rcS taking more than a few seconds: rcS
+readaheads all Qt libraries (`find …QtEmbedded…/lib -exec readahead`, useless without Nickel), and runs
+the `on-animator.sh` loop. Both can be skipped from the same udev hook.
+Phase 4 note: postmarketOS has a `device-kobo-nia` package; whether its e-ink display works is unverified.
+
+Test: `wsl -u root unshare -m sh tests/autoboot-test.sh` runs simulated boots with real bind mounts.
+Rebuild the package: `wsl sh autoboot/build.sh`.

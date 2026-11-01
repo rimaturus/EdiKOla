@@ -57,7 +57,7 @@ are fictional demo content (`tools/screenshots/make_demo.py`).*
 | Path | What |
 |---|---|
 | `konewspaper.koplugin/` | The KOReader plugin: `main.lua` (UI), `knp_build.lua` (download → EPUB), `knp_extract.lua` (RSS + article extraction, pure Lua), `giornali.lua` (catalog) |
-| `autoboot/` | `KoboRoot.tgz` that starts KOReader right after Nickel boots. Nickel stays installed as the fallback |
+| `autoboot/` | `KoboRoot.tgz` that starts KOReader in place of Nickel, so Nickel never loads (`build.sh` rebuilds it, `tests/autoboot-test.sh` tests it). Nickel stays installed as the fallback |
 | `tests/` | `texlua tests/konewspaper-test.lua` (fixtures), `… live` (checks every newspaper in the catalog) |
 | `tools/screenshots/` | Regenerates `docs/images` with KOReader's Linux build: `KO=~/kosim sh tools/screenshots/run.sh` |
 | `CHANGES.md` | Every change made to the device, with how to undo it |
@@ -71,7 +71,8 @@ are fictional demo content (`tools/screenshots/make_demo.py`).*
 4. Dictionaries go in `.adds/koreader/data/dict/`. The ones used here are reader.dict IT, the
    en-en and it-en Wiktionary builds, and FreeDict eng-ita (see `CHANGES.md`, change set 4).
 5. To boot straight into KOReader, copy `autoboot/KoboRoot.tgz` to `.kobo/` and eject the Kobo.
-   To skip it for one boot, create `.adds/noautoboot`. A factory reset undoes everything.
+   Nickel boots instead while `.adds/noautoboot` exists, or by itself after 3 failed KOReader starts
+   (delete `.adds/edikola-bootfail` to retry). Boot timings go to `.adds/boot.log`. A factory reset undoes everything.
 
 ## Credits
 
