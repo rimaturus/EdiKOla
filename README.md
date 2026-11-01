@@ -1,5 +1,9 @@
 # EdiKOla
 
+<p align="center">
+<img src="konewspaper.koplugin/lockscreen/edikola.png" width="45%" alt="EdiKOla lock screen: a newsstand kiosk drawing">
+</p>
+
 A newsstand ("edicola") for an old Kobo, made for an elderly reader: free newspapers without ads,
 your own books, big buttons, and almost no gestures. It is a [KOReader](https://github.com/koreader/koreader)
 plugin, and the Kobo boots straight into it.
@@ -33,14 +37,19 @@ are fictional demo content (`tools/screenshots/make_demo.py`).*
 - **Reading**: tap the right or left side of the page to turn it. A big **◀ Edicola** button in the
   top-left corner goes back. Long-press a word to look it up in Italian, English, Italian→English and
   English→Italian.
+- **Text size and photos**: **A− / A+** in the top-right corner make the text smaller or bigger. Pinch and
+  spread work too, and zoom PDFs. Tap a photo to see it full screen, where you can also zoom it.
+- **Clock** at the top of the screen, next to the date on the Edicola and while reading.
+- **Lock screen**: the EdiKOla newsstand drawing (`konewspaper.koplugin/lockscreen/`).
 - **Tuned for e-ink**: text size 26, a full refresh every 6 pages and on pages with photos, photos
   downloaded at about 800 px.
 
 <p>
-<img src="docs/images/03-giornali.png" width="24%" alt="Newspaper chooser">
-<img src="docs/images/04-libri.png" width="24%" alt="My books">
-<img src="docs/images/05-luce.png" width="24%" alt="Frontlight">
-<img src="docs/images/06-prima-pagina.png" width="24%" alt="Front page of an edition">
+<img src="docs/images/03-giornali.png" width="19%" alt="Newspaper chooser">
+<img src="docs/images/04-libri.png" width="19%" alt="My books">
+<img src="docs/images/05-luce.png" width="19%" alt="Frontlight">
+<img src="docs/images/06-prima-pagina.png" width="19%" alt="Front page of an edition">
+<img src="docs/images/08-foto-zoom.png" width="19%" alt="Photo opened full screen for zooming">
 </p>
 
 ## Layout
