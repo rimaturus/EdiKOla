@@ -33,14 +33,14 @@ local steps = {
     function() shot("06-prima-pagina") end,
     function() UIManager:sendEvent(require("ui/event"):new("GotoViewRel", 1)) end,
     function() shot("07-articolo") end,
-    function() -- spread on the article photo
+    function() -- tap on the article photo
         local Geom = require("ui/geometry")
         local ui = require("apps/reader/readerui").instance
         for y = 0, Device.screen:getHeight(), 20 do
             local pos = Geom:new{ x = Device.screen:getWidth() / 2, y = y, w = 0, h = 0 }
             local p = ui.view:screenToPageTransform(pos)
             if p and ui.document:getImageFromPosition(p) then
-                UIManager:sendEvent(require("ui/event"):new("Gesture", { ges = "spread", pos = pos }))
+                UIManager:sendEvent(require("ui/event"):new("Gesture", { ges = "tap", pos = pos }))
                 return
             end
         end

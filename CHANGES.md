@@ -120,3 +120,14 @@
 - In an article, spreading two fingers on a photo opens it full screen. There, pinch and spread zoom it, a drag moves it, and a tap closes it. Anywhere else, pinch and spread keep KOReader's behaviour: text size in EPUBs, zoom in PDFs.
 
 **Revert**: copy the earlier `main.lua` back from git.
+
+## 2026-11-01 – Change set 7: clock, text size buttons, photo tap, lock screen
+
+**What**
+- Pinch and spread were unreliable on the Nia, so there are now buttons that need only one finger:
+  - **A− / A+** (top-right while reading an EPUB) change the text size by 2.
+  - A **tap** on a photo opens it full screen with *Original size / Rotate / Close*. Spread still works there too.
+- **Clock** (HH:MM) next to the date on the Edicola, and top-centre while reading. It updates every minute and after waking up.
+- **Lock screen**: `lockscreen/edikola.png` (the user's EdiKOla drawing, grayscale, 758×1024). Settings applied once under `konewspaper_defaults_v2`: `screensaver_type`=random_image, `screensaver_dir`=the plugin's `lockscreen/`, `screensaver_show_message`=false, `screensaver_img_background`=white.
+
+**Revert**: set `screensaver_type` back to "disable" (it was "disable", with `screensaver_show_message`=true and `screensaver_img_background`=black). Copy the earlier `main.lua` back from git.

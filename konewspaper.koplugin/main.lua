@@ -6,7 +6,9 @@ KoNewspaper: a newsstand ("edicola") home screen on top of KOReader's reader.
 - Tap a newspaper: today's edition opens (downloaded first if needed).
 - "I miei libri": the user's own EPUB/PDF files, big list, one tap to open.
 - "Giornali": tick which newspapers from the catalog (giornali.lua) are on the shelves.
-- While reading, a big "Edicola" button in the top-left corner goes back.
+- While reading, a big "Edicola" button in the top-left corner goes back, "A− A+" top-right change
+  the text size, the clock sits top-centre, and a tap on a photo opens it full screen to zoom.
+- Lock screen: lockscreen/edikola.png.
   Long-press a word for the dictionaries (Italian, English, both translations).
 - Admin escape hatch: long-press the "Edicola" title to reach KOReader's file browser.
 ]]
@@ -15,6 +17,7 @@ local Blitbuffer = require("ffi/blitbuffer")
 local Button = require("ui/widget/button")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
+local Event = require("ui/event")
 local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
@@ -56,11 +59,40 @@ local DEFAULTS = {
     start_with = "filemanager",
 }
 
-local function applyDefaults()
-    if G_reader_settings:isTrue("konewspaper_defaults_v1") then return end
-    for k, v in pairs(DEFAULTS) do G_reader_settings:saveSetting(k, v) end
-    G_reader_settings:makeTrue("konewspaper_defaults_v1")
-    G_reader_settings:flush()
+-- Lock screen: the EdiKOla newsstand picture shipped in lockscreen/
+local function lockscreenDefaults(plugin_path)
+    return {
+        screensaver_type = "random_image",
+        screensaver_dir = (plugin_path:sub(1, 1) == "/" and "" or lfs.currentdir() .. "/") .. plugin_path .. "/lockscreen",
+        screensaver_show_message = false,
+        screensaver_img_background = "white",
+        screensaver_stretch_images = false,
+    }
+end
+
+local function applyDefaults(plugin_path)
+    local sets = {
+        konewspaper_defaults_v1 = DEFAULTS,
+        konewspaper_defaults_v2 = lockscreenDefaults(plugin_path),
+    }
+    for flag, set in pairs(sets) do
+        if not G_reader_settings:isTrue(flag) then
+            for k, v in pairs(set) do G_reader_settings:saveSetting(k, v) end
+            G_reader_settings:makeTrue(flag)
+            G_reader_settings:flush()
+        end
+    end
+end
+
+-- Clock, top of the screen, on the newsstand and while reading. One timer, aligned to the minute.
+local clock_refresh -- set by whichever screen is showing: function() that marks the clock dirty
+local function clockTick()
+    if clock_refresh then clock_refresh() end
+    UIManager:scheduleIn(60 - os.date("*t").sec, clockTick)
+end
+local function startClock()
+    UIManager:unschedule(clockTick)
+    UIManager:scheduleIn(60 - os.date("*t").sec, clockTick)
 end
 
 --- { [id] = true } of the papers on the shelves (catalog defaults until the user picks)
@@ -201,17 +233,31 @@ function Edicola:init()
     -- Masthead, flanked by the two things an elder reaches for: light and "get a file from my phone"
     local side_w = Screen:scaleBySize(110)
     local side_h = Screen:scaleBySize(52)
+    self.clock = TextWidget:new{ text = os.date("%H:%M"), face = Font:getFace("NotoSans-Bold.ttf", 18) }
+    local date_line = HorizontalGroup:new{
+        TextWidget:new{ text = Build.dateLabel(os.time()) .. "  ·  ", face = Font:getFace("NotoSerif-Italic.ttf", 18) },
+        self.clock,
+    }
     local masthead = VerticalGroup:new{
         align = "center",
         TextWidget:new{ text = "Edicola", face = Font:getFace("NotoSerif-Bold.ttf", 38) },
-        TextWidget:new{ text = Build.dateLabel(os.time()), face = Font:getFace("NotoSerif-Italic.ttf", 18) },
+        date_line,
     }
+    local masthead_box = CenterContainer:new{ dimen = Geom:new{ w = cw - 2 * side_w, h = masthead:getSize().h }, masthead }
+    local day = os.date("%Y-%m-%d")
+    self.refreshClock = function()
+        if os.date("%Y-%m-%d") ~= day then return self:redraw() end -- midnight: new date, new editions
+        self.clock:setText(os.date("%H:%M"))
+        date_line:resetLayout()
+        masthead:resetLayout()
+        UIManager:setDirty(self, "ui", masthead_box.dimen)
+    end
     local header = VerticalGroup:new{
         align = "center",
         HorizontalGroup:new{
             align = "center",
             bigButton("Luce", side_w, side_h, function() Device:showLightDialog() end),
-            CenterContainer:new{ dimen = Geom:new{ w = cw - 2 * side_w, h = masthead:getSize().h }, masthead },
+            masthead_box,
             bigButton("Telefono", side_w, side_h, function() self:receiveFromPhone() end),
         },
         VerticalSpan:new{ width = Screen:scaleBySize(4) },
@@ -327,10 +373,19 @@ function Edicola.show()
     if Edicola.instance then return end
     Edicola.instance = Edicola:new{}
     UIManager:show(Edicola.instance, "full")
+    clock_refresh = function() if Edicola.instance then Edicola.instance.refreshClock() end end
+    startClock()
 end
 
 function Edicola:onCloseWidget()
-    if Edicola.instance == self then Edicola.instance = nil end
+    if Edicola.instance == self then
+        Edicola.instance = nil
+        clock_refresh = nil
+    end
+end
+
+function Edicola:onResume() -- the clock is stale after sleep
+    self.refreshClock()
 end
 
 function Edicola:onHoldTitle()
@@ -527,67 +582,101 @@ local KoNewspaper = WidgetContainer:extend{
 KoNewspaper.Edicola = Edicola -- for tools/screenshots
 
 function KoNewspaper:init()
-    applyDefaults()
+    applyDefaults(self.path)
     if self.ui.document then
-        self:addHomeButton()
+        self:addReaderControls()
     else
         UIManager:nextTick(Edicola.show)
     end
 end
 
-function KoNewspaper:addHomeButton()
-    local margin = Screen:scaleBySize(6)
-    local label = FrameContainer:new{
+local TAP_ZONES = { -- KOReader's own taps that our buttons take precedence over
+    "readermenu_tap", "readermenu_ext_tap", "tap_forward", "tap_backward", "tap_link",
+    "readerhighlight_tap", "readerfooter_tap", "readerconfigmenu_tap", "readerconfigmenu_ext_tap",
+    "tap_top_left_corner", "tap_top_right_corner", "konewspaper_photo",
+}
+
+local function label(text)
+    return FrameContainer:new{
         bordersize = Screen:scaleBySize(2),
         radius = Screen:scaleBySize(8),
         padding = Screen:scaleBySize(6),
         padding_left = Screen:scaleBySize(12),
         padding_right = Screen:scaleBySize(12),
         background = Blitbuffer.COLOR_WHITE,
-        TextWidget:new{ text = "◀ Edicola", face = Font:getFace("NotoSans-Bold.ttf", 18) },
+        TextWidget:new{ text = text, face = Font:getFace("NotoSans-Bold.ttf", 18) },
     }
-    local size = label:getSize()
-    self.ui.view:registerViewModule("konewspaper_home", {
-        paintTo = function(_, bb, x, y) label:paintTo(bb, x + margin, y + margin) end,
-    })
-    -- tap zone a bit larger than the drawn button: easier to hit
-    self.ui:registerTouchZones({
-        {
-            id = "konewspaper_home",
+end
+
+-- While reading: "◀ Edicola" top-left, clock top-centre, "A− A+" top-right (EPUB etc.),
+-- tap or spread on a photo opens it full screen.
+function KoNewspaper:addReaderControls()
+    local sw = Screen:getWidth()
+    local margin = Screen:scaleBySize(6)
+    local buttons = { { label("◀ Edicola"), function() self.ui:onHome() end } }
+    if self.ui.rolling then -- reflowable: text size; PDFs keep KOReader's zoom
+        table.insert(buttons, { label("A+"), function() self.ui:handleEvent(Event:new("ChangeSize", 2)) end })
+        table.insert(buttons, { label("A−"), function() self.ui:handleEvent(Event:new("ChangeSize", -2)) end })
+    end
+    local zones, x = {}, nil
+    for i, b in ipairs(buttons) do
+        local size = b[1]:getSize()
+        -- first button at the left edge, the others right to left from the right edge
+        if i == 1 then b.x = margin elseif i == 2 then b.x = sw - margin - size.w else b.x = x - 2 * margin - size.w end
+        x = b.x
+        local zx = math.max(0, b.x - margin) -- tap zone a bit larger than the drawn button
+        table.insert(zones, {
+            id = "konewspaper_btn" .. i,
             ges = "tap",
             screen_zone = {
-                ratio_x = 0, ratio_y = 0,
-                ratio_w = (size.w + 4 * margin) / Screen:getWidth(),
-                ratio_h = (size.h + 4 * margin) / Screen:getHeight(),
+                ratio_x = zx / sw, ratio_y = 0,
+                ratio_w = math.min(sw - zx, size.w + 2 * margin) / sw,
+                ratio_h = (size.h + 3 * margin) / Screen:getHeight(),
             },
-            overrides = {
-                "readermenu_tap", "readermenu_ext_tap", "tap_forward", "tap_backward", "tap_link",
-                "readerhighlight_tap", "readerfooter_tap", "readerconfigmenu_tap", "readerconfigmenu_ext_tap",
-                "tap_top_left_corner",
-            },
-            handler = function()
-                self.ui:onHome()
-                return true
-            end,
-        },
-        -- Spread on a photo opens it full screen, where pinch/spread zoom it and a drag pans.
-        -- Anywhere else, spread/pinch keep KOReader's own text size (EPUB) or zoom (PDF).
-        {
-            id = "konewspaper_photo_zoom",
-            ges = "spread",
-            screen_zone = { ratio_x = 0, ratio_y = 0, ratio_w = 1, ratio_h = 1 },
-            overrides = { "spread_gesture" },
-            handler = function(ges)
-                local pos = self.ui.view:screenToPageTransform(ges.pos)
-                local image = pos and self.ui.document:getImageFromPosition(pos, true, true)
-                if not image then return false end
-                UIManager:show(require("ui/widget/imageviewer"):new{
-                    image = image, with_title_bar = false, fullscreen = true,
-                })
-                return true
-            end,
-        },
+            overrides = TAP_ZONES,
+            handler = function() b[2](); return true end,
+        })
+    end
+
+    local clock_face = Font:getFace("NotoSans-Bold.ttf", 18)
+    local clock_rect = Geom:new{ x = math.floor(sw / 2) - Screen:scaleBySize(60), y = 0,
+                                 w = Screen:scaleBySize(120), h = Screen:scaleBySize(40) }
+    self.ui.view:registerViewModule("konewspaper_controls", {
+        paintTo = function(_, bb, px, py)
+            for _, b in ipairs(buttons) do b[1]:paintTo(bb, px + b.x, py + margin) end
+            local clock = TextWidget:new{ text = os.date("%H:%M"), face = clock_face }
+            clock:paintTo(bb, px + math.floor((sw - clock:getSize().w) / 2), py + margin + Screen:scaleBySize(6))
+            clock:free()
+        end,
     })
+    clock_refresh = function() UIManager:setDirty(self.ui, "ui", clock_rect) end
+    startClock()
+
+    -- Photos: tap or spread opens the image viewer (pinch/spread zoom, drag pans, buttons to
+    -- scale/close). Anywhere else, taps turn pages and pinch/spread keep KOReader's text size/zoom.
+    local function openPhoto(ges)
+        local pos = self.ui.view:screenToPageTransform(ges.pos)
+        local image = pos and self.ui.document:getImageFromPosition(pos, true, true)
+        if not image then return false end
+        UIManager:show(require("ui/widget/imageviewer"):new{
+            image = image, with_title_bar = false, fullscreen = true, buttons_visible = true,
+        })
+        return true
+    end
+    local whole = { ratio_x = 0, ratio_y = 0, ratio_w = 1, ratio_h = 1 }
+    table.insert(zones, { id = "konewspaper_photo", ges = "tap", screen_zone = whole, handler = openPhoto,
+        overrides = { "tap_forward", "tap_backward", "tap_link", "readerhighlight_tap", "readermenu_tap", "readermenu_ext_tap" } })
+    table.insert(zones, { id = "konewspaper_photo_zoom", ges = "spread", screen_zone = whole, handler = openPhoto,
+        overrides = { "spread_gesture" } })
+    self.ui:registerTouchZones(zones)
+end
+
+function KoNewspaper:onCloseDocument()
+    clock_refresh = nil
+end
+
+function KoNewspaper:onResume()
+    if self.ui.document and clock_refresh then clock_refresh() end
 end
 
 return KoNewspaper

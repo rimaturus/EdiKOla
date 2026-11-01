@@ -33,8 +33,10 @@ are fictional demo content (`tools/screenshots/make_demo.py`).*
 - **Reading**: tap the right or left side of the page to turn it. A big **◀ Edicola** button in the
   top-left corner goes back. Long-press a word to look it up in Italian, English, Italian→English and
   English→Italian.
-- **Pinch to zoom**: pinch or spread two fingers to make the text bigger or smaller (in PDFs, to zoom).
-  Spread two fingers on a photo to open it full screen and zoom in.
+- **Text size and photos**: **A− / A+** in the top-right corner make the text smaller or bigger. Pinch and
+  spread work too, and zoom PDFs. Tap a photo to see it full screen, where you can also zoom it.
+- **Clock** at the top of the screen, next to the date on the Edicola and while reading.
+- **Lock screen**: the EdiKOla newsstand drawing (`konewspaper.koplugin/lockscreen/`).
 - **Tuned for e-ink**: text size 26, a full refresh every 6 pages and on pages with photos, photos
   downloaded at about 800 px.
 
