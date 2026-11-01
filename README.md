@@ -33,14 +33,17 @@ are fictional demo content (`tools/screenshots/make_demo.py`).*
 - **Reading**: tap the right or left side of the page to turn it. A big **◀ Edicola** button in the
   top-left corner goes back. Long-press a word to look it up in Italian, English, Italian→English and
   English→Italian.
+- **Pinch to zoom**: pinch or spread two fingers to make the text bigger or smaller (in PDFs, to zoom).
+  Spread two fingers on a photo to open it full screen and zoom in.
 - **Tuned for e-ink**: text size 26, a full refresh every 6 pages and on pages with photos, photos
   downloaded at about 800 px.
 
 <p>
-<img src="docs/images/03-giornali.png" width="24%" alt="Newspaper chooser">
-<img src="docs/images/04-libri.png" width="24%" alt="My books">
-<img src="docs/images/05-luce.png" width="24%" alt="Frontlight">
-<img src="docs/images/06-prima-pagina.png" width="24%" alt="Front page of an edition">
+<img src="docs/images/03-giornali.png" width="19%" alt="Newspaper chooser">
+<img src="docs/images/04-libri.png" width="19%" alt="My books">
+<img src="docs/images/05-luce.png" width="19%" alt="Frontlight">
+<img src="docs/images/06-prima-pagina.png" width="19%" alt="Front page of an edition">
+<img src="docs/images/08-foto-zoom.png" width="19%" alt="Photo opened full screen for zooming">
 </p>
 
 ## Layout

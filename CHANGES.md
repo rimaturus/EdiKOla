@@ -110,4 +110,13 @@
 - Menus: Q/W/E shortcut hints disabled.
 - The project moved into this repo (`EdiKOla/`). README screenshots come from KOReader's emulator (`tools/screenshots/`).
 
-**Pending**: `localsend.koplugin` v1.4.5 (armv7) is not on the device yet. Until it is installed, Telefono shows "Manca il plugin LocalSend".
+`localsend.koplugin` v1.4.5 (armv7, kaikozlov, MIT) is installed in `plugins/`. `/mnt/onboard/Libri` was created.
+
+**Revert**: delete `plugins/localsend.koplugin`.
+
+## 2026-11-01 – Change set 6: pinch to zoom photos
+
+**What**
+- In an article, spreading two fingers on a photo opens it full screen. There, pinch and spread zoom it, a drag moves it, and a tap closes it. Anywhere else, pinch and spread keep KOReader's behaviour: text size in EPUBs, zoom in PDFs.
+
+**Revert**: copy the earlier `main.lua` back from git.

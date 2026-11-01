@@ -570,6 +570,23 @@ function KoNewspaper:addHomeButton()
                 return true
             end,
         },
+        -- Spread on a photo opens it full screen, where pinch/spread zoom it and a drag pans.
+        -- Anywhere else, spread/pinch keep KOReader's own text size (EPUB) or zoom (PDF).
+        {
+            id = "konewspaper_photo_zoom",
+            ges = "spread",
+            screen_zone = { ratio_x = 0, ratio_y = 0, ratio_w = 1, ratio_h = 1 },
+            overrides = { "spread_gesture" },
+            handler = function(ges)
+                local pos = self.ui.view:screenToPageTransform(ges.pos)
+                local image = pos and self.ui.document:getImageFromPosition(pos, true, true)
+                if not image then return false end
+                UIManager:show(require("ui/widget/imageviewer"):new{
+                    image = image, with_title_bar = false, fullscreen = true,
+                })
+                return true
+            end,
+        },
     })
 end
 
