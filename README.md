@@ -1,0 +1,71 @@
+# EdiKOla
+
+A newsstand ("edicola") for an old Kobo, made for an elderly reader: free newspapers without ads,
+your own books, big buttons, and almost no gestures. It is a [KOReader](https://github.com/koreader/koreader)
+plugin, and the Kobo boots straight into it.
+
+Built for a **Kobo Nia** (N306, 758×1024, 212 dpi). It should work on any Kobo that runs KOReader.
+
+<p>
+<img src="docs/images/01-edicola-italia.png" width="32%" alt="Newsstand, Italia shelf">
+<img src="docs/images/02-edicola-mondo.png" width="32%" alt="Newsstand, Mondo shelf">
+<img src="docs/images/07-articolo.png" width="32%" alt="Reading an article">
+</p>
+
+*Screenshots come from KOReader's emulator at the Nia's resolution. The newspapers and articles in them
+are fictional demo content (`tools/screenshots/make_demo.py`).*
+
+## What it does
+
+- **Edicola**: the home screen. Two shelves, **Italia** and **Mondo**, each showing a front page per
+  newspaper: masthead, date, top headline and photo. Tap a newspaper to read today's edition. It is
+  downloaded first if needed: Wi-Fi turns on by itself, then turns off again.
+- **Clean articles**: each edition is one EPUB. A front page lists the headlines, then there's one
+  chapter per article with just the text and up to 3 photos. Menus, ads, sidebars, cookie walls and
+  outbound links are removed by a small text-density extractor (`knp_extract.lua`). The last 3 days
+  are kept.
+- **Giornali**: tick which of the 26 free newspapers in the catalog (`giornali.lua`) go on the shelves.
+- **I miei libri**: every EPUB/PDF on the device in one big list. One tap opens a book.
+- **Luce**: frontlight brightness and warmth.
+- **Telefono**: receive files from a phone over Wi-Fi with the free [LocalSend](https://localsend.org)
+  app (Android/iOS). The phone shares a file to *LocalSend → EdiKOla*, and the file appears in
+  *I miei libri*.
+- **Reading**: tap the right or left side of the page to turn it. A big **◀ Edicola** button in the
+  top-left corner goes back. Long-press a word to look it up in Italian, English, Italian→English and
+  English→Italian.
+- **Tuned for e-ink**: text size 26, a full refresh every 6 pages and on pages with photos, photos
+  downloaded at about 800 px.
+
+<p>
+<img src="docs/images/03-giornali.png" width="24%" alt="Newspaper chooser">
+<img src="docs/images/04-libri.png" width="24%" alt="My books">
+<img src="docs/images/05-luce.png" width="24%" alt="Frontlight">
+<img src="docs/images/06-prima-pagina.png" width="24%" alt="Front page of an edition">
+</p>
+
+## Layout
+
+| Path | What |
+|---|---|
+| `konewspaper.koplugin/` | The KOReader plugin: `main.lua` (UI), `knp_build.lua` (download → EPUB), `knp_extract.lua` (RSS + article extraction, pure Lua), `giornali.lua` (catalog) |
+| `autoboot/` | `KoboRoot.tgz` that starts KOReader right after Nickel boots. Nickel stays installed as the fallback |
+| `tests/` | `texlua tests/konewspaper-test.lua` (fixtures), `… live` (checks every newspaper in the catalog) |
+| `tools/screenshots/` | Regenerates `docs/images` with KOReader's Linux build: `KO=~/kosim sh tools/screenshots/run.sh` |
+| `CHANGES.md` | Every change made to the device, with how to undo it |
+
+## Install
+
+1. Install KOReader on the Kobo (the [one-click package](https://www.mobileread.com/forums/showthread.php?t=314220)).
+2. Copy `konewspaper.koplugin/` to `.adds/koreader/plugins/`.
+3. Install [localsend.koplugin](https://github.com/kaikozlov/localsend.koplugin) (armv7 build) in the
+   same folder, for the **Telefono** button.
+4. Dictionaries go in `.adds/koreader/data/dict/`. The ones used here are reader.dict IT, the
+   en-en and it-en Wiktionary builds, and FreeDict eng-ita (see `CHANGES.md`, change set 4).
+5. To boot straight into KOReader, copy `autoboot/KoboRoot.tgz` to `.kobo/` and eject the Kobo.
+   To skip it for one boot, create `.adds/noautoboot`. A factory reset undoes everything.
+
+## Credits
+
+KOReader (AGPL-3.0) · localsend.koplugin by kaikozlov (MIT) · LocalSend · reader.dict, Wiktionary
+(CC-BY-SA), FreeDict dictionaries. News comes from each publisher's public RSS feed and is downloaded
+for personal reading only.
