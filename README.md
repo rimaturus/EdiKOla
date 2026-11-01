@@ -1,5 +1,9 @@
 # EdiKOla
 
+<p align="center">
+<img src="konewspaper.koplugin/lockscreen/edikola.png" width="45%" alt="EdiKOla lock screen: a newsstand kiosk drawing">
+</p>
+
 A newsstand ("edicola") for an old Kobo, made for an elderly reader: free newspapers without ads,
 your own books, big buttons, and almost no gestures. It is a [KOReader](https://github.com/koreader/koreader)
 plugin, and the Kobo boots straight into it.
