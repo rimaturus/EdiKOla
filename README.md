@@ -28,6 +28,8 @@ are fictional demo content (`tools/screenshots/make_demo.py`).*
   chapter per article with just the text and up to 3 photos. Menus, ads, sidebars, cookie walls and
   outbound links are removed by a small text-density extractor (`knp_extract.lua`). The last 3 days
   are kept.
+- **Quick updates**: **Aggiorna** downloads 4 newspapers at a time, and only articles it doesn't have yet.
+  Downloaded articles and photos are kept per newspaper, so a paper with no new articles costs just its feed.
 - **Giornali**: tick which of the 45 free newspapers in the catalog (`giornali.lua`) go on the shelves.
 - **I miei libri**: every EPUB/PDF on the device in one big list. One tap opens a book.
 - **Luce**: frontlight brightness and warmth.
@@ -58,7 +60,7 @@ are fictional demo content (`tools/screenshots/make_demo.py`).*
 |---|---|
 | `konewspaper.koplugin/` | The KOReader plugin: `main.lua` (UI), `knp_build.lua` (download → EPUB), `knp_extract.lua` (RSS + article extraction, pure Lua), `giornali.lua` (catalog) |
 | `autoboot/` | `KoboRoot.tgz` that starts KOReader right after Nickel boots. Nickel stays installed as the fallback |
-| `tests/` | `texlua tests/konewspaper-test.lua` (fixtures), `… live` (checks every newspaper in the catalog) |
+| `tests/` | `texlua tests/konewspaper-test.lua` (fixtures), `… live` (checks every newspaper in the catalog). `build-cache-test.lua` runs on KOReader's Linux build: `cd $KO/lib/koreader && ./luajit <repo>/tests/build-cache-test.lua` |
 | `tools/screenshots/` | Regenerates `docs/images` with KOReader's Linux build: `KO=~/kosim sh tools/screenshots/run.sh` |
 | `CHANGES.md` | Every change made to the device, with how to undo it |
 

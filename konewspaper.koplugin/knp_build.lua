@@ -10,6 +10,7 @@ local http = require("socket.http")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local ltn12 = require("ltn12")
+local sha2 = require("ffi/sha2")
 local socket = require("socket")
 local socket_url = require("socket.url")
 local socketutil = require("socketutil")
@@ -109,7 +110,78 @@ local function page(title, body)
 </body></html>]]):format(X.escape(title), body)
 end
 
+-- Article cache, in <paper>/cache/: <md5 of link>.lua (title, body, photo list) and the photos next to it.
+-- An article already downloaded costs no network on the next update; so does a link that gave no usable
+-- article ({ skip = true }: videos, teasers). The .lua is written last, so an interrupted save is just a miss.
+local function loadCached(cache, key)
+    local ok, art = pcall(dofile, cache .. "/" .. key .. ".lua")
+    if not (ok and type(art) == "table") then return nil end
+    for _, img in ipairs(art.images or {}) do
+        local f = io.open(cache .. "/" .. img.name:match("[^/]+$"), "rb")
+        if not f then return nil end
+        img.data = f:read("*a")
+        f:close()
+    end
+    return art
+end
+
+local function saveCached(cache, key, art)
+    local list = {}
+    for _, img in ipairs(art.images or {}) do
+        local f = io.open(cache .. "/" .. img.name:match("[^/]+$"), "wb")
+        if not f then return end
+        f:write(img.data)
+        f:close()
+        table.insert(list, ("{ name = %q, mime = %q, ext = %q }"):format(img.name, img.mime, img.ext))
+    end
+    local f = io.open(cache .. "/" .. key .. ".lua", "w")
+    if not f then return end
+    if art.skip then
+        f:write("return { skip = true }\n")
+    else
+        f:write(("return { title = %q, body = %q, images = { %s } }\n"):format(art.title, art.body, table.concat(list, ", ")))
+    end
+    f:close()
+end
+
+-- Keeps only the cache entries of the links looked at in this update
+local function pruneCache(cache, used)
+    for f in lfs.dir(cache) do
+        local key = f:match("^(%x+)[_.]")
+        if key and not used[key] then os.remove(cache .. "/" .. f) end
+    end
+end
+
+-- One article: { title=, body=, images={ {name=, data=, mime=, ext=} } }, or { skip = true }
+local function download(item, key)
+    local html = get(item.link)
+    local blocks = html and X.article(html) or {}
+    if X.length(blocks) < 400 then blocks = X.article(X.feedHTML(item.content)) end
+    if X.length(blocks) < 400 then return { skip = true } end
+    local body, images = {}, {}
+    for _, b in ipairs(blocks) do
+        if b.kind == "img" then
+            if #images < MAX_IMAGES then
+                local data = get(socket_url.absolute(item.link, b.src))
+                local ext, mime
+                if data and #data <= MAX_IMAGE_BYTES then ext, mime = imageType(data) end
+                if ext then
+                    local name = ("images/%s_%d.%s"):format(key, #images + 1, ext)
+                    table.insert(images, { name = name, data = data, mime = mime, ext = ext })
+                    table.insert(body, ('<div class="img"><img src="%s" alt=""/></div>'):format(name))
+                end
+            end
+        elseif b.kind == "h" then
+            table.insert(body, "<h3>" .. X.escape(b.text) .. "</h3>")
+        else
+            table.insert(body, "<p>" .. X.escape(b.text) .. "</p>")
+        end
+    end
+    return { title = item.title, body = table.concat(body, "\n"), images = images }
+end
+
 --- Builds today's edition. progress(msg) returns false to cancel.
+-- Only articles not downloaded before use the network. Today's edition is kept as it is when nothing is new.
 -- Returns the EPUB path, or nil and an error message.
 function Build.paper(paper, progress)
     progress = progress or function() return true end
@@ -119,48 +191,40 @@ function Build.paper(paper, progress)
     if not xml then return nil, "giornale non raggiungibile" end
     local items = X.feed(xml)
 
+    local dir = Build.root .. "/" .. paper.id
+    local cache = dir .. "/cache"
+    lfs.mkdir(Build.root)
+    lfs.mkdir(dir)
+    lfs.mkdir(cache)
     local max = paper.max or 10
-    local articles, images = {}, {}
+    local articles, images, used, fresh = {}, {}, {}, 0
     for i = 1, math.min(#items, max * 2) do -- spare tries: videos and teasers are skipped
         if #articles >= max then break end
         local item = items[i]
-        if not progress(("%s\n\nArticolo %d di %d…"):format(paper.name, #articles + 1, max)) then return nil, "annullato" end
-        local html = get(item.link)
-        local blocks = html and X.article(html) or {}
-        if X.length(blocks) < 400 then blocks = X.article(X.feedHTML(item.content)) end
-        if X.length(blocks) >= 400 then
-            local n = #articles + 1
-            local body, nimg = {}, 0
-            for _, b in ipairs(blocks) do
-                if b.kind == "img" then
-                    if nimg < MAX_IMAGES then
-                        local src = socket_url.absolute(item.link, b.src)
-                        local data = get(src)
-                        local ext, mime
-                        if data and #data <= MAX_IMAGE_BYTES then ext, mime = imageType(data) end
-                        if ext then
-                            nimg = nimg + 1
-                            local name = ("images/%d_%d.%s"):format(n, nimg, ext)
-                            table.insert(images, { name = name, data = data, mime = mime, ext = ext })
-                            table.insert(body, ('<div class="img"><img src="%s" alt=""/></div>'):format(name))
-                        end
-                    end
-                elseif b.kind == "h" then
-                    table.insert(body, "<h3>" .. X.escape(b.text) .. "</h3>")
-                else
-                    table.insert(body, "<p>" .. X.escape(b.text) .. "</p>")
-                end
+        local key = sha2.md5(item.link)
+        if not used[key] then -- the same link twice in a feed
+            used[key] = true
+            local art = loadCached(cache, key)
+            if not art then
+                fresh = fresh + 1
+                if not progress(("%s\n\nArticolo nuovo %d…"):format(paper.name, fresh)) then return nil, "annullato" end
+                art = download(item, key)
+                saveCached(cache, key, art)
             end
-            table.insert(articles, { title = item.title, body = table.concat(body, "\n") })
+            if not art.skip then
+                table.insert(articles, art)
+                for _, img in ipairs(art.images) do table.insert(images, img) end
+            end
         end
     end
+    pruneCache(cache, used)
     if #articles == 0 then return nil, "nessun articolo gratuito trovato" end
-    if not progress(("%s\n\nPreparo il giornale…"):format(paper.name)) then return nil, "annullato" end
 
     local now = os.time()
     local path = Build.path(paper, now)
-    lfs.mkdir(Build.root)
-    lfs.mkdir(Build.root .. "/" .. paper.id)
+    if fresh == 0 and lfs.attributes(path, "mode") == "file" then return path end -- nothing new today
+    if not progress(("%s\n\nPreparo il giornale…"):format(paper.name)) then return nil, "annullato" end
+
     local tmp = path .. ".tmp"
     local epub = Archiver.Writer:new{}
     if not epub:open(tmp, "epub") then return nil, "impossibile scrivere il file" end
