@@ -131,3 +131,16 @@
 - **Lock screen**: `lockscreen/edikola.png` (the user's EdiKOla drawing, grayscale, 758×1024). Settings applied once under `konewspaper_defaults_v2`: `screensaver_type`=random_image, `screensaver_dir`=the plugin's `lockscreen/`, `screensaver_show_message`=false, `screensaver_img_background`=white.
 
 **Revert**: set `screensaver_type` back to "disable" (it was "disable", with `screensaver_show_message`=true and `screensaver_img_background`=black). Copy the earlier `main.lua` back from git.
+
+## 2026-11-02 – Change set 8: Buone notizie and Scienza e tecnologia shelves (from `dev`)
+
+**What**
+- `plugins/konewspaper.koplugin` replaced with the `dev` version (4553106). It was identical to `master` before.
+  - Two new shelves, **Buone notizie** and **Scienza e tecnologia**, next to Italia and Mondo. Catalog: 45 papers.
+  - Applied once at the next start: `konewspaper_defaults_v3` turns off 18 unused KOReader plugins (`plugins_disabled`).
+    `konewspaper_defaults_v4` adds the new shelves' 8 default papers to `konewspaper_selected`.
+- Not installed: the Nickel-free boot (`autoboot/KoboRoot.tgz` on `dev`). It waits for a full storage image.
+
+**Backup**: `backup/2026-11-02_shelves/` (old plugin + `settings.reader.lua`).
+
+**Revert**: copy both back from the backup. Copying `settings.reader.lua` back also turns the 18 plugins on again.
