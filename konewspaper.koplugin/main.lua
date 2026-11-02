@@ -37,6 +37,7 @@ local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local ffiutil = require("ffi/util")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local Build = require("knp_build")
@@ -439,24 +440,63 @@ function Edicola:openPaper(paper)
     end)
 end
 
--- Downloads the given papers (Wi-Fi turns on by itself, and off again after)
+-- Downloads the given papers (Wi-Fi turns on by itself, and off again after). Several at once, each in
+-- its own process: a download mostly waits on the network, and KOReader's sockets block.
+-- ponytail: fixed worker count; lower it if updates run out of memory (256 MB), raise it on a fast connection
+local PARALLEL = 4
 function Edicola:fetch(list, after)
     if #list == 0 then return end
     NetworkMgr:runWhenOnline(function()
         Trapper:wrap(function()
-            local failed = {}
-            for _, paper in ipairs(list) do
-                local ok, path, err = pcall(Build.paper, paper, function(msg)
-                    return Trapper:info(msg .. "\n\n(tocca lo schermo per annullare)")
-                end)
-                if not ok then
-                    logger.err("KoNewspaper:", paper.name, path)
-                    err = "errore imprevisto"
+            local failed, running, nrunning, nextp, ndone = {}, {}, 0, 1, 0
+            local shown
+            while nextp <= #list or nrunning > 0 do
+                while nextp <= #list and nrunning < PARALLEL do
+                    local paper = list[nextp]
+                    nextp = nextp + 1
+                    local pid, fd = ffiutil.runInSubProcess(function(_, out)
+                        local ok, path, err = pcall(Build.paper, paper)
+                        if not ok then
+                            logger.err("KoNewspaper:", paper.name, path)
+                            err = "errore imprevisto"
+                        end
+                        ffiutil.writeToFD(out, (ok and path) and "" or tostring(err), true)
+                    end, true)
+                    if pid then
+                        running[pid] = { paper = paper, fd = fd }
+                        nrunning = nrunning + 1
+                    else
+                        table.insert(failed, paper.name .. ": " .. tostring(fd))
+                    end
                 end
-                if not (ok and path) then
-                    if err == "annullato" then break end
-                    table.insert(failed, paper.name .. ": " .. tostring(err))
+                for pid, job in pairs(running) do
+                    if ffiutil.isSubProcessDone(pid) then
+                        local err = ffiutil.readAllFromFD(job.fd)
+                        if err ~= "" then table.insert(failed, job.paper.name .. ": " .. err) end
+                        running[pid] = nil
+                        nrunning = nrunning - 1
+                        ndone = ndone + 1
+                    end
                 end
+                if nextp > #list and nrunning == 0 then break end
+
+                local names = {}
+                for _, job in pairs(running) do table.insert(names, job.paper.name) end
+                table.sort(names)
+                local text = #list == 1 and ("%s\n\nScarico il giornale…"):format(list[1].name)
+                    or ("Giornali pronti: %d di %d\n\nIn corso:\n%s"):format(ndone, #list, table.concat(names, "\n"))
+                text = text .. "\n\n(tocca lo schermo per annullare)"
+                -- same text: refresh only the message box (no e-ink flash); new text: redraw it
+                if not Trapper:info(text, text == shown) then
+                    for pid, job in pairs(running) do
+                        ffiutil.terminateSubProcess(pid)
+                        ffiutil.readAllFromFD(job.fd) -- returns once the process is gone
+                        ffiutil.isSubProcessDone(pid, true)
+                    end
+                    break
+                end
+                shown = text
+                ffiutil.usleep(500000) -- Trapper:info already gave the screen 0.1 s for taps
             end
             Trapper:clear()
             NetworkMgr:turnOffWifi()

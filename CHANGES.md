@@ -145,3 +145,19 @@
 **Backup**: `backup/2026-11-02_shelves/` (old plugin + `settings.reader.lua`).
 
 **Revert**: copy both back from the backup.
+
+## 2026-11-02 – Change set 9: faster Aggiorna (article cache, 4 papers at a time)
+
+**Found**: with 30 papers on the shelves, Aggiorna took about 30 minutes. Each paper made about 40 HTTPS
+requests one after another, and every article was downloaded again on every update.
+
+**What** (`konewspaper.koplugin`: `knp_build.lua`, `main.lua`)
+- Article cache in `KoNewspaper/<paper>/cache/`: each article's text and photos, plus the links that gave no
+  usable article (videos, teasers). Only articles not seen before are downloaded. A paper with nothing new
+  costs just its feed, and today's edition is left as it is.
+- Aggiorna downloads 4 papers at a time, each in its own process (`PARALLEL` in `main.lua`). The progress
+  message shows "Giornali pronti: N di M" and the papers in progress. Tapping it still cancels, after a confirmation.
+- Emulator (PC network), 8 real papers: 70.6 s with an empty cache, 3.2 s on the next update with nothing new.
+- The first Aggiorna on the Kobo is still a full download: the editions already there have no cache yet.
+
+**Revert**: copy the plugin from git (`master` 47da7c7). The `cache/` folders can be deleted at any time.
