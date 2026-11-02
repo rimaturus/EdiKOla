@@ -138,7 +138,7 @@
 - `plugins/konewspaper.koplugin` replaced with the `dev` version (4553106). It was identical to `master` before.
   - Two new shelves, **Buone notizie** and **Scienza e tecnologia**, next to Italia and Mondo. Catalog: 45 papers.
   - Applied once at the next start: `konewspaper_defaults_v3` turns off 18 unused KOReader plugins (`plugins_disabled`).
-    `konewspaper_defaults_v4` adds the new shelves' 8 default papers to `konewspaper_selected`.
+    `konewspaper_defaults_v4` adds all 20 papers of the new shelves to `konewspaper_selected`.
 - Not installed: the Nickel-free boot (`autoboot/KoboRoot.tgz` on `dev`). It waits for a full storage image.
 
 **Backup**: `backup/2026-11-02_shelves/` (old plugin + `settings.reader.lua`).
