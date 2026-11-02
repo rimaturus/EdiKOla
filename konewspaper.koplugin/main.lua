@@ -44,7 +44,12 @@ local giornali = require("giornali")
 local Screen = Device.screen
 
 local BOOK_EXT = { epub = true, pdf = true, mobi = true, azw3 = true, fb2 = true, txt = true, rtf = true, djvu = true, cbz = true, docx = true }
-local SECTIONS = { { id = "italia", name = "Italia" }, { id = "mondo", name = "Mondo" } }
+local SECTIONS = {
+    { id = "italia", name = "Italia" },
+    { id = "mondo", name = "Mondo" },
+    { id = "buone", name = "Buone notizie" },
+    { id = "scienza", name = "Scienza e tecnologia" }, -- long labels wrap to 2 lines on their own
+}
 local PER_PAGE = 4 -- front pages per shelf page (2 x 2)
 local BOOKS_DIR = (Device.home_dir or "/mnt/onboard") .. "/Libri" -- where phone transfers land
 
@@ -70,10 +75,21 @@ local function lockscreenDefaults(plugin_path)
     }
 end
 
+-- The Buone notizie and Scienza shelves came later: put their default papers on an existing selection once
+local function newShelvesDefaults()
+    local sel = G_reader_settings:readSetting("konewspaper_selected")
+    if not sel then return {} end -- no selection yet: catalog defaults already apply
+    for _, p in ipairs(giornali) do
+        if p.default and (p.section == "buone" or p.section == "scienza") then sel[p.id] = true end
+    end
+    return { konewspaper_selected = sel }
+end
+
 local function applyDefaults(plugin_path)
     local sets = {
         konewspaper_defaults_v1 = DEFAULTS,
         konewspaper_defaults_v2 = lockscreenDefaults(plugin_path),
+        konewspaper_defaults_v4 = newShelvesDefaults(), -- v3 is on dev (custom OS plan)
     }
     for flag, set in pairs(sets) do
         if not G_reader_settings:isTrue(flag) then
@@ -272,7 +288,7 @@ function Edicola:init()
 
     -- Section tabs
     local tab_h = Screen:scaleBySize(56)
-    local tab_w = math.floor((cw - gap) / 2)
+    local tab_w = math.floor((cw - (#SECTIONS - 1) * gap) / #SECTIONS)
     local tabs = HorizontalGroup:new{}
     for i, s in ipairs(SECTIONS) do
         if i > 1 then table.insert(tabs, HorizontalSpan:new{ width = gap }) end

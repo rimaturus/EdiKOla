@@ -21,14 +21,14 @@ are fictional demo content (`tools/screenshots/make_demo.py`).*
 
 ## What it does
 
-- **Edicola**: the home screen. Two shelves, **Italia** and **Mondo**, each showing a front page per
+- **Edicola**: the home screen. Four shelves: **Italia** and **Mondo** (news, politics, economy), **Buone notizie** (good news only) and **Scienza e tecnologia**. Each shows a front page per
   newspaper: masthead, date, top headline and photo. Tap a newspaper to read today's edition. It is
   downloaded first if needed: Wi-Fi turns on by itself, then turns off again.
 - **Clean articles**: each edition is one EPUB. A front page lists the headlines, then there's one
   chapter per article with just the text and up to 3 photos. Menus, ads, sidebars, cookie walls and
   outbound links are removed by a small text-density extractor (`knp_extract.lua`). The last 3 days
   are kept.
-- **Giornali**: tick which of the 26 free newspapers in the catalog (`giornali.lua`) go on the shelves.
+- **Giornali**: tick which of the 45 free newspapers in the catalog (`giornali.lua`) go on the shelves.
 - **I miei libri**: every EPUB/PDF on the device in one big list. One tap opens a book.
 - **Luce**: frontlight brightness and warmth.
 - **Telefono**: receive files from a phone over Wi-Fi with the free [LocalSend](https://localsend.org)

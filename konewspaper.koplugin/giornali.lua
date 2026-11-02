@@ -1,6 +1,7 @@
 -- Catalog of newspapers. Choose which ones appear on the newsstand from the "Giornali" button.
---   id       folder name (letters only)    name     title on the newsstand
---   section  "italia" or "mondo"           feed     RSS/Atom address
+--   id       folder name (letters, digits)  name     title on the newsstand
+--   section  "italia", "mondo", "buone"    feed     RSS/Atom address
+--            (good news) or "scienza"
 --   max      articles per edition          default  shown until a selection is made
 -- Only free sources: paywalled articles give teasers and get skipped.
 return {
@@ -18,7 +19,6 @@ return {
     { id = "messaggero",section = "italia", name = "Il Messaggero",       feed = "https://www.ilmessaggero.it/rss/home.xml" },
     { id = "today",     section = "italia", name = "Today",               feed = "https://www.today.it/rss" },
     { id = "euronewsit",section = "italia", name = "Euronews Italiano",   feed = "https://it.euronews.com/rss" },
-    { id = "wiredit",   section = "italia", name = "Wired Italia",        feed = "https://www.wired.it/feed/rss" },
 
     { id = "guardian",  section = "mondo", name = "The Guardian",         feed = "https://www.theguardian.com/world/rss", default = true },
     { id = "bbc",       section = "mondo", name = "BBC News",             feed = "https://feeds.bbci.co.uk/news/world/rss.xml", default = true },
@@ -31,4 +31,28 @@ return {
     { id = "conversation",section = "mondo", name = "The Conversation",   feed = "https://theconversation.com/global/articles.atom" },
     { id = "politico",  section = "mondo", name = "Politico Europe",      feed = "https://www.politico.eu/feed/" },
     { id = "propublica",section = "mondo", name = "ProPublica",           feed = "https://www.propublica.org/feeds/propublica/main" },
+
+    -- Good news (live-tested 2026-11-02)
+    { id = "cambia",    section = "buone", name = "Italia che Cambia",     feed = "https://www.italiachecambia.org/feed/", default = true },
+    { id = "positive",  section = "buone", name = "Positive News",         feed = "https://www.positive.news/feed/", default = true },
+    { id = "goodnews",  section = "buone", name = "Good News Network",     feed = "https://www.goodnewsnetwork.org/feed/", default = true },
+    { id = "cheerful",  section = "buone", name = "Reasons to be Cheerful", feed = "https://reasonstobecheerful.world/feed/", default = true },
+    { id = "optimist",  section = "buone", name = "The Optimist Daily",    feed = "https://www.optimistdaily.com/feed/" },
+    { id = "upside",    section = "buone", name = "The Guardian – The Upside", feed = "https://www.theguardian.com/world/series/the-upside/rss" },
+    { id = "greenme",   section = "buone", name = "GreenMe",               feed = "https://www.greenme.it/feed/" },
+
+    -- Science and technology (live-tested 2026-11-02)
+    { id = "focus",     section = "scienza", name = "Focus",               feed = "https://www.focus.it/rss", default = true },
+    { id = "ansasci",   section = "scienza", name = "ANSA Scienza",        feed = "https://www.ansa.it/canale_scienza_tecnica/notizie/scienzaetecnica_rss.xml", default = true },
+    { id = "guardsci",  section = "scienza", name = "The Guardian Science", feed = "https://www.theguardian.com/science/rss", default = true },
+    { id = "ars",       section = "scienza", name = "Ars Technica",        feed = "https://feeds.arstechnica.com/arstechnica/index", default = true },
+    { id = "wiredit",   section = "scienza", name = "Wired Italia",        feed = "https://www.wired.it/feed/rss" },
+    { id = "inaf",      section = "scienza", name = "Media Inaf (spazio)", feed = "https://www.media.inaf.it/feed/" },
+    { id = "galileo",   section = "scienza", name = "Galileo",             feed = "https://www.galileonet.it/feed/" },
+    { id = "puntoinf",  section = "scienza", name = "Punto Informatico",   feed = "https://www.punto-informatico.it/feed/" },
+    { id = "scidaily",  section = "scienza", name = "ScienceDaily",        feed = "https://www.sciencedaily.com/rss/top.xml" },
+    { id = "quanta",    section = "scienza", name = "Quanta Magazine",     feed = "https://www.quantamagazine.org/feed/" },
+    { id = "nasa",      section = "scienza", name = "NASA",                feed = "https://www.nasa.gov/news-release/feed/" },
+    { id = "bbcsci",    section = "scienza", name = "BBC Science",         feed = "https://feeds.bbci.co.uk/news/science_and_environment/rss.xml" },
+    { id = "convsci",   section = "scienza", name = "The Conversation Science", feed = "https://theconversation.com/global/topics/science-1214/articles.atom" },
 }
