@@ -132,15 +132,16 @@
 
 **Revert**: set `screensaver_type` back to "disable" (it was "disable", with `screensaver_show_message`=true and `screensaver_img_background`=black). Copy the earlier `main.lua` back from git.
 
-## 2026-11-02 – Change set 8: Buone notizie and Scienza e tecnologia shelves (from `dev`)
+## 2026-11-02 – Change set 8: Buone notizie and Scienza e tecnologia shelves
 
 **What**
-- `plugins/konewspaper.koplugin` replaced with the `dev` version (4553106). It was identical to `master` before.
-  - Two new shelves, **Buone notizie** and **Scienza e tecnologia**, next to Italia and Mondo. Catalog: 45 papers.
-  - Applied once at the next start: `konewspaper_defaults_v3` turns off 18 unused KOReader plugins (`plugins_disabled`).
-    `konewspaper_defaults_v4` adds all 20 papers of the new shelves to `konewspaper_selected`.
-- Not installed: the Nickel-free boot (`autoboot/KoboRoot.tgz` on `dev`). It waits for a full storage image.
+- `plugins/konewspaper.koplugin` updated (it was the previous `master` version).
+  - Two new shelves, **Buone notizie** and **Scienza e tecnologia**, next to Italia and Mondo. The catalog has
+    45 papers. All 20 on the new shelves are defaults.
+  - Applied once at the next start: `konewspaper_defaults_v4` adds those 20 papers to `konewspaper_selected`.
+    The 10 papers already chosen stay.
+- The custom OS work (Nickel-free boot, turning off unused KOReader plugins) stays on `dev`. None of it is on the device.
 
 **Backup**: `backup/2026-11-02_shelves/` (old plugin + `settings.reader.lua`).
 
-**Revert**: copy both back from the backup. Copying `settings.reader.lua` back also turns the 18 plugins on again.
+**Revert**: copy both back from the backup.
