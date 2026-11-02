@@ -16,6 +16,10 @@ PAPERS = [  # id, name, section, headline
     ("harbor", "Harbor Herald", "mondo", "Coastal towns plant new dunes to protect beaches from winter storms"),
     ("north", "The Northern Post", "mondo", "Night trains return: new sleeper routes link three capitals"),
     ("globe", "Daily Globe Demo", "mondo", "Community gardens spread across city rooftops this spring"),
+    ("sorriso", "Il Sorriso Quotidiano", "buone", "Il paese adotta i nonni: ogni giovedì merenda e racconti a scuola"),
+    ("sunny", "Sunny Side Post", "buone", "A retired baker teaches the whole street to make bread on Sundays"),
+    ("stelle", "Cronache delle Stelle", "scienza", "Una nuova cometa sarà visibile a occhio nudo prima di Natale"),
+    ("lab", "Lab Notes Demo", "scienza", "Quieter, cheaper heat pumps reach small apartments"),
 ]
 
 ARTICLE = ("Questo è un testo di esempio scritto per le immagini del README. "

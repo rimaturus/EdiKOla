@@ -24,6 +24,16 @@ assert(X.toUTF8("perch\232 \147ok\148") == "perchè “ok”") -- Latin-1/cp1252
 assert(X.toUTF8("già") == "già")                            -- valid UTF-8 untouched
 print("fixtures ok")
 
+-- Catalog: unique letters-and-digits ids (folder names), and a shelf that exists (else the paper never shows)
+local SHELVES = { italia = true, mondo = true, buone = true, scienza = true }
+local seen = {}
+for _, p in ipairs(dofile("konewspaper.koplugin/giornali.lua")) do
+    assert(p.id:match("^%w+$") and not seen[p.id], "bad or duplicate id " .. p.id)
+    assert(SHELVES[p.section], p.id .. ": unknown section " .. tostring(p.section))
+    seen[p.id] = true
+end
+print("catalog ok")
+
 local dir = arg[1]
 if dir then
     for _, name in ipairs({ "a1", "a2", "a3", "rai", "fatto", "ansa" }) do
