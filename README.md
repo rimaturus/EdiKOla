@@ -67,6 +67,8 @@ are fictional demo content (`tools/screenshots/make_demo.py`).*
 
 ## Install
 
+First time? [docs/TUTORIAL.md](docs/TUTORIAL.md) goes from a new Kobo to EdiKOla step by step, with a check after each step. In short:
+
 1. Install KOReader on the Kobo (the [one-click package](https://www.mobileread.com/forums/showthread.php?t=314220)).
 2. Copy `konewspaper.koplugin/` to `.adds/koreader/plugins/`.
 3. Install [localsend.koplugin](https://github.com/kaikozlov/localsend.koplugin) (armv7 build) in the
