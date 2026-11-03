@@ -86,15 +86,31 @@ local function newShelvesDefaults()
     return { konewspaper_selected = sel }
 end
 
+-- Status bar while reading: only "18/40 (1/5)", centred (page of the paper, page of the article).
+-- The one item kept is chapter_progress; addReaderControls gives it that text. Tapping it changes nothing.
+local FOOTER_ITEMS = { "page_progress", "pages_left_book", "time", "pages_left", "battery", "percentage",
+    "book_time_to_read", "chapter_time_to_read", "frontlight", "mem_usage", "wifi_status", "book_title",
+    "book_chapter", "bookmark_count", "frontlight_warmth", "custom_text", "book_author",
+    "page_turning_inverted", "dynamic_filler", "additional_content" }
+local function footerDefaults()
+    local f = G_reader_settings:readSetting("footer")
+        or require("util").tableDeepCopy(require("apps/reader/modules/readerfooter").default_settings)
+    for _, k in ipairs(FOOTER_ITEMS) do f[k] = false end
+    f.chapter_progress, f.all_at_once, f.lock_tap, f.disable_progress_bar, f.align = true, true, true, true, "center"
+    f.text_font_size, f.text_font_bold, f.container_height = 18, true, 20 -- as big as the clock
+    return { footer = f, reader_footer_mode = 1 }
+end
+
 local function applyDefaults(plugin_path)
-    local sets = {
-        konewspaper_defaults_v1 = DEFAULTS,
-        konewspaper_defaults_v2 = lockscreenDefaults(plugin_path),
-        konewspaper_defaults_v4 = newShelvesDefaults(), -- v3 is on dev (custom OS plan)
+    local sets = { -- functions, so a set is only computed (and settings touched) the one time it applies
+        konewspaper_defaults_v1 = function() return DEFAULTS end,
+        konewspaper_defaults_v2 = lockscreenDefaults,
+        konewspaper_defaults_v4 = newShelvesDefaults, -- v3 is on dev (custom OS plan)
+        konewspaper_defaults_v5 = footerDefaults,
     }
     for flag, set in pairs(sets) do
         if not G_reader_settings:isTrue(flag) then
-            for k, v in pairs(set) do G_reader_settings:saveSetting(k, v) end
+            for k, v in pairs(set(plugin_path)) do G_reader_settings:saveSetting(k, v) end
             G_reader_settings:makeTrue(flag)
             G_reader_settings:flush()
         end
@@ -707,6 +723,18 @@ function KoNewspaper:addReaderControls()
     })
     clock_refresh = function() UIManager:setDirty(self.ui, "ui", clock_rect) end
     startClock()
+
+    -- Bottom centre: "18/40 (1/5)" = page 18 of 40 in the paper, page 1 of 5 of this article.
+    -- Books without a table of contents show just "18/40".
+    local footer = self.ui.view.footer
+    local chapterProgress = footer.getChapterProgress
+    function footer:getChapterProgress(get_percentage, pageno)
+        if get_percentage then return chapterProgress(self, get_percentage, pageno) end
+        local text = ("%d/%d"):format(self.pageno, self.pages)
+        local done, count = self.ui.toc:getChapterPagesDone(self.pageno), self.ui.toc:getChapterPageCount(self.pageno)
+        if done and count then text = text .. (" (%d/%d)"):format(done + 1, count) end
+        return text
+    end
 
     -- Photos: tap or spread opens the image viewer (pinch/spread zoom, drag pans, buttons to
     -- scale/close). Anywhere else, taps turn pages and pinch/spread keep KOReader's text size/zoom.

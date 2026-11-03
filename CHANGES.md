@@ -161,3 +161,17 @@ requests one after another, and every article was downloaded again on every upda
 - The first Aggiorna on the Kobo is still a full download: the editions already there have no cache yet.
 
 **Revert**: copy the plugin from git (`master` 47da7c7). The `cache/` folders can be deleted at any time.
+
+## 2026-11-03 – Change set 10: page counter at the bottom of articles
+
+**What** (`konewspaper.koplugin/main.lua`)
+- While reading, the bottom centre shows `18/40 (1/5)`: page 18 of 40 in the paper, page 1 of 5 of the
+  article. Books without a table of contents show just `18/40`. Bold, the same size as the clock.
+- Applied once at the next start (`konewspaper_defaults_v5`): KOReader's status bar keeps only that item, with
+  no progress bar, centred, and tapping it no longer changes it (`footer`, `reader_footer_mode` in `settings.reader.lua`).
+- Fix: the default sets are only computed when they apply. Before, the Buone notizie / Scienza defaults were
+  added back to the selection on every start, so a paper ticked off there could come back.
+
+**Backup**: `backup/2026-11-03_footer/` (old plugin + `settings.reader.lua`).
+
+**Revert**: copy both back from the backup.
