@@ -84,7 +84,9 @@ for i, (pid, name, section, headline) in enumerate(PAPERS):
         items = "".join(f'<item id="a{n}" href="a{n}.xhtml" media-type="application/xhtml+xml"/>' for n in range(1, 4))
         spine = "".join(f'<itemref idref="a{n}"/>' for n in range(1, 4))
         z.writestr("OEBPS/content.opf", f'<?xml version="1.0" encoding="utf-8"?><package xmlns="http://www.idpf.org/2007/opf" xmlns:dc="http://purl.org/dc/elements/1.1/" unique-identifier="id" version="2.0"><metadata><dc:title>{name}</dc:title><dc:identifier id="id">demo-{pid}</dc:identifier><dc:language>it</dc:language></metadata><manifest><item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/><item id="css" href="style.css" media-type="text/css"/><item id="index" href="index.xhtml" media-type="application/xhtml+xml"/>{items}<item id="cover" href="cover.png" media-type="image/png"/></manifest><spine toc="ncx"><itemref idref="index"/>{spine}</spine></package>')
-        z.writestr("OEBPS/toc.ncx", f'<?xml version="1.0" encoding="utf-8"?><ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1"><head/><docTitle><text>{name}</text></docTitle><navMap><navPoint id="n1" playOrder="1"><navLabel><text>Prima pagina</text></navLabel><content src="index.xhtml"/></navPoint></navMap></ncx>')
+        nav = "".join(f'<navPoint id="n{n}" playOrder="{n}"><navLabel><text>{t}</text></navLabel><content src="{f}"/></navPoint>'
+                      for n, (t, f) in enumerate([("Prima pagina", "index.xhtml")] + [(t, f"a{k}.xhtml") for k, t in enumerate(titles, 1)], 1))
+        z.writestr("OEBPS/toc.ncx", f'<?xml version="1.0" encoding="utf-8"?><ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1"><head/><docTitle><text>{name}</text></docTitle><navMap>{nav}</navMap></ncx>')
     with open(os.path.join(d, f"{today}.meta.lua"), "w", encoding="utf8") as f:
         f.write(f'return {{ headline = "{headline}", cover = "{cover}" }}\n')
 

@@ -41,7 +41,8 @@ are fictional demo content (`tools/screenshots/make_demo.py`).*
   English→Italian.
 - **Text size and photos**: **A− / A+** in the top-right corner make the text smaller or bigger. Pinch and
   spread work too, and zoom PDFs. Tap a photo to see it full screen, where you can also zoom it.
-- **Clock** at the top of the screen, next to the date on the Edicola and while reading.
+- **Clock** at the top of the screen, next to the date on the Edicola and while reading. At the bottom of an article,
+  **18/40 (1/5)**: page 18 of 40 in the paper, page 1 of 5 of this article.
 - **Lock screen**: the EdiKOla newsstand drawing (`konewspaper.koplugin/lockscreen/`).
 - **Tuned for e-ink**: text size 26, a full refresh every 6 pages and on pages with photos, photos
   downloaded at about 800 px.
