@@ -196,3 +196,9 @@ after 30 s, about 6 tries, so roughly 1 connection in 5 failed ("Failed to resto
   pages; tabs and shelf pages redraw without the black flash.
 
 **Revert**: copy the plugin from git (`master` 1589d89). `konewspaper_briefs` can stay.
+
+**Installed from `dev`** (custom OS plan, phase 2): the same plugin, plus 18 unused KOReader plugins turned off
+once at the next start (`konewspaper_defaults_v3`, `plugins_disabled`). The boot is unchanged (Nickel, then
+KOReader): the Nickel-free boot waits for the full image backup (phase 0).
+
+**Backup**: `backup/2026-11-04_sommario/` (old plugin + `settings.reader.lua`). **Revert**: copy both back.
