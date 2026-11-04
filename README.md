@@ -16,8 +16,8 @@ Built for a **Kobo Nia** (N306, 758×1024, 212 dpi). It should work on any Kobo 
 <img src="docs/images/07-articolo.png" width="32%" alt="Reading an article">
 </p>
 <p>
-<img src="docs/images/11-sommario.png" width="32%" alt="Sommario: today's articles by newspaper">
-<img src="docs/images/12-sommario-argomenti.png" width="32%" alt="Sommario by topic, with briefs">
+<img src="docs/images/11-sommario.png" width="32%" alt="Sommario: one entry per topic with its main headlines">
+<img src="docs/images/12-sommario-argomenti.png" width="32%" alt="One topic: its articles with their briefs">
 <img src="docs/images/13-articolo-dal-sommario.png" width="32%" alt="An article opened from the Sommario">
 </p>
 
@@ -35,10 +35,13 @@ are fictional demo content (`tools/screenshots/make_demo.py`).*
   are kept.
 - **Quick updates**: **Aggiorna** downloads 4 newspapers at a time, and only articles it doesn't have yet.
   Downloaded articles and photos are kept per newspaper, so a paper with no new articles costs just its feed.
-- **Sommario**: after **Aggiorna** (or from its button), every article of the day, listed by newspaper. Tap one to
-  read it. With **Riassunti, divisi per argomento** ticked, the list becomes a report by topic (politics,
-  economy, world, crime, health, science, environment, culture, sport), each article with its opening sentences.
-  Topics come from keywords (`knp_topics.lua`); no language model, which would be far too slow on the Kobo.
+- **Sommario**: after **Aggiorna** (or from its button), the day's news in Italian, a little of everything first:
+  one entry per topic (politics, economy, world, crime, health, science, environment, culture, sport) with how
+  many articles and its main headlines. Tap a topic for each of its articles with its opening sentences; tap an
+  article to read it. **Tutti i titoli** lists every title by newspaper. Topics come from keywords
+  (`knp_topics.lua`); no language model, which would be far too slow on the Kobo. English papers (`lang = "en"`
+  in the catalog) get their titles and briefs translated during **Aggiorna** with KOReader's own translator
+  (Google Translate), once per article; the articles themselves stay in English.
 - **Giornali**: tick which of the 45 free newspapers in the catalog (`giornali.lua`) go on the shelves.
 - **Wi-Fi that retries**: if the router refuses the Kobo an address, it asks again, up to 3 rounds, instead of giving up after 30 s.
 - **I miei libri**: every EPUB/PDF on the device in one big list. One tap opens a book.

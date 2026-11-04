@@ -93,5 +93,23 @@ end
 r:close()
 assert(chapters == 4 and photos == 4, ("epub: %d chapters, %d photos"):format(chapters, photos))
 
+-- English paper: Italian titles and briefs in the meta, one translation per article, kept in the cache
+local calls = 0
+package.loaded["ui/translator"] = { translate = function(_, text, to, from)
+    calls = calls + 1
+    assert(to == "it" and from == "en")
+    return (text:gsub("([^\n]+)", "IT %1"))
+end }
+local en = { id = "testen", name = "Test EN", feed = "http://t/feed", lang = "en" }
+web["http://t/feed"] = feed(2)
+local enpath = assert(Build.paper(en))
+local m = Build.meta(enpath)
+assert(m.v == 2 and m.articles[1].title == "IT Title 2", tostring(m.articles[1].title))
+assert(m.articles[1].brief:find("^IT Paragraph 1 of article 2"), m.articles[1].brief)
+assert(calls == 2, "translations: " .. calls)
+os.remove((enpath:gsub("%.epub$", ".meta.lua"))) -- rebuild: translations come from the cache
+assert(Build.paper(en))
+assert(calls == 2 and Build.meta(enpath).articles[2].title == "IT Title 1", "cached translations")
+
 os.execute("rm -rf '" .. home .. "'")
 print("build cache ok")

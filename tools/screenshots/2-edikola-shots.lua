@@ -5,7 +5,7 @@ local UIManager = require("ui/uimanager")
 
 package.loaded["giornali"] = dofile(os.getenv("XDG_DOCUMENTS_DIR") .. "/giornali_demo.lua")
 
-local last
+local last, sommario
 local show = UIManager.show
 UIManager.show = function(self, widget, ...)
     last = widget
@@ -25,9 +25,8 @@ local steps = {
     function() local e = edicola().instance; e.section = "scienza"; e:redraw() end,
     function() shot("10-edicola-scienza"); local e = edicola().instance; e.section = "italia"; e:redraw() end,
     function() edicola().instance:showNews() end,
-    function() shot("11-sommario"); UIManager:close(last); G_reader_settings:makeTrue("konewspaper_briefs") end,
-    function() edicola().instance:showNews() end,
-    function() shot("12-sommario-argomenti"); UIManager:close(last); G_reader_settings:makeFalse("konewspaper_briefs") end,
+    function() shot("11-sommario"); sommario = last; last.item_table[1].callback() end, -- open the first topic
+    function() shot("12-sommario-argomenti"); UIManager:close(last); UIManager:close(sommario) end,
     function() edicola().instance:showCatalog() end,
     function() shot("03-giornali"); UIManager:close(last) end,
     function() edicola().instance:showBooks() end,

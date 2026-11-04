@@ -152,6 +152,20 @@ local function pruneCache(cache, used)
     end
 end
 
+-- Italian title and brief of an English article, for the Sommario: KOReader's own translator (Google Translate),
+-- one request per article, kept in the cache as <key>.it.lua. Returns nil when offline or refused (tried again next time).
+local function italian(cache, key, title, brief, lang)
+    local file = ("%s/%s.it.lua"):format(cache, key)
+    local ok, t = pcall(dofile, file)
+    if ok and type(t) == "table" then return t.title, t.brief end
+    local done, out = pcall(function() return require("ui/translator"):translate(title .. "\n" .. brief, "it", lang) end)
+    local it_title, it_brief = (done and out or ""):match("^%s*([^\n]-)%s*\n%s*(.-)%s*$")
+    if not it_title or it_title == "" then return end
+    local f = io.open(file, "w")
+    if f then f:write(("return { title = %q, brief = %q }\n"):format(it_title, it_brief)); f:close() end
+    return it_title, it_brief
+end
+
 -- One article: { title=, body=, images={ {name=, data=, mime=, ext=} } }, or { skip = true }
 local function download(item, key)
     local html = get(item.link)
@@ -212,6 +226,7 @@ function Build.paper(paper, progress)
                 saveCached(cache, key, art)
             end
             if not art.skip then
+                art.key = key
                 table.insert(articles, art)
                 for _, img in ipairs(art.images) do table.insert(images, img) end
             end
@@ -222,8 +237,8 @@ function Build.paper(paper, progress)
 
     local now = os.time()
     local path = Build.path(paper, now)
-    -- nothing new today (editions from before the article list get rebuilt once, from the cache)
-    if fresh == 0 and lfs.attributes(path, "mode") == "file" and Build.meta(path).articles then return path end
+    -- nothing new today (editions from before the Italian article list get rebuilt once, from the cache)
+    if fresh == 0 and lfs.attributes(path, "mode") == "file" and Build.meta(path).v == 2 then return path end
     if not progress(("%s\n\nPreparo il giornale…"):format(paper.name)) then return nil, "annullato" end
 
     local tmp = path .. ".tmp"
@@ -298,12 +313,18 @@ function Build.paper(paper, progress)
     end
     local f = io.open(base .. ".meta.lua", "w")
     if f then
-        -- articles: title and brief of each, in reading order (chapter i + 1 of the EPUB), for the Sommario
-        local list = {}
+        -- articles: title and brief of each, in Italian, in reading order (chapter i + 1 of the EPUB), for the Sommario.
+        -- v = 2 once every English one is translated; until then the next update builds the edition again.
+        local list, v = {}, 2
         for _, a in ipairs(articles) do
-            table.insert(list, ("{ title = %q, brief = %q }"):format(a.title, X.brief(a.body)))
+            local t, b = a.title, X.brief(a.body)
+            if paper.lang and paper.lang ~= "it" then
+                local it_t, it_b = italian(cache, a.key, t, b, paper.lang)
+                if it_t then t, b = it_t, it_b else v = 1 end
+            end
+            table.insert(list, ("{ title = %q, brief = %q }"):format(t, b))
         end
-        f:write(("return { headline = %q, cover = %s, articles = { %s } }\n"):format(meta.headline,
+        f:write(("return { v = %d, headline = %q, cover = %s, articles = { %s } }\n"):format(v, meta.headline,
             meta.cover and ("%q"):format(meta.cover) or "nil", table.concat(list, ", ")))
         f:close()
     end

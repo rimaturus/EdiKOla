@@ -202,3 +202,20 @@ once at the next start (`konewspaper_defaults_v3`, `plugins_disabled`). The boot
 KOReader): the Nickel-free boot waits for the full image backup (phase 0).
 
 **Backup**: `backup/2026-11-04_sommario/` (old plugin + `settings.reader.lua`). **Revert**: copy both back.
+
+## 2026-11-04 – Change set 12: Sommario by topic, in Italian
+
+**What** (`konewspaper.koplugin`)
+- The Sommario opens on one entry per topic: how many articles, and its main headlines (lead stories of
+  different papers first). Tap a topic: its articles, each with the newspaper and its opening sentences.
+  Tap an article: it opens. **Tutti i titoli** keeps the list by newspaper. The briefs on/off option is gone
+  (`konewspaper_briefs` is no longer read).
+- English papers (`lang = "en"` in `giornali.lua`, 23 papers): their titles and briefs are translated to Italian
+  during Aggiorna with KOReader's own translator (Google Translate: the title and opening sentences of each new
+  article are sent to `translate.googleapis.com`). Once per article, kept in `cache/<key>.it.lua`. The articles
+  themselves stay in English. If a translation fails, the Sommario shows the English text and the next
+  Aggiorna tries again.
+- Meta files carry `v = 2`; today's editions are rebuilt once from the cache to get the translations.
+
+**Installed from `dev`**, as change set 11. **Backup**: `backup/2026-11-04_sommario/` still holds the plugin
+from before change set 11. **Revert**: copy the plugin from git (`master` 6bcb3cb) for change set 11 only.
