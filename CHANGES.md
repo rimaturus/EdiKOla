@@ -243,3 +243,9 @@ Before the reset: `backup/2026-11-04_phase0/mmcblk0-first537M.img.gz`, the first
 
 **Ways back**: create `.adds/noautoboot` (Nickel boots, KOReader from NickelMenu); after 3 KOReader starts that don't stay
 up for 60 s Nickel boots by itself (delete `.adds/edikola-bootfail` to retry); factory reset undoes everything.
+
+**Fix (same day)**: after the install the Kobo still booted into Nickel, and `.adds/boot.log` didn't exist: the hook
+never ran in time. rcS runs the early `udevadm trigger` only when `/etc/udev.tgz` is missing (first boot after a
+reset/update); on usual boots the only trigger comes right after rcS starts Nickel. `autoboot.sh` now hands over to
+`koreader.sh` at once in that case (it stops Nickel, and restarts it when KOReader exits), and keeps the bind mount
+for the early case. New `.kobo/KoboRoot.tgz` copied to the Kobo; the test now simulates both kinds of boot.

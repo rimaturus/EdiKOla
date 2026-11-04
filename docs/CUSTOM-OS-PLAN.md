@@ -88,9 +88,16 @@ killed again. That guess needs measuring, so phase 0 comes first.
 Source for the boot details: `/etc/init.d/rcS` from Kobo's own firmware zip for the Nia, 4.38.23852
 (the version on the device), from Kobo's update API (device ID `…0382`, the `kobo7` firmware).
 
-**Phase 1, done differently: Nickel is never started.** rcS runs our udev hook (`udevadm trigger`)
-about 190 lines before its last line, `nickel -platform kobo -skipFontLoad &`. The hook bind-mounts
-`autoboot.sh` over `/usr/local/Kobo/nickel` for this boot only, so rcS starts KOReader instead.
+**Phase 1, done differently: Nickel is replaced at once.** Corrected 2026-11-04, after the first install
+on the device: rcS runs the early `udevadm trigger` (line 150) only when `/etc/udev.tgz` is missing, i.e. on
+the first boot after a reset or update; on the Nia (`PLATFORM=mx6ull-ntx`) every other boot restores `/dev`
+from that file, and the only trigger is the line after `nickel -platform kobo -skipFontLoad &`. So:
+- usual boot (late trigger, Nickel just started): `autoboot.sh` hands over to `koreader.sh` at once, which
+  stops Nickel the way it does when started from NickelMenu, and restarts it when KOReader exits;
+- first boot after a reset/update (early trigger, onboard not mounted yet): the hook bind-mounts
+  `autoboot.sh` over `/usr/local/Kobo/nickel` for this boot only, so rcS starts KOReader instead.
+`tests/autoboot-test.sh` simulates both. Possible next step: delete `/etc/udev.tgz` at each boot so the early
+path always runs (costs the trigger and a 2 s `udevadm settle`); measure with `boot.log` first.
 No Kobo file is edited, which beats patching rcS: the firmware version doesn't matter, and nothing
 needs merging after an update. Details that came from reading rcS:
 - Onboard is already mounted when rcS reaches Nickel, so the hook checks `.adds/noautoboot` there.
