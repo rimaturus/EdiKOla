@@ -219,3 +219,27 @@ KOReader): the Nickel-free boot waits for the full image backup (phase 0).
 
 **Installed from `dev`**, as change set 11. **Backup**: `backup/2026-11-04_sommario/` still holds the plugin
 from before change set 11. **Revert**: copy the plugin from git (`master` 6bcb3cb) for change set 11 only.
+
+## 2026-11-04 – Change set 13: factory reset, then the custom system (Nickel-free boot, slimmed KOReader)
+
+**Found**: during the phase 0 backup the Kobo factory-reset itself: files partition wiped, setup over Wi-Fi.
+Kobo's own `rcS` does this when `dosfsck` fails 4 times on the files partition, or when `pickel should-factory-reset`
+says so (it shows a picture, waits for a tap, then reboots into recovery). Most likely cause: a damaged FAT after the
+USB connection dropped twice. Not confirmed: the logs were on the wiped partition. Same thing as change set 1.
+Before the reset: `backup/2026-11-04_phase0/mmcblk0-first537M.img.gz`, the first 537 MiB of the card (boot area, rootfs
+`p1`, recovery `p2`), MD5 f47ffb75ebfd2bb0645bee83cbbbf1e7, same as read on the Kobo. Lost: everything on the files partition.
+
+**What** (after setup; FW 4.38.23852): built with `minimal/build.sh`.
+- `.adds/koreader`: KOReader v2026.07.1 (official Kobo package, SHA-256 pinned), pruned by `minimal/prune.sh`: only the
+  konewspaper, localsend (v1.4.6), SSH, autosuspend and gestures plugins; Italian menus only; no CJK/Arabic/Bengali/
+  Devanagari fonts (`patches/2-edikola-fonts.lua` drops them from the fallback list). 51 MB instead of 87 MB.
+- `.kobo/KoboRoot.tgz`: NickelMenu v0.6.0 plus the Nickel-free boot (`autoboot/`): KOReader starts instead of Nickel.
+- `.adds/nm/koreader`: NickelMenu entry for KOReader, for when Nickel boots.
+- `settings.reader.lua` from `backup/2026-11-04_sommario/`, with `language` = it_IT, `home_dir`/`lastdir` = /mnt/onboard,
+  first-run guide off. SSH key in `.adds/koreader/settings/SSH/authorized_keys`.
+- `Kobo eReader.conf`: `ExcludeSyncFolders` under `[FeatureSettings]`.
+
+**Backup**: `backup/2026-11-04_fresh/.kobo` (the Kobo right after setup).
+
+**Ways back**: create `.adds/noautoboot` (Nickel boots, KOReader from NickelMenu); after 3 KOReader starts that don't stay
+up for 60 s Nickel boots by itself (delete `.adds/edikola-bootfail` to retry); factory reset undoes everything.

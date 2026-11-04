@@ -73,6 +73,7 @@ are fictional demo content (`tools/screenshots/make_demo.py`).*
 | Path | What |
 |---|---|
 | `konewspaper.koplugin/` | The KOReader plugin: `main.lua` (UI), `knp_build.lua` (download → EPUB), `knp_extract.lua` (RSS + article extraction, pure Lua), `giornali.lua` (catalog) |
+| `minimal/` | `build.sh` builds what goes on the Kobo: the official KOReader package slimmed by `prune.sh` (only the plugins EdiKOla uses, Italian menus, fewer fonts), EdiKOla, LocalSend, and one `KoboRoot.tgz` with NickelMenu and the Nickel-free boot |
 | `autoboot/` | `KoboRoot.tgz` that starts KOReader in place of Nickel, so Nickel never loads (`build.sh` rebuilds it, `tests/autoboot-test.sh` tests it). Nickel stays installed as the fallback |
 | `tests/` | `texlua tests/konewspaper-test.lua` (fixtures), `… live` (checks every newspaper in the catalog). `build-cache-test.lua` runs on KOReader's Linux build: `cd $KO/lib/koreader && ./luajit <repo>/tests/build-cache-test.lua` |
 | `tools/screenshots/` | Regenerates `docs/images` with KOReader's Linux build: `KO=~/kosim sh tools/screenshots/run.sh` |
