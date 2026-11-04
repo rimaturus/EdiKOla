@@ -79,9 +79,9 @@ questions, the EdiKOla lock screen, and the page counter at the bottom of articl
 3. Wait. The first update downloads every article, so it takes a while (several minutes with 30 papers).
    The message shows how many papers are ready. Later updates only fetch new articles and are much faster.
 
-**Check**: the **Sommario** opens by itself: today's articles, listed by newspaper. Tick **Riassunti, divisi
-per argomento** to see them by topic, each with its opening sentences. Close it (✕ top right): the shelves
-show front pages (masthead, date, headline, photo). Wi-Fi is off again.
+**Check**: the **Sommario** opens by itself, in Italian: one entry per topic with its main headlines. Tap a
+topic to see its articles, each with its opening sentences; ✕ (top right) goes back. Close the Sommario:
+the shelves show front pages (masthead, date, headline, photo). Wi-Fi is off again.
 
 ## 6. Read a paper
 

@@ -656,79 +656,84 @@ function Edicola:openArticle(file, i)
     self:open(file)
 end
 
--- Sommario: every article of today's editions. Plain: titles by newspaper. With the briefs on: by topic,
--- each title followed by the newspaper and its opening sentences. Tap one to read it.
+-- Sommario, in Italian (English papers are translated when they are downloaded):
+--   1. one entry per topic: how many articles, and the main headlines (lead stories of different papers first)
+--   2. tap a topic: each of its articles with the newspaper and its opening sentences
+--   3. tap an article: it opens. ✕ goes back one level. The last entry lists every title by newspaper.
 function Edicola:showNews()
-    local briefs = G_reader_settings:isTrue("konewspaper_briefs")
     local entries = {}
     for _, s in ipairs(SECTIONS) do
         for _, p in ipairs(shelf(s.id)) do
             local f = Build.latest(p)
             if isToday(f) then
                 for i, a in ipairs(Build.meta(f).articles or {}) do
-                    table.insert(entries, { paper = p, file = f, i = i, title = a.title, brief = a.brief })
+                    table.insert(entries, { paper = p, file = f, i = i, n = #entries + 1, title = a.title, brief = a.brief })
                 end
             end
         end
     end
 
-    local menu
-    local items = { {
-        text = (briefs and "☑" or "☐") .. "  Riassunti, divisi per argomento",
-        callback = function()
-            G_reader_settings:flipNilOrFalse("konewspaper_briefs")
-            UIManager:close(menu)
-            self:showNews()
-        end,
-    } }
-    local function header(t) table.insert(items, { text = "— " .. t:upper() .. " —", select_enabled = false, bold = true }) end
-    local function article(e, text, bold)
-        table.insert(items, { text = text, bold = bold, callback = function()
-            UIManager:close(menu)
-            self:openArticle(e.file, e.i)
-        end })
+    local shown = {} -- the Sommario's screens: all close when an article opens
+    local function show(title, items)
+        local menu = Menu:new{
+            title = title, item_table = items,
+            width = Screen:getWidth(), height = Screen:getHeight(),
+            covers_fullscreen = true, is_borderless = true, is_popout = false, is_enable_shortcut = false,
+            items_per_page = 8, items_font_size = 19, items_max_lines = 4,
+        }
+        table.insert(shown, menu)
+        UIManager:show(menu, "full")
     end
-    if briefs then
-        local by = {}
-        for _, e in ipairs(entries) do
-            local t = topics.of(e.title, e.brief)
-            by[t] = by[t] or {}
-            table.insert(by[t], e)
-        end
-        for _, t in ipairs(topics.names) do
-            if by[t] then
-                header(("%s (%d)"):format(t, #by[t]))
-                for _, e in ipairs(by[t]) do -- two rows (the list turns newlines into spaces): title, then the brief
-                    article(e, e.title, true)
-                    article(e, ("%s · %s"):format(e.paper.name, e.brief))
-                end
+    local function read(e)
+        for _, m in ipairs(shown) do UIManager:close(m) end
+        self:openArticle(e.file, e.i)
+    end
+    -- two rows per entry, as the list turns newlines into spaces: a bold title, then the text
+    local function entry(items, title, text, callback)
+        table.insert(items, { text = title, bold = true, callback = callback })
+        table.insert(items, { text = text, callback = callback })
+    end
+
+    local by, items = {}, {}
+    for _, e in ipairs(entries) do
+        local t = topics.of(e.title, e.brief)
+        by[t] = by[t] or {}
+        table.insert(by[t], e)
+    end
+    for _, t in ipairs(topics.names) do
+        local list = by[t]
+        if list then
+            table.sort(list, function(a, b) if a.i ~= b.i then return a.i < b.i end return a.n < b.n end)
+            local heads, papers = {}, {}
+            for _, e in ipairs(list) do
+                if #heads < 3 and not papers[e.paper] then papers[e.paper] = true; table.insert(heads, e.title) end
             end
-        end
-    else
-        local last
-        for _, e in ipairs(entries) do
-            if e.paper ~= last then header(e.paper.name); last = e.paper end
-            article(e, e.title)
+            entry(items, ("%s · %d %s"):format(t, #list, #list == 1 and "notizia" or "notizie"),
+                table.concat(heads, " · "), function()
+                    local rows = {}
+                    for _, e in ipairs(list) do
+                        entry(rows, e.title, ("%s · %s"):format(e.paper.name, e.brief), function() read(e) end)
+                    end
+                    show(t, rows)
+                end)
         end
     end
     if #entries == 0 then
         table.insert(items, { text = "Nessun articolo di oggi. Tocca «Aggiorna» per scaricare i giornali.", select_enabled = false })
+    else
+        entry(items, "Tutti i titoli", "Giornale per giornale", function()
+            local rows, last = {}, nil
+            for _, e in ipairs(entries) do
+                if e.paper ~= last then
+                    table.insert(rows, { text = "— " .. e.paper.name:upper() .. " —", select_enabled = false, bold = true })
+                    last = e.paper
+                end
+                table.insert(rows, { text = e.title, callback = function() read(e) end })
+            end
+            show("Tutti i titoli", rows)
+        end)
     end
-
-    menu = Menu:new{
-        title = briefs and "Le notizie di oggi, per argomento" or "Le notizie di oggi",
-        item_table = items,
-        width = Screen:getWidth(),
-        height = Screen:getHeight(),
-        covers_fullscreen = true,
-        is_borderless = true,
-        is_popout = false,
-        is_enable_shortcut = false,
-        items_per_page = 8,
-        items_font_size = briefs and 19 or 22,
-        items_max_lines = briefs and 4 or 2,
-    }
-    UIManager:show(menu, "full")
+    show("Le notizie di oggi", items)
 end
 
 local function findBooks(dir, out, depth)
