@@ -175,3 +175,24 @@ requests one after another, and every article was downloaded again on every upda
 **Backup**: `backup/2026-11-03_footer/` (old plugin + `settings.reader.lua`).
 
 **Revert**: copy both back from the backup.
+
+## 2026-11-04 – Change set 11: Sommario, Titoli, Wi-Fi retries, roomier newsstand
+
+**Found** (`crash.log`): Wi-Fi often failed. The router offers an address, then refuses it when the Kobo asks
+for it (DHCP offer → NAK, 43 times since 2026-11-02, about 3 tries in 4). KOReader's `obtain-ip.sh` gives up
+after 30 s, about 6 tries, so roughly 1 connection in 5 failed ("Failed to restore Wi-Fi (after 45 seconds)").
+
+**What** (`konewspaper.koplugin`)
+- Wi-Fi: up to 3 rounds of DHCP before giving up (`NetworkMgr:obtainIP`, Kobo only).
+- **Sommario**: opens after **Aggiorna**, and from its own button. Today's articles by newspaper; tap one to
+  read it. **Riassunti, divisi per argomento** (`konewspaper_briefs`) turns it into a report by topic, each
+  article with its opening sentences. Topics come from keywords (`knp_topics.lua`); on real headlines of
+  2026-11-04, 86% got a topic, the rest are under "Altre notizie".
+- Each edition's `.meta.lua` now lists its articles (title and brief). Editions from before are rebuilt once
+  on the next **Aggiorna**, from the cache, with no extra downloads.
+- **Titoli** button while reading a newspaper: back to its front page.
+- Newsstand: the bottom bar no longer runs off the screen (sizes are measured now); the page arrows only
+  show when a shelf has more than 4 papers, so the front pages are bigger; swipe left/right turns shelf
+  pages; tabs and shelf pages redraw without the black flash.
+
+**Revert**: copy the plugin from git (`master` 1589d89). `konewspaper_briefs` can stay.

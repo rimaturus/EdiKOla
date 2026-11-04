@@ -2,8 +2,12 @@
 KoNewspaper: a newsstand ("edicola") home screen on top of KOReader's reader.
 
 - Every time KOReader shows its file browser, the newsstand covers it.
-- Two shelves, "Italia" and "Mondo": each newspaper shows today's front page (headline + photo).
+- Four shelves (Italia, Mondo, Buone notizie, Scienza e tecnologia): each newspaper shows today's front
+  page (headline + photo). Swipe or the arrows for more papers.
 - Tap a newspaper: today's edition opens (downloaded first if needed).
+- "Sommario" (also shown after "Aggiorna"): every article of the day by newspaper, or with the briefs on,
+  by topic with each article's opening sentences (knp_topics.lua). Tap one to read it.
+- In a newspaper, "Titoli" goes back to its front page (the list of headlines).
 - "I miei libri": the user's own EPUB/PDF files, big list, one tap to open.
 - "Giornali": tick which newspapers from the catalog (giornali.lua) are on the shelves.
 - While reading, a big "Edicola" button in the top-left corner goes back, "A− A+" top-right change
@@ -42,7 +46,23 @@ local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local Build = require("knp_build")
 local giornali = require("giornali")
+local topics = require("knp_topics")
 local Screen = Device.screen
+
+-- Wi-Fi: this router often refuses the address it has just offered (DHCP offer, then NAK, about 3 tries in 4
+-- in crash.log), and KOReader's obtain-ip.sh gives up after 30 s: about 1 connection in 5 failed.
+-- Up to 3 rounds of DHCP before giving up.
+if Device:isKobo() and NetworkMgr.obtainIP and NetworkMgr.ifHasAnAddress and not NetworkMgr.konewspaper_retry then
+    NetworkMgr.konewspaper_retry = true
+    local obtainIP = NetworkMgr.obtainIP
+    function NetworkMgr:obtainIP()
+        for try = 1, 3 do
+            obtainIP(self)
+            if self:ifHasAnAddress() then return end
+            logger.warn("KoNewspaper: no IP address after DHCP round", try)
+        end
+    end
+end
 
 local BOOK_EXT = { epub = true, pdf = true, mobi = true, azw3 = true, fb2 = true, txt = true, rtf = true, djvu = true, cbz = true, docx = true }
 local SECTIONS = {
@@ -315,55 +335,69 @@ function Edicola:init()
     }
 
     -- Section tabs
-    local tab_h = Screen:scaleBySize(56)
     local tab_w = math.floor((cw - (#SECTIONS - 1) * gap) / #SECTIONS)
     local tabs = HorizontalGroup:new{}
     for i, s in ipairs(SECTIONS) do
         if i > 1 then table.insert(tabs, HorizontalSpan:new{ width = gap }) end
-        table.insert(tabs, bigButton(s.name, tab_w, tab_h, function()
+        table.insert(tabs, bigButton(s.name, tab_w, Screen:scaleBySize(52), function()
+            if s.id == self.section then return end
             self.section, self.page = s.id, 1
-            self:redraw()
+            self:redraw("ui")
         end, s.id == self.section))
     end
 
     -- Bottom bar
-    local btn_h = Screen:scaleBySize(64)
-    local third = math.floor((cw - 2 * gap) / 3)
+    local quarter = math.floor((cw - 3 * gap) / 4)
+    local btn_h = Screen:scaleBySize(56)
     local bottom = HorizontalGroup:new{
-        bigButton("I miei libri", third, btn_h, function() self:showBooks() end),
+        bigButton("I miei libri", quarter, btn_h, function() self:showBooks() end),
         HorizontalSpan:new{ width = gap },
-        bigButton("Aggiorna", third, btn_h, function()
+        bigButton("Aggiorna", quarter, btn_h, function()
             local all = {}
             for _, s in ipairs(SECTIONS) do
                 for _, p in ipairs(shelf(s.id)) do table.insert(all, p) end
             end
-            self:fetch(all)
+            self:fetch(all, function() self:showNews() end)
         end),
         HorizontalSpan:new{ width = gap },
-        bigButton("Giornali", third, btn_h, function() self:showCatalog() end),
+        bigButton("Sommario", quarter, btn_h, function() self:showNews() end),
+        HorizontalSpan:new{ width = gap },
+        bigButton("Giornali", quarter, btn_h, function() self:showCatalog() end),
     }
 
-    -- Pager
+    -- Pages of the shelf: arrows only when there is more than one page; a swipe turns them too
     local papers = shelf(self.section)
     local pages = math.max(1, math.ceil(#papers / PER_PAGE))
     self.page = math.min(self.page, pages)
-    local pager_h = Screen:scaleBySize(48)
-    local arrow_w = Screen:scaleBySize(110)
-    local pager = HorizontalGroup:new{
-        align = "center",
-        Button:new{ text = "◀", width = arrow_w, height = pager_h, bordersize = Screen:scaleBySize(2), radius = Screen:scaleBySize(10),
-            text_font_size = 24, enabled = self.page > 1, callback = function() self.page = self.page - 1; self:redraw() end },
-        CenterContainer:new{
-            dimen = Geom:new{ w = cw - 2 * arrow_w, h = pager_h },
-            TextWidget:new{ text = ("Pagina %d di %d"):format(self.page, pages), face = Font:getFace("cfont", 18) },
-        },
-        Button:new{ text = "▶", width = arrow_w, height = pager_h, bordersize = Screen:scaleBySize(2), radius = Screen:scaleBySize(10),
-            text_font_size = 24, enabled = self.page < pages, callback = function() self.page = self.page + 1; self:redraw() end },
-    }
+    self.turn = function(d)
+        local p = self.page + d
+        if p >= 1 and p <= pages then self.page = p; self:redraw("ui") end
+    end
+    local pager
+    if pages > 1 then
+        local arrow_w, pager_h = Screen:scaleBySize(130), Screen:scaleBySize(44)
+        local arrow = function(text, d, enabled)
+            return Button:new{ text = text, width = arrow_w, height = pager_h, enabled = enabled,
+                bordersize = Screen:scaleBySize(2), radius = Screen:scaleBySize(10), text_font_size = 24,
+                callback = function() self.turn(d) end }
+        end
+        pager = HorizontalGroup:new{
+            align = "center",
+            arrow("◀", -1, self.page > 1),
+            CenterContainer:new{
+                dimen = Geom:new{ w = cw - 2 * arrow_w, h = pager_h },
+                TextWidget:new{ text = ("Pagina %d di %d"):format(self.page, pages), face = Font:getFace("cfont", 20) },
+            },
+            arrow("▶", 1, self.page < pages),
+        }
+    end
+    self.ges_events.Swipe = { GestureRange:new{ ges = "swipe", range = self.dimen } }
 
-    -- Shelves: 2 rows of 2 front pages, each row standing on a shelf board
+    -- Shelves: 2 rows of 2 front pages, each row standing on a shelf board. Sizes are measured
+    -- (a Button is taller than its height, by its border), so the bottom bar never runs off the screen.
     local board_h = Screen:scaleBySize(8)
-    local shelves_h = sh - 2 * m - header_h - tab_h - pager_h - btn_h - 4 * gap
+    local shelves_h = sh - 2 * m - header_h - tabs:getSize().h - bottom:getSize().h - 3 * gap
+        - (pager and pager:getSize().h + gap or 0)
     local row_h = math.floor(shelves_h / 2) - board_h - gap
     local tile_w = math.floor((cw - 2 * gap) / 2)
     local shelves = VerticalGroup:new{ align = "center" }
@@ -396,21 +430,30 @@ function Edicola:init()
         end
     end
 
+    local body = VerticalGroup:new{
+        align = "center",
+        header,
+        VerticalSpan:new{ width = gap },
+        tabs,
+        VerticalSpan:new{ width = gap },
+        CenterContainer:new{ dimen = Geom:new{ w = cw, h = shelves_h }, shelves },
+    }
+    if pager then
+        table.insert(body, pager)
+        table.insert(body, VerticalSpan:new{ width = gap })
+    end
+    table.insert(body, VerticalSpan:new{ width = gap })
+    table.insert(body, bottom)
     self[1] = FrameContainer:new{
         width = sw, height = sh, bordersize = 0, padding = m,
         background = Blitbuffer.COLOR_WHITE,
-        VerticalGroup:new{
-            align = "center",
-            header,
-            VerticalSpan:new{ width = gap },
-            tabs,
-            VerticalSpan:new{ width = gap },
-            CenterContainer:new{ dimen = Geom:new{ w = cw, h = shelves_h }, shelves },
-            pager,
-            VerticalSpan:new{ width = gap },
-            bottom,
-        },
+        body,
     }
+end
+
+function Edicola:onSwipe(_, ges)
+    if ges.direction == "west" then self.turn(1) elseif ges.direction == "east" then self.turn(-1) end
+    return true
 end
 
 function Edicola.show()
@@ -437,9 +480,9 @@ function Edicola:onHoldTitle()
     return true
 end
 
-function Edicola:redraw()
+function Edicola:redraw(mode) -- "ui" for tabs and shelf pages: no black flash; "full" after downloads
     self:init()
-    UIManager:setDirty(self, "full")
+    UIManager:setDirty(self, mode or "full")
 end
 
 function Edicola:open(file)
@@ -606,6 +649,88 @@ function Edicola:showCatalog()
     UIManager:show(menu, "full")
 end
 
+-- Opening an edition at one article: the reader jumps there once the book is ready (KoNewspaper:onReaderReady)
+local pending_article -- { file =, chapter = }
+function Edicola:openArticle(file, i)
+    pending_article = { file = file, chapter = i + 1 } -- chapter 1 is the front page
+    self:open(file)
+end
+
+-- Sommario: every article of today's editions. Plain: titles by newspaper. With the briefs on: by topic,
+-- each title followed by the newspaper and its opening sentences. Tap one to read it.
+function Edicola:showNews()
+    local briefs = G_reader_settings:isTrue("konewspaper_briefs")
+    local entries = {}
+    for _, s in ipairs(SECTIONS) do
+        for _, p in ipairs(shelf(s.id)) do
+            local f = Build.latest(p)
+            if isToday(f) then
+                for i, a in ipairs(Build.meta(f).articles or {}) do
+                    table.insert(entries, { paper = p, file = f, i = i, title = a.title, brief = a.brief })
+                end
+            end
+        end
+    end
+
+    local menu
+    local items = { {
+        text = (briefs and "☑" or "☐") .. "  Riassunti, divisi per argomento",
+        callback = function()
+            G_reader_settings:flipNilOrFalse("konewspaper_briefs")
+            UIManager:close(menu)
+            self:showNews()
+        end,
+    } }
+    local function header(t) table.insert(items, { text = "— " .. t:upper() .. " —", select_enabled = false, bold = true }) end
+    local function article(e, text, bold)
+        table.insert(items, { text = text, bold = bold, callback = function()
+            UIManager:close(menu)
+            self:openArticle(e.file, e.i)
+        end })
+    end
+    if briefs then
+        local by = {}
+        for _, e in ipairs(entries) do
+            local t = topics.of(e.title, e.brief)
+            by[t] = by[t] or {}
+            table.insert(by[t], e)
+        end
+        for _, t in ipairs(topics.names) do
+            if by[t] then
+                header(("%s (%d)"):format(t, #by[t]))
+                for _, e in ipairs(by[t]) do -- two rows (the list turns newlines into spaces): title, then the brief
+                    article(e, e.title, true)
+                    article(e, ("%s · %s"):format(e.paper.name, e.brief))
+                end
+            end
+        end
+    else
+        local last
+        for _, e in ipairs(entries) do
+            if e.paper ~= last then header(e.paper.name); last = e.paper end
+            article(e, e.title)
+        end
+    end
+    if #entries == 0 then
+        table.insert(items, { text = "Nessun articolo di oggi. Tocca «Aggiorna» per scaricare i giornali.", select_enabled = false })
+    end
+
+    menu = Menu:new{
+        title = briefs and "Le notizie di oggi, per argomento" or "Le notizie di oggi",
+        item_table = items,
+        width = Screen:getWidth(),
+        height = Screen:getHeight(),
+        covers_fullscreen = true,
+        is_borderless = true,
+        is_popout = false,
+        is_enable_shortcut = false,
+        items_per_page = 8,
+        items_font_size = briefs and 19 or 22,
+        items_max_lines = briefs and 4 or 2,
+    }
+    UIManager:show(menu, "full")
+end
+
 local function findBooks(dir, out, depth)
     local ok, iter, state = pcall(lfs.dir, dir)
     if not ok then return end
@@ -691,22 +816,34 @@ local function label(text)
     }
 end
 
--- While reading: "◀ Edicola" top-left, clock top-centre, "A− A+" top-right (EPUB etc.),
--- tap or spread on a photo opens it full screen.
+-- While reading: "◀ Edicola" (and "Titoli" in a newspaper) top-left, clock top-centre, "A− A+" top-right
+-- (EPUB etc.), tap or spread on a photo opens it full screen.
 function KoNewspaper:addReaderControls()
     local sw = Screen:getWidth()
     local margin = Screen:scaleBySize(6)
-    local buttons = { { label("◀ Edicola"), function() self.ui:onHome() end } }
-    if self.ui.rolling then -- reflowable: text size; PDFs keep KOReader's zoom
-        table.insert(buttons, { label("A+"), function() self.ui:handleEvent(Event:new("ChangeSize", 2)) end })
-        table.insert(buttons, { label("A−"), function() self.ui:handleEvent(Event:new("ChangeSize", -2)) end })
+    local left = { { label("◀ Edicola"), function() self.ui:onHome() end } }
+    if (self.ui.document.file or ""):find(Build.root, 1, true) == 1 then -- a newspaper: back to its headlines
+        table.insert(left, { label("Titoli"), function() self.ui:handleEvent(Event:new("GotoPage", 1)) end })
     end
-    local zones, x = {}, nil
+    local right = {}
+    if self.ui.rolling then -- reflowable: text size; PDFs keep KOReader's zoom
+        table.insert(right, { label("A+"), function() self.ui:handleEvent(Event:new("ChangeSize", 2)) end })
+        table.insert(right, { label("A−"), function() self.ui:handleEvent(Event:new("ChangeSize", -2)) end })
+    end
+    local buttons, x = {}, margin
+    for _, b in ipairs(left) do -- left to right from the left edge
+        b.x, x = x, x + b[1]:getSize().w + 2 * margin
+        table.insert(buttons, b)
+    end
+    x = sw - margin
+    for _, b in ipairs(right) do -- right to left from the right edge
+        b.x = x - b[1]:getSize().w
+        x = b.x - 2 * margin
+        table.insert(buttons, b)
+    end
+    local zones = {}
     for i, b in ipairs(buttons) do
         local size = b[1]:getSize()
-        -- first button at the left edge, the others right to left from the right edge
-        if i == 1 then b.x = margin elseif i == 2 then b.x = sw - margin - size.w else b.x = x - 2 * margin - size.w end
-        x = b.x
         local zx = math.max(0, b.x - margin) -- tap zone a bit larger than the drawn button
         table.insert(zones, {
             id = "konewspaper_btn" .. i,
@@ -764,6 +901,16 @@ function KoNewspaper:addReaderControls()
     table.insert(zones, { id = "konewspaper_photo_zoom", ges = "spread", screen_zone = whole, handler = openPhoto,
         overrides = { "spread_gesture" } })
     self.ui:registerTouchZones(zones)
+end
+
+function KoNewspaper:onReaderReady() -- opened from the Sommario: go to that article
+    local go = pending_article
+    pending_article = nil
+    if not (go and self.ui.document and self.ui.document.file == go.file) then return end
+    local toc = self.ui.toc
+    toc:fillToc()
+    local entry = toc.toc and toc.toc[go.chapter]
+    if entry and entry.page then self.ui:handleEvent(Event:new("GotoPage", entry.page)) end
 end
 
 function KoNewspaper:onCloseDocument()

@@ -55,6 +55,15 @@ assert(n == 1 + 3 * 2 + 1, "first update: feed, 3 articles + 3 photos, the video
 local stamp = lfs.attributes(path, "modification")
 local meta = Build.meta(path)
 assert(meta.headline == "Title 3" and meta.cover, "front page")
+assert(#meta.articles == 3 and meta.articles[3].title == "Title 1", "article list")
+assert(meta.articles[1].brief:find("^Paragraph 1 of article 3"), "brief: " .. meta.articles[1].brief)
+
+-- an edition from before the article list is rebuilt once, from the cache (no article downloads)
+local mf = path:gsub("%.epub$", ".meta.lua")
+local fh = io.open(mf, "w"); fh:write('return { headline = "Title 3" }\n'); fh:close()
+path, n = update(3)
+assert(n == 1 and #Build.meta(path).articles == 3, "old edition rebuilt from the cache; got " .. n)
+stamp = lfs.attributes(path, "modification")
 
 path, n = update(3)
 assert(n == 1, "nothing new: only the feed; got " .. n)
