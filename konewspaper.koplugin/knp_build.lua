@@ -36,7 +36,7 @@ function Build.path(paper, t)
     return ("%s/%s/%s.epub"):format(Build.root, paper.id, os.date("%Y-%m-%d", t))
 end
 
---- Front-page info for the newsstand tile: { headline=, cover= } (or {})
+--- Front-page info for the newsstand tile and the Sommario: { headline=, cover=, articles={ {title=, brief=} } } (or {})
 function Build.meta(epub)
     local ok, meta = pcall(dofile, (epub:gsub("%.epub$", ".meta.lua")))
     return ok and type(meta) == "table" and meta or {}
@@ -222,7 +222,8 @@ function Build.paper(paper, progress)
 
     local now = os.time()
     local path = Build.path(paper, now)
-    if fresh == 0 and lfs.attributes(path, "mode") == "file" then return path end -- nothing new today
+    -- nothing new today (editions from before the article list get rebuilt once, from the cache)
+    if fresh == 0 and lfs.attributes(path, "mode") == "file" and Build.meta(path).articles then return path end
     if not progress(("%s\n\nPreparo il giornale…"):format(paper.name)) then return nil, "annullato" end
 
     local tmp = path .. ".tmp"
@@ -297,7 +298,13 @@ function Build.paper(paper, progress)
     end
     local f = io.open(base .. ".meta.lua", "w")
     if f then
-        f:write(("return { headline = %q, cover = %s }\n"):format(meta.headline, meta.cover and ("%q"):format(meta.cover) or "nil"))
+        -- articles: title and brief of each, in reading order (chapter i + 1 of the EPUB), for the Sommario
+        local list = {}
+        for _, a in ipairs(articles) do
+            table.insert(list, ("{ title = %q, brief = %q }"):format(a.title, X.brief(a.body)))
+        end
+        f:write(("return { headline = %q, cover = %s, articles = { %s } }\n"):format(meta.headline,
+            meta.cover and ("%q"):format(meta.cover) or "nil", table.concat(list, ", ")))
         f:close()
     end
     Build.prune(paper)

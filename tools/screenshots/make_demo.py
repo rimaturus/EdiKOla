@@ -88,7 +88,9 @@ for i, (pid, name, section, headline) in enumerate(PAPERS):
                       for n, (t, f) in enumerate([("Prima pagina", "index.xhtml")] + [(t, f"a{k}.xhtml") for k, t in enumerate(titles, 1)], 1))
         z.writestr("OEBPS/toc.ncx", f'<?xml version="1.0" encoding="utf-8"?><ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1"><head/><docTitle><text>{name}</text></docTitle><navMap>{nav}</navMap></ncx>')
     with open(os.path.join(d, f"{today}.meta.lua"), "w", encoding="utf8") as f:
-        f.write(f'return {{ headline = "{headline}", cover = "{cover}" }}\n')
+        brief = "Questo è un testo di esempio scritto per le immagini del README."
+        arts = ", ".join(f'{{ title = "{t}", brief = "{brief}" }}' for t in titles)
+        f.write(f'return {{ headline = "{headline}", cover = "{cover}", articles = {{ {arts} }} }}\n')
 
 # The demo catalog: fictional papers, all selected
 with open(os.path.join(home, "giornali_demo.lua"), "w", encoding="utf8") as f:

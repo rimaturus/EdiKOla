@@ -22,6 +22,23 @@ assert(#f == 1 and f[1].title == "Ciao & mondo" and f[1].link == "https://a/1")
 assert(X.feedHTML(f[1].content) == "<p>hi</p>")
 assert(X.toUTF8("perch\232 \147ok\148") == "perchè “ok”") -- Latin-1/cp1252 page
 assert(X.toUTF8("già") == "già")                            -- valid UTF-8 untouched
+
+-- Brief: whole first sentences, entities decoded; a long sentence is cut at a word
+assert(X.brief("<p>Short one.</p>") == "Short one.")
+local long = "<p>" .. ("Prima frase dell'articolo con parecchie parole. "):rep(3) .. "</p><p>Never reached.</p>"
+local br = X.brief(long, 100)
+assert(br == "Prima frase dell'articolo con parecchie parole. Prima frase dell'articolo con parecchie parole.", br)
+assert(X.brief("<p>" .. ("parola "):rep(60) .. "</p>", 50):find("^parola .*parola…$"))
+assert(X.brief("<p>Caff&egrave; &amp; latte.</p>") == "Caffè & latte.")
+
+-- Topics
+local T = require("knp_topics")
+assert(T.of("Il governo approva il decreto, scontro in Parlamento") == "Politica")
+assert(T.of("Giro d'Italia, la tappa di oggi") == "Sport")
+assert(T.of("NASA telescope finds a new planet") == "Scienza e tecnologia")
+assert(T.of("Arrestato a Milano dopo la rapina", "La polizia ha fermato un uomo") == "Cronaca")
+assert(T.of("Una bella giornata") == T.OTHER)
+assert(T.of("Al mercato ai prezzi di ieri") == "Economia e lavoro") -- "ai" is not a topic word
 print("fixtures ok")
 
 -- Catalog: unique letters-and-digits ids (folder names), and a shelf that exists (else the paper never shows)

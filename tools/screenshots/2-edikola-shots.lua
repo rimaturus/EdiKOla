@@ -24,6 +24,10 @@ local steps = {
     function() shot("09-edicola-buone") end,
     function() local e = edicola().instance; e.section = "scienza"; e:redraw() end,
     function() shot("10-edicola-scienza"); local e = edicola().instance; e.section = "italia"; e:redraw() end,
+    function() edicola().instance:showNews() end,
+    function() shot("11-sommario"); UIManager:close(last); G_reader_settings:makeTrue("konewspaper_briefs") end,
+    function() edicola().instance:showNews() end,
+    function() shot("12-sommario-argomenti"); UIManager:close(last); G_reader_settings:makeFalse("konewspaper_briefs") end,
     function() edicola().instance:showCatalog() end,
     function() shot("03-giornali"); UIManager:close(last) end,
     function() edicola().instance:showBooks() end,
@@ -50,7 +54,13 @@ local steps = {
         end
         print("SHOT STEP FAILED no photo found")
     end,
-    function() shot("08-foto-zoom") end,
+    function() shot("08-foto-zoom"); UIManager:close(last) end,
+    function() require("apps/reader/readerui").instance:onHome() end,
+    function() -- Sommario → second article of the paper: the reader must open at it
+        local dir = os.getenv("XDG_DOCUMENTS_DIR") .. "/KoNewspaper/borgo/"
+        edicola().instance:openArticle(dir .. os.date("%Y-%m-%d") .. ".epub", 2)
+    end,
+    function() shot("13-articolo-dal-sommario") end,
     function() os.exit(0) end,
 }
 

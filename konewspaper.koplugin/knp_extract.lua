@@ -269,6 +269,22 @@ function M.feed(xml)
     return out
 end
 
+--- Brief for the article list: the opening sentences of an article body (our <p> HTML), about max bytes.
+-- News articles put the gist first, so this is the article's own summary.
+function M.brief(body, max)
+    max = max or 280
+    local out = ""
+    for p in body:gmatch("<p>(.-)</p>") do
+        out = out == "" and M.decode(p) or out .. " " .. M.decode(p)
+        if #out >= max * 0.6 then break end
+    end
+    if #out <= max then return out end
+    local cut = out:sub(1, max)
+    local s = cut:match("^(.*[%.!?])%s") -- up to the last full sentence
+    if s and #s > max / 3 then return s end
+    return (cut:gsub("%s+%S*$", "")) .. "…"
+end
+
 --- Feed descriptions are usually entity-escaped HTML
 function M.feedHTML(content)
     if content:find("&lt;") then content = M.decode(content) end

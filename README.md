@@ -15,6 +15,11 @@ Built for a **Kobo Nia** (N306, 758×1024, 212 dpi). It should work on any Kobo 
 <img src="docs/images/02-edicola-mondo.png" width="32%" alt="Newsstand, Mondo shelf">
 <img src="docs/images/07-articolo.png" width="32%" alt="Reading an article">
 </p>
+<p>
+<img src="docs/images/11-sommario.png" width="32%" alt="Sommario: today's articles by newspaper">
+<img src="docs/images/12-sommario-argomenti.png" width="32%" alt="Sommario by topic, with briefs">
+<img src="docs/images/13-articolo-dal-sommario.png" width="32%" alt="An article opened from the Sommario">
+</p>
 
 *Screenshots come from KOReader's emulator at the Nia's resolution. The newspapers and articles in them
 are fictional demo content (`tools/screenshots/make_demo.py`).*
@@ -30,14 +35,19 @@ are fictional demo content (`tools/screenshots/make_demo.py`).*
   are kept.
 - **Quick updates**: **Aggiorna** downloads 4 newspapers at a time, and only articles it doesn't have yet.
   Downloaded articles and photos are kept per newspaper, so a paper with no new articles costs just its feed.
+- **Sommario**: after **Aggiorna** (or from its button), every article of the day, listed by newspaper. Tap one to
+  read it. With **Riassunti, divisi per argomento** ticked, the list becomes a report by topic (politics,
+  economy, world, crime, health, science, environment, culture, sport), each article with its opening sentences.
+  Topics come from keywords (`knp_topics.lua`); no language model, which would be far too slow on the Kobo.
 - **Giornali**: tick which of the 45 free newspapers in the catalog (`giornali.lua`) go on the shelves.
+- **Wi-Fi that retries**: if the router refuses the Kobo an address, it asks again, up to 3 rounds, instead of giving up after 30 s.
 - **I miei libri**: every EPUB/PDF on the device in one big list. One tap opens a book.
 - **Luce**: frontlight brightness and warmth.
 - **Telefono**: receive files from a phone over Wi-Fi with the free [LocalSend](https://localsend.org)
   app (Android/iOS). The phone shares a file to *LocalSend → EdiKOla*, and the file appears in
   *I miei libri*.
 - **Reading**: tap the right or left side of the page to turn it. A big **◀ Edicola** button in the
-  top-left corner goes back. Long-press a word to look it up in Italian, English, Italian→English and
+  top-left corner goes back; next to it, **Titoli** goes back to the newspaper's front page and its headlines. Long-press a word to look it up in Italian, English, Italian→English and
   English→Italian.
 - **Text size and photos**: **A− / A+** in the top-right corner make the text smaller or bigger. Pinch and
   spread work too, and zoom PDFs. Tap a photo to see it full screen, where you can also zoom it.

@@ -79,7 +79,9 @@ questions, the EdiKOla lock screen, and the page counter at the bottom of articl
 3. Wait. The first update downloads every article, so it takes a while (several minutes with 30 papers).
    The message shows how many papers are ready. Later updates only fetch new articles and are much faster.
 
-**Check**: the shelves show front pages (masthead, date, headline, photo). Wi-Fi is off again.
+**Check**: the **Sommario** opens by itself: today's articles, listed by newspaper. Tick **Riassunti, divisi
+per argomento** to see them by topic, each with its opening sentences. Close it (✕ top right): the shelves
+show front pages (masthead, date, headline, photo). Wi-Fi is off again.
 
 ## 6. Read a paper
 
@@ -87,7 +89,8 @@ questions, the EdiKOla lock screen, and the page counter at the bottom of articl
 2. Tap the right side of the screen to go forward, the left side to go back. Tap a headline to jump to it.
 3. At the bottom you see, for example, **18/40 (1/5)**: page 18 of 40 in the paper, page 1 of 5 of this article.
 4. **A− / A+** at the top right change the text size. Tap a photo to see it full screen.
-5. **◀ Edicola** at the top left goes back to the newsstand.
+5. **Titoli**, next to it, goes back to the front page with the headlines. **◀ Edicola** at the top left goes
+   back to the newsstand.
 
 **Check**: all of the above works. Long-press a word: a dictionary window opens (it may say no
 dictionary is installed; see step 8).
