@@ -45,7 +45,11 @@ local ffiutil = require("ffi/util")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local Build = require("knp_build")
+local Cards = require("knp_cards")
+local Notes = require("knp_notes")
 local giornali = require("giornali")
+local ink = require("knp_ink")
+local theme = require("knp_theme")
 local topics = require("knp_topics")
 local Screen = Device.screen
 
@@ -72,6 +76,23 @@ local SECTIONS = {
     { id = "scienza", name = "Scienza e tecnologia" }, -- long labels wrap to 2 lines on their own
 }
 local PER_PAGE = 4 -- front pages per shelf page (2 x 2)
+local ANDROID = Device:isAndroid() -- Bigme B6 Pro Color: KOReader as an Android app, Android owns Wi-Fi/4G
+-- Pen notes ("Appunti"): on by default where there's a pen (Android e-readers); setting konewspaper_notes
+local function notesOn() return G_reader_settings:readSetting("konewspaper_notes", ANDROID) end
+
+-- Network: on Kobo KOReader turns Wi-Fi on and off itself; on Android it can only open the settings
+-- (it would do that after every update), and the Bigme may be online over 4G with Wi-Fi off.
+local function whenOnline(fn)
+    if not ANDROID then return NetworkMgr:runWhenOnline(fn) end
+    if NetworkMgr:isConnected() then return fn() end
+    UIManager:show(InfoMessage:new{
+        text = "Nessuna connessione a internet.\n\nAccendi il Wi-Fi o i dati mobili (scorri giù dall'alto dello schermo), poi riprova.",
+        face = Font:getFace("cfont", 22),
+    })
+end
+local function wifiOff()
+    if not ANDROID then NetworkMgr:turnOffWifi() end
+end
 local BOOKS_DIR = (Device.home_dir or "/mnt/onboard") .. "/Libri" -- where phone transfers land
 
 -- One-time defaults: big text, room for the home button, no Wi-Fi questions, e-ink tuned refresh
@@ -121,12 +142,23 @@ local function footerDefaults()
     return { footer = f, reader_footer_mode = 1 }
 end
 
+-- KOReader plugins EdiKOla never shows: each one costs start-up time and RAM. Applies from the next start.
+local UNUSED_PLUGINS = { "coverbrowser", "statistics", "vocabbuilder", "wallabag", "opds", "calibre", "kosync",
+    "terminal", "texteditor", "perceptionexpander", "newsdownloader", "japanese", "exporter", "profiles",
+    "hotkeys", "systemstat", "hello", "httpinspector" }
+local function androidDefaults()
+    local off = G_reader_settings:readSetting("plugins_disabled") or {}
+    for _, name in ipairs(UNUSED_PLUGINS) do off[name] = true end
+    return { plugins_disabled = off }
+end
+
 local function applyDefaults(plugin_path)
     local sets = { -- functions, so a set is only computed (and settings touched) the one time it applies
         konewspaper_defaults_v1 = function() return DEFAULTS end,
         konewspaper_defaults_v2 = lockscreenDefaults,
         konewspaper_defaults_v4 = newShelvesDefaults, -- v3 is on dev (custom OS plan)
         konewspaper_defaults_v5 = footerDefaults,
+        konewspaper_defaults_v6 = ANDROID and androidDefaults or nil, -- v3 is on dev (custom OS plan)
     }
     for flag, set in pairs(sets) do
         if not G_reader_settings:isTrue(flag) then
@@ -175,13 +207,13 @@ local function openFile(file)
     require("apps/reader/readerui"):showReader(file)
 end
 
-local function bigButton(text, width, height, callback, selected)
+local function bigButton(text, width, height, callback, selected, tint)
     return Button:new{
         text = text, width = width, height = height, callback = callback,
         text_font_face = "NotoSans-Bold.ttf", text_font_size = 22,
         bordersize = Screen:scaleBySize(selected and 4 or 2),
         radius = Screen:scaleBySize(10),
-        background = selected and Blitbuffer.COLOR_GRAY_D or nil,
+        background = selected and (tint or Blitbuffer.COLOR_GRAY_D) or nil,
     }
 end
 
@@ -210,13 +242,19 @@ function FrontPage:init()
     end
 
     local rule = function(t) return LineWidget:new{ dimen = Geom:new{ w = w, h = Screen:scaleBySize(t) } } end
+    -- masthead: the paper's name in white on its shelf's color (black on grayscale screens)
+    local band = theme.color(self.paper.section)
     local page = VerticalGroup:new{
         align = "center",
-        TextBoxWidget:new{
-            text = self.paper.name, face = Font:getFace("NotoSerif-Bold.ttf", 22),
-            width = w, alignment = "center", height = Screen:scaleBySize(34), height_overflow_show_ellipsis = true,
+        FrameContainer:new{
+            bordersize = 0, padding = Screen:scaleBySize(2), radius = Screen:scaleBySize(4), background = band,
+            TextBoxWidget:new{
+                text = self.paper.name, face = Font:getFace("NotoSerif-Bold.ttf", 21),
+                width = w - 2 * Screen:scaleBySize(2), alignment = "center", height = Screen:scaleBySize(32),
+                height_overflow_show_ellipsis = true, fgcolor = Blitbuffer.COLOR_WHITE, bgcolor = band,
+            },
         },
-        rule(2),
+        VerticalSpan:new{ width = Screen:scaleBySize(3) },
         VerticalSpan:new{ width = Screen:scaleBySize(2) },
         TextWidget:new{ text = status, face = Font:getFace("NotoSerif-Italic.ttf", 13), max_width = w },
         VerticalSpan:new{ width = Screen:scaleBySize(2) },
@@ -311,7 +349,9 @@ function Edicola:init()
             align = "center",
             bigButton("Luce", side_w, side_h, function() Device:showLightDialog() end),
             masthead_box,
-            bigButton("Telefono", side_w, side_h, function() self:receiveFromPhone() end),
+            -- Android: phones send with the LocalSend app straight to the Bigme, so that corner is for notes
+            notesOn() and bigButton("Appunti", side_w, side_h, function() self:showNotebook() end)
+                or bigButton("Telefono", side_w, side_h, function() self:receiveFromPhone() end),
         },
         VerticalSpan:new{ width = Screen:scaleBySize(4) },
         LineWidget:new{ dimen = Geom:new{ w = cw, h = Screen:scaleBySize(3) } },
@@ -332,7 +372,7 @@ function Edicola:init()
             if s.id == self.section then return end
             self.section, self.page = s.id, 1
             self:redraw("ui")
-        end, s.id == self.section))
+        end, s.id == self.section, theme.color(s.id .. "_tint")))
     end
 
     -- Bottom bar
@@ -414,7 +454,7 @@ function Edicola:init()
                 end
             end
             table.insert(shelves, row)
-            table.insert(shelves, LineWidget:new{ dimen = Geom:new{ w = cw, h = board_h }, background = Blitbuffer.COLOR_DARK_GRAY })
+            table.insert(shelves, theme.Box:new{ width = cw, height = board_h, color = theme.color(self.section) })
             table.insert(shelves, VerticalSpan:new{ width = gap })
         end
     end
@@ -491,10 +531,10 @@ end
 -- Downloads the given papers (Wi-Fi turns on by itself, and off again after). Several at once, each in
 -- its own process: a download mostly waits on the network, and KOReader's sockets block.
 -- ponytail: fixed worker count; lower it if updates run out of memory (256 MB), raise it on a fast connection
-local PARALLEL = 4
+local PARALLEL = ANDROID and 8 or 4 -- the Bigme has 8 GB and 8 cores
 function Edicola:fetch(list, after)
     if #list == 0 then return end
-    NetworkMgr:runWhenOnline(function()
+    whenOnline(function()
         Trapper:wrap(function()
             local failed, running, nrunning, nextp, ndone = {}, {}, 0, 1, 0
             local shown
@@ -547,7 +587,7 @@ function Edicola:fetch(list, after)
                 ffiutil.usleep(500000) -- Trapper:info already gave the screen 0.1 s for taps
             end
             Trapper:clear()
-            NetworkMgr:turnOffWifi()
+            wifiOff()
             if Edicola.instance then Edicola.instance:redraw() end
             if #failed > 0 then
                 UIManager:show(InfoMessage:new{
@@ -584,7 +624,7 @@ function Edicola:receiveFromPhone()
             face = Font:getFace("cfont", 22),
             dismiss_callback = function()
                 ls:stop()
-                NetworkMgr:turnOffWifi()
+                wifiOff()
             end,
         })
     end)
@@ -664,23 +704,15 @@ function Edicola:showNews()
 
     local shown = {} -- the Sommario's screens: all close when an article opens
     local function show(title, items)
-        local menu = Menu:new{
-            title = title, item_table = items,
-            width = Screen:getWidth(), height = Screen:getHeight(),
-            covers_fullscreen = true, is_borderless = true, is_popout = false, is_enable_shortcut = false,
-            items_per_page = 8, items_font_size = 19, items_max_lines = 4,
-        }
-        table.insert(shown, menu)
-        UIManager:show(menu, "full")
+        table.insert(shown, Cards.show{ title = title, items = items })
     end
     local function read(e)
         for _, m in ipairs(shown) do UIManager:close(m) end
         self:openArticle(e.file, e.i)
     end
-    -- two rows per entry, as the list turns newlines into spaces: a bold title, then the text
-    local function entry(items, title, text, callback)
-        table.insert(items, { text = title, bold = true, callback = callback })
-        table.insert(items, { text = text, callback = callback })
+    -- a card: colored stripe (the topic, or the paper's shelf), bold title, text
+    local function entry(items, title, text, callback, color)
+        table.insert(items, { title = title, text = text, callback = callback, color = color })
     end
 
     local by, items = {}, {}
@@ -701,23 +733,24 @@ function Edicola:showNews()
                 table.concat(heads, " · "), function()
                     local rows = {}
                     for _, e in ipairs(list) do
-                        entry(rows, e.title, ("%s · %s"):format(e.paper.name, e.brief), function() read(e) end)
+                        local note = notesOn() and Notes.has(ink.id(e.file, e.i + 1)) and " · con appunti" or ""
+                        entry(rows, e.title, ("%s%s · %s"):format(e.paper.name, note, e.brief), function() read(e) end, t)
                     end
                     show(t, rows)
-                end)
+                end, t)
         end
     end
     if #entries == 0 then
-        table.insert(items, { text = "Nessun articolo di oggi. Tocca «Aggiorna» per scaricare i giornali.", select_enabled = false })
+        entry(items, "Nessun articolo di oggi", "Tocca «Aggiorna» nell'Edicola per scaricare i giornali.")
     else
         entry(items, "Tutti i titoli", "Giornale per giornale", function()
             local rows, last = {}, nil
             for _, e in ipairs(entries) do
                 if e.paper ~= last then
-                    table.insert(rows, { text = "— " .. e.paper.name:upper() .. " —", select_enabled = false, bold = true })
+                    table.insert(rows, { header = e.paper.name, color = e.paper.section })
                     last = e.paper
                 end
-                table.insert(rows, { text = e.title, callback = function() read(e) end })
+                table.insert(rows, { title = e.title, callback = function() read(e) end, color = e.paper.section })
             end
             show("Tutti i titoli", rows)
         end)
@@ -746,34 +779,49 @@ function Edicola:showBooks()
     findBooks(Device.home_dir or "/mnt/onboard", books, 0)
     table.sort(books, function(a, b) return a.name:lower() < b.name:lower() end)
 
-    local menu
+    local list
     local items = {}
     for _, b in ipairs(books) do
         table.insert(items, {
-            text = b.name,
+            title = b.name, text = (b.path:match("%.(%w+)$") or ""):upper(), title_lines = 2,
             callback = function()
-                UIManager:close(menu)
+                UIManager:close(list)
                 self:open(b.path)
             end,
         })
     end
     if #items == 0 then
-        items[1] = { text = "Nessun libro. Collega il Kobo al computer e copia i file EPUB o PDF.", select_enabled = false }
+        items[1] = { title = "Nessun libro", text = ("Copia i file EPUB o PDF nella cartella «Libri»%s."):format(
+            ANDROID and " (dal computer via USB, o dal telefono con l'app LocalSend)" or " dal computer") }
     end
-    menu = Menu:new{
-        title = "I miei libri",
-        item_table = items,
-        width = Screen:getWidth(),
-        height = Screen:getHeight(),
-        covers_fullscreen = true,
-        is_borderless = true,
-        is_popout = false,
-        is_enable_shortcut = false, -- no Q/W/E key hints (they appear on devices with keyboards)
-        items_per_page = 7,
-        items_font_size = 26,
-        items_max_lines = 2,
-    }
-    UIManager:show(menu, "full")
+    list = Cards.show{ title = "I miei libri", items = items }
+end
+
+-- Taccuino: a new free sheet, then every note (newest first) with its picture. A note of an article
+-- has an "Articolo" button that opens the article.
+function Edicola:showNotebook()
+    local list
+    local function reopen() UIManager:close(list); self:showNotebook() end
+    local items = { {
+        title = "+ Nuovo foglio", text = "Un foglio bianco per scrivere con la penna",
+        callback = function() Notes.open(ink.id(), { title = "Foglio libero", sub = Build.dateLabel(os.time()) }, { close_callback = reopen }) end,
+    } }
+    for _, n in ipairs(Notes.list()) do
+        local note = n.note
+        local exists = note.file and lfs.attributes(note.file, "mode") == "file"
+        table.insert(items, {
+            title = note.title ~= "" and note.title or "Foglio libero",
+            text = ("%s\n%s · %d tratti"):format(note.sub or "", os.date("%d/%m %H:%M", n.time), #note.strokes),
+            image = n.png, color = "mondo", title_lines = 2, lines = 2,
+            callback = function()
+                Notes.open(n.id, note, { close_callback = reopen, on_article = exists and function()
+                    UIManager:close(list)
+                    self:openArticle(note.file, (note.chapter or 2) - 1)
+                end or nil })
+            end,
+        })
+    end
+    list = Cards.show{ title = "Appunti", items = items }
 end
 
 -- The plugin: newsstand over the file browser, home button in the reader
@@ -823,6 +871,9 @@ function KoNewspaper:addReaderControls()
     if self.ui.rolling then -- reflowable: text size; PDFs keep KOReader's zoom
         table.insert(right, { label("A+"), function() self.ui:handleEvent(Event:new("ChangeSize", 2)) end })
         table.insert(right, { label("A−"), function() self.ui:handleEvent(Event:new("ChangeSize", -2)) end })
+    end
+    if notesOn() then -- pen notes on this article (chapter); a book's chapter works the same
+        table.insert(right, { label("Appunti"), function() self:openNote() end })
     end
     local buttons, x = {}, margin
     for _, b in ipairs(left) do -- left to right from the left edge
@@ -895,6 +946,18 @@ function KoNewspaper:addReaderControls()
     table.insert(zones, { id = "konewspaper_photo_zoom", ges = "spread", screen_zone = whole, handler = openPhoto,
         overrides = { "spread_gesture" } })
     self.ui:registerTouchZones(zones)
+end
+
+function KoNewspaper:openNote()
+    local file = self.ui.document.file
+    local toc = self.ui.toc
+    local chapter = toc:getTocIndexByPage(self.ui:getCurrentPage()) or 0
+    local entry = toc.toc and toc.toc[chapter]
+    local doc = self.ui.doc_props and self.ui.doc_props.display_title or ""
+    Notes.open(ink.id(file, chapter), {
+        title = entry and entry.title or doc, sub = entry and doc or "",
+        file = file, chapter = chapter,
+    })
 end
 
 function KoNewspaper:onReaderReady() -- opened from the Sommario: go to that article

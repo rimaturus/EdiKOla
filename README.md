@@ -21,7 +21,19 @@ Built for a **Kobo Nia** (N306, 758×1024, 212 dpi). It should work on any Kobo 
 <img src="docs/images/13-articolo-dal-sommario.png" width="32%" alt="An article opened from the Sommario">
 </p>
 
-*Screenshots come from KOReader's emulator at the Nia's resolution. The newspapers and articles in them
+### On a Bigme B6 Pro Color (`bigme` branch)
+
+The same newsstand on a color e-ink Android reader: shelves and Sommario topics in color, color photos,
+and **Appunti**, pen notes on every article plus a notebook. Install: [docs/BIGME.md](docs/BIGME.md).
+
+<p>
+<img src="docs/images/bigme/01-edicola-italia.png" width="24%" alt="Bigme: newsstand in color">
+<img src="docs/images/bigme/11-sommario.png" width="24%" alt="Bigme: Sommario cards, one color per topic">
+<img src="docs/images/bigme/14-appunti.png" width="24%" alt="Bigme: pen notes on an article">
+<img src="docs/images/bigme/15-taccuino.png" width="24%" alt="Bigme: the notebook">
+</p>
+
+*Screenshots come from KOReader's emulator at the Nia's resolution (Bigme ones at 1072×1448, 300 dpi). The newspapers and articles in them
 are fictional demo content (`tools/screenshots/make_demo.py`).*
 
 ## What it does
@@ -72,10 +84,11 @@ are fictional demo content (`tools/screenshots/make_demo.py`).*
 
 | Path | What |
 |---|---|
-| `konewspaper.koplugin/` | The KOReader plugin: `main.lua` (UI), `knp_build.lua` (download → EPUB), `knp_extract.lua` (RSS + article extraction, pure Lua), `giornali.lua` (catalog) |
+| `konewspaper.koplugin/` | The KOReader plugin: `main.lua` (UI), `knp_build.lua` (download → EPUB), `knp_extract.lua` (RSS + article extraction, pure Lua), `giornali.lua` (catalog), `knp_cards.lua` (card lists), `knp_theme.lua` (colors, gray on grayscale screens), `knp_notes.lua` + `knp_ink.lua` (pen notes) |
+| `bigme/` | Bigme B6 Pro Color: `build.sh` (KOReader APK + plugin + `patches/2-edikola-bigme.lua`, which turns color on) |
 | `autoboot/` | `KoboRoot.tgz` that starts KOReader right after Nickel boots. Nickel stays installed as the fallback |
-| `tests/` | `texlua tests/konewspaper-test.lua` (fixtures), `… live` (checks every newspaper in the catalog). `build-cache-test.lua` runs on KOReader's Linux build: `cd $KO/lib/koreader && ./luajit <repo>/tests/build-cache-test.lua` |
-| `tools/screenshots/` | Regenerates `docs/images` with KOReader's Linux build: `KO=~/kosim sh tools/screenshots/run.sh` |
+| `tests/` | `texlua tests/notes-test.lua` (pen notes), `texlua tests/konewspaper-test.lua` (fixtures), `… live` (checks every newspaper in the catalog). `build-cache-test.lua` runs on KOReader's Linux build: `cd $KO/lib/koreader && ./luajit <repo>/tests/build-cache-test.lua` |
+| `tools/screenshots/` | Regenerates `docs/images` with KOReader's Linux build: `KO=~/kosim sh tools/screenshots/run.sh` (`BIGME=1` for `docs/images/bigme`) |
 | `CHANGES.md` | Every change made to the device, with how to undo it |
 
 ## Install
