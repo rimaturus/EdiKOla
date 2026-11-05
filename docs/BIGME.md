@@ -62,12 +62,15 @@ It downloads KOReader for Android (v2026.07.1, arm64; the build checks its SHA-2
 2. Open KOReader.
 
 **Check**: the Edicola appears, with colored mastheads. (A message may say documents are now in color: tap it.)
-If the mastheads are gray, see "If something is off".
+The patch turns color on for any Android device, since this package is only for the Bigme; the
+color rendering option in KOReader's screen menu (**Schermo**) switches it off again.
 
 ## 4. Tune the Bigme for KOReader (to check: names follow Bigme's E-Ink Center)
 
-Bigme refreshes the e-ink screen itself, per app. In **E-Ink Center** (swipe down from the top, or the
-floating button), pick **KOReader** and set:
+Bigme refreshes the e-ink screen itself, per app. For writing, EdiKOla switches KOReader to E-Ink Center's
+low-latency handwriting mode while a notes sheet is open, and back to the reading mode when it closes
+(step 6). For reading, in **E-Ink Center** (swipe down from the top, or the floating button), pick
+**KOReader** and set:
 - **Refresh mode**: the clear/"Default" mode for reading, a faster one if page turns feel slow;
 - **Color**: saturation one step up if photos look washed out (Kaleido colors are soft);
 - **Auto-refresh**: about every 6 pages, to clear ghosting (KOReader can't do this on a Bigme).
@@ -89,26 +92,46 @@ so the Edicola is one tap away, not automatic.
 - In an article, tap **Appunti** (top right): a ruled sheet opens, with the article's title on top.
   Write anywhere on the paper. The squares choose the ink (black, blue, red, green); **Gomma** erases whole
   strokes; **Annulla** undoes the last stroke or erasure; **Pulisci** clears the sheet (and **Annulla**
-  brings it back). **Fine** saves and goes back to the article.
+  brings it back). **Fine** (or Back) saves and goes back to the article.
+- **Only the pen writes.** From the first time the pen touches a sheet, fingers and a resting hand don't
+  draw any more (the sheet says "scrive solo la penna"); they still tap the buttons. Before that, a finger
+  draws too, so a sheet works even without the pen.
+- **Pressure**: pressing harder draws a thicker line.
+- **Erasing with the pen**: the pen's eraser end, or the pen's side button held while writing, erases
+  whole strokes, like **Gomma**.
+- **Trascrivi** turns the writing into text: one line of text per ruled line you wrote on. The text appears,
+  is kept with the note, and shows on its card in the notebook. The first time, EdiKOla asks before going
+  on: recognition is Google's handwriting recognition (the one behind Google's handwriting keyboard), so
+  this sheet's strokes are sent to Google, only the strokes, only when you tap **Trascrivi**. It needs
+  internet.
 - In the Edicola, **Appunti** (top right) is the notebook: every note with its picture, newest first, and
   **+ Nuovo foglio** for a free sheet. A note of an article has an **Articolo** button that opens it.
 - In the Sommario, articles with a note say "con appunti".
 - Notes are files in the `Appunti` folder of the internal storage: a `.png` picture of each (to copy to a
-  computer) and a `.lua` file with the strokes (what EdiKOla reopens). Deleting both deletes the note.
+  computer), a `.txt` with its transcription, and a `.lua` file with the strokes (what EdiKOla reopens).
+  Deleting them deletes the note.
 
-**Check**: write a word, tap **Fine**, open **Appunti** in the Edicola: the note is there with its picture.
+**Check**: write a word with the pen, then put a finger on the paper: the finger doesn't draw. Tap
+**Trascrivi**: the word comes back as text. Tap **Fine**, open **Appunti** in the Edicola: the note is there
+with its picture and its text.
 
-Limits, for now:
-- KOReader on Android gets the pen as a finger: a finger on the paper draws too. Only one touch at a time
-  draws, so a hand resting on the screen while the pen writes doesn't add a second line.
-- No pressure (one line width) and no handwriting recognition.
-- How fast the ink follows the pen depends on Bigme's refresh mode for KOReader (step 4); **to check**.
+How the pen part works, and what is still **to check** on the device:
+- KOReader's Android app drops the pen information Android gives it. EdiKOla adds it back (tool, side
+  button, pressure; `knp_android.lua`). Bigme's firmware may report its pen as a finger: EdiKOla then
+  recognises it by its input device, `fts_ts_pen`. If the finger still draws after the pen has written,
+  `koreader/crash.log` has lines `EdiKOla: input device …` naming each device: send them to me.
+- While writing, only the changed part of the screen is sent to the display, instead of the whole screen
+  each time, and KOReader is in E-Ink Center's handwriting mode (1029). That mode goes through a Bigme system
+  service that Android may refuse to an ordinary app: `crash.log` then says `EdiKOla: … refused` or `no Bigme
+  display service`, and the pen works anyway, at the speed of the reading mode.
+- Recognition is online; nothing on the device can read handwriting from inside KOReader.
 
 ## If something is off
 
-- **Gray mastheads and photos**: KOReader didn't recognise the Bigme. Its log (`koreader/crash.log`) has a line
-  `EdiKOla: device …` with the names Android gives the device: send it to me, and the patch gets that name.
+- **Gray mastheads and photos**: color rendering is off in KOReader's screen menu (**Schermo**): turn it on.
 - **"Nessuna connessione a internet"** on Aggiorna: turn on Wi-Fi or mobile data from the top of the screen.
+- **"Trascrizione non riuscita"**: no internet, or Google's service didn't answer; try again later.
+  Strokes are never sent unless you tap **Trascrivi**.
 - **To go back to plain KOReader**: delete `koreader/plugins/konewspaper.koplugin` and
   `koreader/patches/2-edikola-bigme.lua`. Uninstalling KOReader removes everything except the `koreader`,
   `KoNewspaper`, `Libri` and `Appunti` folders.

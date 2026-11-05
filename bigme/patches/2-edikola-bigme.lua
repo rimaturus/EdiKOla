@@ -1,19 +1,16 @@
 -- EdiKOla on the Bigme B6 Pro Color (KOReader user patch, runs once KOReader's UI is ready).
 -- KOReader's Android launcher has no entry for Bigme, so it may take the Kaleido 3 screen for a grayscale one:
--- covers and photos would show in gray and the color-rendering switch would be hidden. On a Bigme, say the
--- screen has color and turn color rendering on once (it stays switchable in Impostazioni > Schermo).
+-- covers and photos would show in gray and the color-rendering switch would be hidden. This package is only
+-- for the Bigme, so on Android the screen is said to have color, whatever the device calls itself, and color
+-- rendering is turned on once (it stays switchable in KOReader's Screen menu).
 local Device = require("device")
 if not Device:isAndroid() then return end
-local logger = require("logger")
-local android = require("android")
 
 local id = {}
-for k, v in pairs(android.prop or {}) do
+for k, v in pairs(require("android").prop or {}) do
     if type(v) == "string" then id[#id + 1] = k .. "=" .. v end
 end
-local props = table.concat(id, " ")
-logger.info("EdiKOla: device", props) -- in crash.log, for when the check below needs another name
-if not props:lower():find("bigme", 1, true) then return end
+require("logger").info("EdiKOla: device", table.concat(id, " ")) -- in crash.log, for reports
 
 if not Device:hasColorScreen() then
     local yes = function() return true end

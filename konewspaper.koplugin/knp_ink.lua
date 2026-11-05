@@ -1,6 +1,7 @@
 -- Pen notes, the parts without screen: storage format, eraser hit test. Pure Lua (tests/notes-test.lua).
--- A note: { title=, sub=, file=, chapter=, w=, h=, strokes = { { c = "blu", p = { x1, y1, x2, y2, ... } } } }
+-- A note: { title=, sub=, file=, chapter=, w=, h=, text=, strokes = { { c = "blu", p = { x1, y1, ... }, q = { 5, ... } } } }
 -- Points are pixels of the paper (w x h), so a note opened on another screen size is scaled.
+-- q: the pen's pressure at each point, 1 (light) to 9 (hard); absent for a finger. text: its transcription.
 local M = {}
 
 --- File name (no extension) for the note of chapter `chapter` of document `file`, or a free sheet
@@ -17,11 +18,17 @@ function M.encode(n)
     for _, st in ipairs(n.strokes) do
         local p = {}
         for i, v in ipairs(st.p) do p[i] = ("%d"):format(v) end
-        s[#s + 1] = ("{ c = %q, p = { %s } }"):format(st.c, table.concat(p, ","))
+        local q = ""
+        if st.q then
+            local t = {}
+            for i, v in ipairs(st.q) do t[i] = ("%d"):format(v) end
+            q = (", q = { %s }"):format(table.concat(t, ","))
+        end
+        s[#s + 1] = ("{ c = %q, p = { %s }%s }"):format(st.c, table.concat(p, ","), q)
     end
-    return ("return { v = 1, title = %q, sub = %q, file = %s, chapter = %s, w = %d, h = %d, strokes = {\n%s\n} }\n"):format(
+    return ("return { v = 1, title = %q, sub = %q, file = %s, chapter = %s, w = %d, h = %d, text = %s, strokes = {\n%s\n} }\n"):format(
         n.title or "", n.sub or "", n.file and ("%q"):format(n.file) or "nil", n.chapter and ("%d"):format(n.chapter) or "nil",
-        n.w, n.h, table.concat(s, ",\n"))
+        n.w, n.h, n.text and ("%q"):format(n.text) or "nil", table.concat(s, ",\n"))
 end
 
 --- The note in a file's text, or nil. Runs with no globals: a planted file can't reach anything.
@@ -42,6 +49,18 @@ function M.fit(n, w, h)
         for i, v in ipairs(st.p) do st.p[i] = math.floor(v * k + 0.5) end
     end
     n.w, n.h = w, h
+end
+
+--- Pressure 0..1 (Android) to the stored 1..9; nil when there's none
+function M.level(pressure)
+    if not pressure or pressure <= 0 then return nil end
+    return math.max(1, math.min(9, math.floor(pressure * 9 + 0.5)))
+end
+
+--- Line width for a pressure level: 0.6x (light) to 1.8x (hard) the normal width, which level 5 gives
+function M.width(base, q)
+    if not q then return base end
+    return math.max(1, math.floor(base * (0.45 + 0.15 * q) + 0.5))
 end
 
 -- squared distance from (px, py) to the segment (ax, ay)-(bx, by)

@@ -811,7 +811,8 @@ function Edicola:showNotebook()
         local exists = note.file and lfs.attributes(note.file, "mode") == "file"
         table.insert(items, {
             title = note.title ~= "" and note.title or "Foglio libero",
-            text = ("%s\n%s · %d tratti"):format(note.sub or "", os.date("%d/%m %H:%M", n.time), #note.strokes),
+            text = ("%s · %s\n%s"):format(os.date("%d/%m %H:%M", n.time), note.sub or "",
+                note.text and note.text ~= "" and note.text:gsub("\n", " / ") or ("%d tratti, non trascritto"):format(#note.strokes)),
             image = n.png, color = "mondo", title_lines = 2, lines = 2,
             callback = function()
                 Notes.open(n.id, note, { close_callback = reopen, on_article = exists and function()
@@ -833,6 +834,8 @@ KoNewspaper.Edicola = Edicola -- for tools/screenshots
 
 function KoNewspaper:init()
     applyDefaults(self.path)
+    require("knp_android").setup(Device) -- pen, pressure, fast pen refresh (Android only, once)
+    Notes.online = whenOnline
     if self.ui.document then
         self:addReaderControls()
     else

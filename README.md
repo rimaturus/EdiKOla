@@ -24,7 +24,7 @@ Built for a **Kobo Nia** (N306, 758×1024, 212 dpi). It should work on any Kobo 
 ### On a Bigme B6 Pro Color (`bigme` branch)
 
 The same newsstand on a color e-ink Android reader: shelves and Sommario topics in color, color photos,
-and **Appunti**, pen notes on every article plus a notebook. Install: [docs/BIGME.md](docs/BIGME.md).
+and **Appunti**, pen notes on every article (pen only, pressure, eraser end, transcription to text) plus a notebook. Install: [docs/BIGME.md](docs/BIGME.md).
 
 <p>
 <img src="docs/images/bigme/01-edicola-italia.png" width="24%" alt="Bigme: newsstand in color">
@@ -84,7 +84,7 @@ are fictional demo content (`tools/screenshots/make_demo.py`).*
 
 | Path | What |
 |---|---|
-| `konewspaper.koplugin/` | The KOReader plugin: `main.lua` (UI), `knp_build.lua` (download → EPUB), `knp_extract.lua` (RSS + article extraction, pure Lua), `giornali.lua` (catalog), `knp_cards.lua` (card lists), `knp_theme.lua` (colors, gray on grayscale screens), `knp_notes.lua` + `knp_ink.lua` (pen notes) |
+| `konewspaper.koplugin/` | The KOReader plugin: `main.lua` (UI), `knp_build.lua` (download → EPUB), `knp_extract.lua` (RSS + article extraction, pure Lua), `giornali.lua` (catalog), `knp_cards.lua` (card lists), `knp_theme.lua` (colors, gray on grayscale screens), `knp_notes.lua` + `knp_ink.lua` (pen notes), `knp_hwr.lua` (handwriting to text), `knp_android.lua` (pen, pressure and fast pen refresh on Android) |
 | `bigme/` | Bigme B6 Pro Color: `build.sh` (KOReader APK + plugin + `patches/2-edikola-bigme.lua`, which turns color on) |
 | `autoboot/` | `KoboRoot.tgz` that starts KOReader right after Nickel boots. Nickel stays installed as the fallback |
 | `tests/` | `texlua tests/notes-test.lua` (pen notes), `texlua tests/konewspaper-test.lua` (fixtures), `… live` (checks every newspaper in the catalog). `build-cache-test.lua` runs on KOReader's Linux build: `cd $KO/lib/koreader && ./luajit <repo>/tests/build-cache-test.lua` |

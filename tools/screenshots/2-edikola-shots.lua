@@ -47,12 +47,14 @@ local steps = {
     function()
         if not G_reader_settings:isTrue("konewspaper_notes") then return end
         local sheet, W = last, Device.screen:getWidth()
-        local function stroke(pts)
-            for k = 1, #pts, 2 do
-                Device.input.routeStylusEvents{ MTSlots = { { slot = 0, id = 1, x = pts[k], y = pts[k + 1] } } }
+        local function stroke(pts, tool)
+            for k = 1, #pts, 2 do -- pressure rises and falls along the stroke, like a real pen
+                Device.input.routeStylusEvents{ MTSlots = { { slot = 0, id = 1, x = pts[k], y = pts[k + 1],
+                    tool = tool or 1, pressure = 0.25 + 0.7 * math.sin(math.pi * k / #pts) } } }
             end
-            Device.input.routeStylusEvents{ MTSlots = { { slot = 0, id = -1, x = pts[#pts - 1], y = pts[#pts] } } }
+            Device.input.routeStylusEvents{ MTSlots = { { slot = 0, id = -1, x = pts[#pts - 1], y = pts[#pts], tool = tool or 1 } } }
         end
+        _G.knp_stroke = stroke
         local top = sheet.paper.y
         local function handwriting(y, x0, x1, seed) -- loops along a line, like cursive
             local pts = {}
@@ -76,6 +78,12 @@ local steps = {
         sheet.ink = "verde" -- a tick
         stroke({ W - 200, top + step * 9 - 30, W - 170, top + step * 9, W - 110, top + step * 9 - 70 })
         stroke({ W / 2, top + step * 12 }) -- a dot: short touches count
+        -- the pen has been seen: a finger (or a resting hand) on the paper must not draw
+        local n = #sheet.note.strokes
+        stroke({ 300, top + step * 14, 600, top + step * 15 }, 0)
+        if #sheet.note.strokes ~= n then print("SHOT STEP FAILED finger drew after the pen") end
+        if not G_reader_settings:isTrue("konewspaper_pen_seen") then print("SHOT STEP FAILED pen not noticed") end
+        if not sheet.note.strokes[1].q then print("SHOT STEP FAILED no pressure kept") end
     end,
     function()
         if not G_reader_settings:isTrue("konewspaper_notes") then return end
@@ -83,7 +91,10 @@ local steps = {
         -- eraser on the green tick, then undo; Pulisci, then undo
         local sheet, step = last, Device.screen:scaleBySize(34)
         local n0, W = #sheet.note.strokes, Device.screen:getWidth()
-        sheet.eraser = true
+        knp_stroke({ W - 170, sheet.paper.y + step * 9 }, 2) -- the pen's eraser end on the tick
+        if #sheet.note.strokes ~= n0 - 1 then print("SHOT STEP FAILED eraser end", n0, #sheet.note.strokes) end
+        sheet:undo()
+        sheet.eraser = true -- the Gomma button
         sheet:penDown(W - 170, step * 9); sheet:penUp()
         if #sheet.note.strokes ~= n0 - 1 then print("SHOT STEP FAILED eraser", n0, #sheet.note.strokes) end
         sheet:undo()
@@ -119,12 +130,40 @@ local steps = {
         require("apps/reader/readerui").instance:onHome()
     end,
     function()
+        if not G_reader_settings:isTrue("konewspaper_notes") or not os.getenv("KNP_HWR") then return end
+        local sheet = require("knp_notes").open("foglio-prova", { title = "Foglio libero", sub = "prova" })
+        _G.knp_hwr_sheet = sheet
+        local y, h = sheet.paper.y + 120, 160
+        local one, zero = {}, {}
+        for t = 0, h, 6 do one[#one + 1] = 300; one[#one + 1] = y + t end
+        for a = 0, 6.3, 0.15 do zero[#zero + 1] = 480 + math.floor(60 * math.sin(a)); zero[#zero + 1] = y + h / 2 - math.floor(h / 2 * math.cos(a)) end
+        knp_stroke(one); knp_stroke(zero)
+        G_reader_settings:makeTrue("konewspaper_hwr_ok") -- the one-time question, answered
+        sheet:transcribe()
+    end,
+    function()
+        if not G_reader_settings:isTrue("konewspaper_notes") or not os.getenv("KNP_HWR") then return end
+        shot("17-trascrizione")
+        UIManager:close(last) -- the text
+    end,
+    function()
+        if not G_reader_settings:isTrue("konewspaper_notes") or not os.getenv("KNP_HWR") then return end
+        last = knp_hwr_sheet
+        print("KNP transcription:", last.note.text)
+        if last.note.text ~= "10" then print("SHOT STEP FAILED transcription", last.note.text) end
+        UIManager:close(last) -- the sheet: saved with its text
+    end,
+    function()
         if not G_reader_settings:isTrue("konewspaper_notes") then return end
         edicola().instance:showNotebook()
     end,
     function()
         if not G_reader_settings:isTrue("konewspaper_notes") then return end
-        shot("15-taccuino"); last.items[2].callback() -- the note of the article: with its "Articolo" button
+        shot("15-taccuino")
+        for _, it in ipairs(last.items) do -- the note of the article: with its "Articolo" button
+            if it.title:find("mercato") then return it.callback() end
+        end
+        print("SHOT STEP FAILED article note not in the notebook")
     end,
     function()
         if not G_reader_settings:isTrue("konewspaper_notes") then return end
