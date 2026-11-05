@@ -3,7 +3,7 @@
 Goal: the Kobo Nia boots to the Edicola fast, and every tap feels immediate. The aim is to be quicker
 than the stock Kobo was when new, without losing a way back.
 
-Status (2026-11-01, `dev`): **phases 0–2 built and tested on the PC, not installed on the device yet.**
+Status (2026-11-05, `dev`): **phases 0–2 installed on the device; the Kobo boots into the Edicola.**
 Phase 3 is on hold until the boot log has real numbers (see "Built so far" at the end).
 
 ## Where the time goes today (to measure first)
