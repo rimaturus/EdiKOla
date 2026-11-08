@@ -33,6 +33,25 @@ Read from the device on 2026-11-08 (Termux `getprop`, then `adb` over wireless d
 - `com.mediatek.miravision.ui` (MiraVision) is MediaTek's display color tuning: a first candidate for
   feature 5 (color profiles), without root.
 
+## Display: what Bigme already has (survey of 2026-11-08, no root)
+
+- Home is **`com.android.launcher3`** (Bigme's xLauncher3, `/system/app/xLauncher3`), not
+  `com.xrz.ebook.launcher`.
+- E-ink tuning lives in system properties, read by Bigme's HWC and `xrz_display_policy_service`
+  (policy version 9; per-app list: `dumpsys xrz_display_policy_service --policies`):
+  - global: `vendor.xrz.global_color_enhance` (0), `global_contrast` (30), `global_brightness_level` (20),
+    `global_color_mode` (0), `global_text_enhance`, `gpu_dither`, `gray_256_dither`,
+    `force_global_refresh_mode` (-1 = per app), `auto_clean_enabled` (1), `clean_frequency`;
+  - per content type, already defined: `sys.comic_color_enhance` 60 / `sys.comic_refresh_mode` 180,
+    `sys.maga_color_enhance` 50 / `sys.maga_refresh_mode`, `sys.video_color_enhance` 30 /
+    `sys.video_refresh_mode` 179; factory defaults `ro.vendor.xrz.default_*` (color enhance 30,
+    refresh mode 178);
+  - `persist.vendor.xrz.fps` 120, `fps_high` 50, `fps_low` 40.
+- Settings (`settings list system`): `app_bleach_filter=org.koreader.launcher,1,0,0,0`: Bigme's
+  per-app "bleach" (whiter background) is on for KOReader.
+- Pen: `handwrittenservice` v1.4.0, committer at ~75 FPS; `ro.vendor.xrz.pen_type` 3.
+- `service call SurfaceFlinger 1022` (global saturation) is refused to adb shell: "Operation not permitted".
+
 Sources: XDA threads
 [HiBreak Pro (MT6877)](https://xdaforums.com/t/bigme-hibreak-pro-dimensity-900-mt6877-e-ink-phone.4723924/),
 [HiBreak Pro Color root/debloat](https://xdaforums.com/t/bigme-hibreak-pro-color-color-s-root-magisk-debloat-general-impressions.4764527/),
