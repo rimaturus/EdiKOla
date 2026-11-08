@@ -78,7 +78,7 @@ com.mediatek.omacp            # operator over-the-air provisioning
 # com.xrz.appmanager          per-app settings (unknown, keep)
 # com.xrz.hoverballdemo       floating button (E-Ink Center shortcut)
 # com.xrz.tts.service         text to speech
-# com.android.launcher3       xLauncher3: the current home screen; keep until another launcher is the default
+# com.android.launcher3       xLauncher3: the home screen, kept on purpose (change set 3); never disable
 # com.xrz.ebook.launcher      Bigme e-book launcher (not the default home; keep, unknown dependants)
 # com.xrz.file.manager        files (installing APKs, imports)
 # com.mediatek.miravision.ui  MiraVision display color tuning (feature 5)

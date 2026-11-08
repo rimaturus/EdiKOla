@@ -36,20 +36,30 @@ which clears `/data` and with it every disabled state (and the user's data).
 `adb uninstall org.koreader.launcher`; `adb shell rm -r /sdcard/koreader` removes settings and plugin
 (the `KoNewspaper`, `Libri`, `Appunti` folders stay).
 
-## 2026-11-08 - Change set 3: minimal launcher and apps (Play Store)
+## 2026-11-08 - Change set 3: extra apps (Play Store), Bigme launcher kept
 
 **Found**: home screen is Bigme's xLauncher3 (`com.android.launcher3`); Play Store and GMS work.
 
 **What**
-- From the Play Store: **Olauncher** (`app.olauncher`, open source, text only) as home screen, **LocalSend**
+- From the Play Store: **Olauncher** (`app.olauncher`, open source, text only), **LocalSend**
   (`org.localsend.localsend_app`), **Kiwix** (`org.kiwix.kiwixmobile`), **AntennaPod**
   (`de.danoeh.antennapod`). **Termux** (`com.termux`) from F-Droid's APK, installed with `adb install`
   (the Play Store build lags behind).
-- Olauncher set as default home from its own settings; its daily wallpaper off (e-ink).
+- **The home screen stays on Bigme's xLauncher3.** Olauncher is installed and does declare a HOME
+  activity, so it can be selected, but it was never made the default and it stays that way by choice.
 - Per-app display profiles set in E-Ink Center (Bigme's own per-app policies, see DEVICE.md).
 
-**Revert**: Settings -> Apps -> Default apps -> Home app -> the Bigme launcher; then uninstall what isn't
-wanted (`adb uninstall <package>`). E-Ink Center profiles: reset per app in E-Ink Center.
+**Corrected on 2026-11-08**: this entry used to say Olauncher had been set as the default home from its
+own settings. It never was. `adb shell cmd role get-role-holders android.app.role.HOME` answers
+`com.android.launcher3`, and the Bigme launcher is what the device starts on.
+
+**Checked** (during the change set 4 session): `pm list packages -3` lists the five apps above,
+Olauncher 6.9.1, LocalSend 1.18.2, Kiwix 3.14.1, AntennaPod 3.12.3, Termux googleplay.2026.10.09,
+next to KOReader 2026.07.1 from change set 2. Two more that no change set installed are present too,
+`com.amazon.kindle` and `org.Multi_TTS`.
+
+**Revert**: uninstall what isn't wanted (`adb uninstall <package>`). The home screen needs no revert,
+it was never changed. E-Ink Center profiles: reset per app in E-Ink Center.
 
 ## 2026-11-08 - Change set 4: firmware backup (read-only)
 
