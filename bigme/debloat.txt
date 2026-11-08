@@ -1,0 +1,97 @@
+# Packages debloat.sh disables (pm disable-user --user 0). One per line, reason after '#'.
+# Only disabling: data stays, `sh bigme/debloat.sh undo` re-enables. Firmware V1.020260803.
+# Lines starting with '#' are not touched: the KEEP and LATER lists at the bottom say why.
+
+# Chinese children's education suite (Jiaxuewang), useless outside China
+com.jxw.bihuamingcheng        # stroke names
+com.jxw.bishunguize           # stroke order
+com.jxw.jxwbook               # textbooks
+com.jxw.englishsoundmark      # English phonetics
+com.jxw.characterlearning     # Chinese characters
+com.jxw.jinfangyici           # synonyms/antonyms
+com.jxw.singsound             # oral evaluation
+com.jxw.liancichengju         # sentence building
+com.example.pianpangbushou    # radicals
+com.jxw.learnchinesepinyin    # pinyin
+com.jxw.studydigital          # numbers
+com.jxw.jxwcalculator         # arithmetic drills
+com.example.arithmeticformula # arithmetic rhymes
+com.jxw.online_study          # online lessons
+com.jxw.wuweijidanci          # vocabulary
+com.jxw.mskt.video            # video lessons
+com.jxw.yuwenxiezuo           # Chinese writing
+com.jxw.schultegrid           # attention training
+com.jxw.handwrite             # dictation
+com.jxw.zncd                  # OCR dictionary
+com.jxw.download              # suite downloader
+com.jxw.game                  # games
+com.jxw.examsystem            # mock exams
+com.jxw.newyouer.video        # kids videos
+com.jxw.tbdd                  # textbook reading
+com.jxw.question              # question bank
+
+# Bigme online extras, replaced by KOReader / LocalSend or not wanted
+com.xrz.appstore              # Bigme app store
+com.xrz.bookmall              # Bigme book store
+com.xrz.ai                    # ChatGPT app
+com.xrz.doc.translate         # document translation (online)
+com.xrz.btranslate            # translator (online)
+com.xrz.weichat.filetransfer  # WeChat file transfer
+com.xrz.bigmecloud            # Bigme cloud
+com.test.logcollect           # log collection
+
+# Google extras, no effect on Play Store/GMS
+com.google.android.as         # Android System Intelligence (smart text, live caption)
+com.google.android.as.oss     # Private Compute Services (only serves the above)
+com.google.android.apps.safetyhub          # Personal Safety
+com.google.android.apps.turbo              # Device Health Services (adaptive battery)
+com.google.android.gms.location.history    # Location history
+com.google.android.feedback                # Google feedback
+com.google.android.printservice.recommendation # print service suggestions
+com.android.quicksearchbox    # search widget
+
+# AOSP/MediaTek extras
+com.android.egg               # Easter egg
+com.android.dreams.basic      # screensaver colors (LCD)
+com.android.wallpaper.livepicker # live wallpapers (LCD)
+com.android.bookmarkprovider  # browser bookmarks, no browser
+com.android.bluetoothmidiservice # Bluetooth MIDI
+com.mediatek.aovtestapp       # MediaTek test app
+com.mediatek.mdmlsample       # MediaTek modem log sample
+com.debug.loggerui            # MediaTek debug logger
+com.mediatek.duraspeed        # DuraSpeed: kills background apps (can stop KOReader's updates)
+com.mediatek.voicecommand     # voice commands
+com.mediatek.voiceunlock      # voice unlock
+com.mediatek.callrecorder     # call recorder
+com.mediatek.omacp            # operator over-the-air provisioning
+
+# KEEP: never disable (Bigme e-ink, pen, system)
+# com.xrz.sys.control         xMenu: E-Ink Center / control panel
+# com.xrz.res.service         Bigme resources service
+# com.xrz.settings            Bigme settings (refresh, color)
+# com.android.settings        Settings (Bigme build)
+# com.xrz.globalwritingservice  system-wide pen writing
+# com.xrz.recognize           handwriting recognition
+# com.xrz.input               Bigme keyboard (handwriting input)
+# com.xrz.standby             lock screen / standby picture
+# com.xrz.mutidisplay         display handling (unknown, keep)
+# com.xrz.appmanager          per-app settings (unknown, keep)
+# com.xrz.hoverballdemo       floating button (E-Ink Center shortcut)
+# com.xrz.tts.service         text to speech
+# com.xrz.ebook.launcher      Bigme launcher: keep until another launcher is the default
+# com.xrz.file.manager        files (installing APKs, imports)
+# com.mediatek.miravision.ui  MiraVision display color tuning (feature 5)
+# com.mediatek.engineermode, com.mediatek.factorymode  diagnostics/factory menu
+# telephony, GMS, Play Store, WebView, Gboard, Google TTS, MTP, NFC
+
+# LATER: decide once the replacement is installed or tried
+# com.xrz.ebook.shelf, com.xrz.xreaderV3  Bigme shelf and reader (PDF pen notes? compare with KOReader)
+# com.xrz.note                Bigme notes (pen-optimized: candidate for the journal)
+# com.xrz.video               video player (may carry the e-ink video profile)
+# com.xrz.music, com.xrz.soundrecord  music, recorder
+# com.ebook.wifitransferbook  Wi-Fi book transfer (after LocalSend)
+# com.b300.xrz.web            "WebExport" (unknown)
+# com.socialnmobile.colordict, com.xrz.dictapp  dictionaries (KOReader has its own)
+# com.example.test            Bigme calendar
+# com.ebook.imagemanager, com.android.gallery3d  image viewers
+# com.android.launcher3       second launcher (xLauncher3)

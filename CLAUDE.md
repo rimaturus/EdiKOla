@@ -14,6 +14,7 @@ Voglio trasformarlo in una **biblioteca/edicola tascabile**: un dispositivo calm
 
 ## Stato attuale
 Livello 0: niente nel sistema del Bigme è ancora modificato. EdiKOla gira dentro l'app ufficiale KOReader per Android (`bigme/build.sh`, `bigme/patches/2-edikola-bigme.lua`), con scaffali e sommario a colori e **Appunti** a penna su ogni articolo (solo penna, pressione, gommino, trascrizione). Installazione e verifiche: [docs/BIGME.md](docs/BIGME.md).
+Dati del dispositivo, ricerca su root/backup (piattaforma HiBreak Pro, MT6877): [bigme/DEVICE.md](bigme/DEVICE.md). Debloat pronto ma non applicato: `bigme/debloat.txt` + `bigme/debloat.sh`.
 
 ## Obiettivo
 Stravolgere il sistema di serie: debloat profondo via ADB/root, fino a una ROM personalizzata se fattibile. Il risultato deve essere un'esperienza pensata per l'e-ink: launcher dedicato, poche schermate, niente notifiche invadenti, refresh e contrasto ottimizzati, uso naturale della penna.
