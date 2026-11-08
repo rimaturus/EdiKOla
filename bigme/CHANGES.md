@@ -84,8 +84,12 @@ the GPT. The GPT holds 61 entries against the 74 names in `/dev/block/by-name`: 
 - Every GPT entry has its file except `userdata`, skipped on purpose; the only two files not in the GPT
   are `gpt.bin` and `gpt_backup.bin`.
 - `vbmeta_a` read again in a later session and compared with `cmp`: identical, same SHA256.
-- Still to do by hand: copy `~/bigme-backup` to a second disk. These images are unique to this unit,
-  `nvram`, `nvdata`, `proinfo` and `protect1`/`protect2` carry its IMEI and calibration.
+- Second copy made on an external 32 GB drive, whole-device ext4 labelled `BIGME-BACKUP`, under
+  `bigme-backup/` next to a `README.txt` that names the unit and repeats the restore caveats. Checked by
+  reading it back off the drive with `sha256sum -c SHA256SUMS`: 69 of 69 files OK. The drive sits at
+  49 per cent used.
+- These images cannot be regenerated: they are unique to this unit, `nvram`, `nvdata`, `proinfo` and
+  `protect1`/`protect2` carry its IMEI and calibration, and Bigme publishes no firmware to download.
 
 **Gap**: the preloader is not in the backup. `rf --parttype=lu1` fails with `Exceed available range`, and
 the only route left, `dumppreloader`, crashes the preloader into BROM to run the Kamakiri payload, so it
