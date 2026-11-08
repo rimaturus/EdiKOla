@@ -98,3 +98,43 @@ stays reachable on this unprotected unit. Details and how to close it: [BACKUP.m
 
 **Revert**: nothing to revert, every command was a read. Do not delete `~/bigme-backup`: Bigme publishes
 no firmware, so these images are the only copy of this unit's calibration partitions.
+
+## 2026-11-08 - Change set 5: bootloader unlocked (level 3, destructive)
+
+**Found**: `sys.oem_unlock_allowed` read 0 and `ro.oem_unlock_supported` was unset, so it was an open
+question whether Bigme shipped the OEM unlocking toggle at all. It is there, and enabling it in
+Developer options moved the property to 1. The bootloader then reported `unlock_ability = 16777216`
+(0x01000000, the value 1 with its bytes swapped, the way several MediaTek bootloaders report it),
+`unlocked: no`, `secure: yes`, `product: k6877v1_64_k419`, slot `a`.
+
+**Prepared first**, because unlocking wipes `/data` and `/sdcard` lives in `/data/media`, which the
+firmware backup skipped on purpose:
+- `/sdcard` pulled to `~/bigme-userdata-20261108/sdcard`: 857 MiB in 1405 files, with all 25 top-level
+  folders matching the device's own per-folder file counts. `Appunti` was empty, so no pen notes existed.
+- The configuration that is not in `/sdcard` captured to `~/bigme-userdata-20261108/config`: the E-Ink
+  Center per-app policies (`dumpsys xrz_display_policy_service --policies`), the `system`, `secure` and
+  `global` settings namespaces, the 56 disabled packages, the full `getprop`, the deviceidle whitelist.
+- That and `~/bigme-backup` both copied to the external ext4 drive labelled `BIGME-BACKUP` and checked by
+  reading them back off it: 69 of 69 firmware files and 1413 of 1413 user-data files OK.
+
+**What**
+- Developer options -> OEM unlocking, enabled by hand on the device.
+- `adb reboot bootloader`, then `fastboot flashing unlock`, using the current official platform-tools
+  (fastboot 37.0.1, unpacked in `~/platform-tools`). Ubuntu's packaged fastboot is 28.0.2 from 2018 and
+  was deliberately not used. The bootloader answered `Start unlock flow` and finished in 3.5 s with no
+  on-screen key confirmation, which some MediaTek bootloaders skip. `fastboot getvar unlocked` now
+  answers `yes`.
+- `fastboot reboot`. The first boot after the wipe reformats `/data` and is slow.
+
+**Cost, as expected**: everything in `/data` is gone, so change sets 1 to 3 have to be redone. The 56
+disabled packages come back with `sh bigme/debloat.sh`; KOReader and EdiKOla with `sh bigme/build.sh out`
+and the adb steps of change set 2; the Play Store and F-Droid apps by reinstalling them. The E-Ink Center
+per-app profiles have to be re-entered by hand, since without root there is no documented way to write
+them back. adb access is gone until Developer options and USB debugging are on again and the PC is
+re-authorised.
+
+**Revert**: `fastboot flashing lock` re-locks the bootloader and wipes `/data` a second time. Only do it
+with stock, unmodified `boot`, `init_boot` and `vbmeta` in place: locking a device whose boot chain has
+been modified is a reliable way to make it refuse to boot. Those images are in the backup.
+Nothing has been flashed and there is no root yet: the only thing this change set altered is the lock
+state.
