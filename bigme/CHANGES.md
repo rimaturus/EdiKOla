@@ -13,7 +13,25 @@ Each change says what was found, what was done, and how to revert it. Device fac
 - `sh bigme/debloat.sh`, run from Termux on a phone through wireless debugging: disables the 55 packages
   in `debloat.txt` (Chinese education suite, Bigme store/cloud/AI/translators, Google extras, MediaTek
   test apps, DuraSpeed).
+- Checked: 55 × `new state: disabled-user`; `pm list packages -d` = 56 before and after a reboot (Bigme's
+  `xrz_app_freeze_service` doesn't re-enable them).
 
 **Revert**: `sh bigme/debloat.sh undo` re-enables them all; one package:
 `adb shell pm enable <package>`. If the device doesn't boot: recovery (Power + Vol+) → factory reset,
 which clears `/data` and with it every disabled state (and the user's data).
+
+## 2026-11-08 – Change set 2: KOReader + EdiKOla, installed through adb
+
+**Found**: no KOReader on the device.
+
+**What** (from Termux on a phone, wireless debugging; same files as [docs/BIGME.md](../docs/BIGME.md))
+- `sh bigme/build.sh out`, then `adb install out/KOReader.apk` (official v2026.07.1 arm64,
+  `org.koreader.launcher`) and `adb push out/koreader /sdcard/` (EdiKOla plugin + Bigme patch).
+- `adb shell appops set --uid org.koreader.launcher MANAGE_EXTERNAL_STORAGE allow`: the "all files" access
+  KOReader asks for on first start.
+- `adb shell dumpsys deviceidle whitelist +org.koreader.launcher`: no battery optimization, so an
+  Aggiorna isn't stopped with the screen off.
+
+**Revert**: `adb shell dumpsys deviceidle whitelist -org.koreader.launcher`, then
+`adb uninstall org.koreader.launcher`; `adb shell rm -r /sdcard/koreader` removes settings and plugin
+(the `KoNewspaper`, `Libri`, `Appunti` folders stay).
