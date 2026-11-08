@@ -21,7 +21,7 @@ Built for a **Kobo Nia** (N306, 758×1024, 212 dpi). It should work on any Kobo 
 <img src="docs/images/13-articolo-dal-sommario.png" width="32%" alt="An article opened from the Sommario">
 </p>
 
-### On a Bigme B6 Pro Color (`bigme` branch)
+### On a Bigme B6 Pro Color (`bigme-main` branch)
 
 The same newsstand on a color e-ink Android reader: shelves and Sommario topics in color, color photos,
 and **Appunti**, pen notes on every article (pen only, pressure, eraser end, transcription to text) plus a notebook. Install: [docs/BIGME.md](docs/BIGME.md).

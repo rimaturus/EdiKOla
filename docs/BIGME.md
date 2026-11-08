@@ -1,6 +1,6 @@
 # EdiKOla on the Bigme B6 Pro Color
 
-The `bigme` branch: the same newsstand as on the Kobo, in color, with pen notes on every article.
+The `bigme-main` branch: the same newsstand as on the Kobo, in color, with pen notes on every article.
 The Bigme runs Android 14, so EdiKOla runs on the official **KOReader app for Android**; nothing in the
 Bigme's system is changed. This guide is written before the device arrived (the parts marked
 **to check** are untested), and every step ends with a **Check**.
@@ -8,7 +8,7 @@ Bigme's system is changed. This guide is written before the device arrived (the 
 About 20 minutes.
 
 **You need**: the Bigme with its pen, its USB-C cable, a computer, Wi-Fi (or the Bigme's 4G), and this
-repository on the `bigme` branch.
+repository on the `bigme-main` branch.
 
 ## What's different from the Kobo
 
@@ -25,10 +25,10 @@ repository on the `bigme` branch.
 | Start-up | Kobo boots straight into the Edicola | open the KOReader app (see step 5) |
 | Books from the phone | Telefono button (LocalSend plugin) | the LocalSend app on the Bigme, saving into `Libri` |
 
-There is no custom system on the Bigme. The Kobo needed one because Nickel took 30–40 s to start and then
-had to be stopped; the Bigme's Android starts in seconds, runs KOReader next to its own apps, and replacing
-its system would void the warranty and lose the pen and the 75 FPS e-ink driver, which live in Bigme's
-firmware.
+So far nothing in the Bigme's system is changed: Android starts in seconds and runs KOReader next to its own
+apps. The plan to go further (backup, ADB debloat, root, a custom ROM only if it keeps the pen and the 75 FPS
+e-ink driver that live in Bigme's firmware) is in [CLAUDE.md](../CLAUDE.md); each system change will be
+logged, with its revert, in `bigme/CHANGES.md`.
 
 ## 1. Build the files (on the computer)
 
