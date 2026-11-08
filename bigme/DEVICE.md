@@ -47,6 +47,15 @@ Read from the device on 2026-11-08 (Termux `getprop`, then `adb` over wireless d
     `sys.video_refresh_mode` 179; factory defaults `ro.vendor.xrz.default_*` (color enhance 30,
     refresh mode 178);
   - `persist.vendor.xrz.fps` 120, `fps_high` 50, `fps_low` 40.
+- **Per-app profiles already exist**: the service holds 284 policies (Bigme's presets plus apps seen),
+  each with `appDpi`, `refreshMode` (178 reading, 179 video/fast; `sys.comic_refresh_mode` 180),
+  `refreshFrequency` (auto clean), `appContrast`, `appColorEnhance`, `appColorMode` (0 default,
+  3 on video apps), `appBleachMode`/`appBleachTextPlus`/`appBleachIconColor`, `appAntiFlicker`,
+  `appAntiAlias`, `appTextEnhance`, `appDarkLevel`. They are what E-Ink Center edits per app, so
+  features 5 (color profiles) and 6 (video) start from E-Ink Center, no code. Presets worth copying:
+  `com.xrz.video` (refresh 179, color mode 3, contrast 10, anti-flicker on).
+  KOReader today: dpi 350, refresh 178, contrast 30, color enhance 30, color mode 0, bleach on (as for
+  283 of 284 apps), anti-flicker off.
 - Settings (`settings list system`): `app_bleach_filter=org.koreader.launcher,1,0,0,0`: Bigme's
   per-app "bleach" (whiter background) is on for KOReader.
 - Pen: `handwrittenservice` v1.4.0, committer at ~75 FPS; `ro.vendor.xrz.pen_type` 3.

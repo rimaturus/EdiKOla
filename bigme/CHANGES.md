@@ -35,3 +35,18 @@ which clears `/data` and with it every disabled state (and the user's data).
 **Revert**: `adb shell dumpsys deviceidle whitelist -org.koreader.launcher`, then
 `adb uninstall org.koreader.launcher`; `adb shell rm -r /sdcard/koreader` removes settings and plugin
 (the `KoNewspaper`, `Libri`, `Appunti` folders stay).
+
+## 2026-11-08 – Change set 3: minimal launcher and apps (Play Store)
+
+**Found**: home screen is Bigme's xLauncher3 (`com.android.launcher3`); Play Store and GMS work.
+
+**What**
+- From the Play Store: **Olauncher** (`app.olauncher`, open source, text only) as home screen, **LocalSend**
+  (`org.localsend.localsend_app`), **Kiwix** (`org.kiwix.kiwixmobile`), **AntennaPod**
+  (`de.danoeh.antennapod`). **Termux** (`com.termux`) from F-Droid's APK, installed with `adb install`
+  (the Play Store build lags behind).
+- Olauncher set as default home from its own settings; its daily wallpaper off (e-ink).
+- Per-app display profiles set in E-Ink Center (Bigme's own per-app policies, see DEVICE.md).
+
+**Revert**: Settings → Apps → Default apps → Home app → the Bigme launcher; then uninstall what isn't
+wanted (`adb uninstall <package>`). E-Ink Center profiles: reset per app in E-Ink Center.
