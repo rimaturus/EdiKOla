@@ -1,8 +1,8 @@
-# System changes – Bigme B6 Pro Color (FW Bigme_V1.020260803)
+# System changes - Bigme B6 Pro Color (FW Bigme_V1.020260803)
 
 Each change says what was found, what was done, and how to revert it. Device facts: [DEVICE.md](DEVICE.md).
 
-## 2026-11-08 – Change set 1: ADB debloat (disable only)
+## 2026-11-08 - Change set 1: ADB debloat (disable only)
 
 **Found**: stock firmware, bootloader locked, no root, no full backup yet (needs a PC). Only
 `com.google.android.gms.supervision` was disabled.
@@ -13,14 +13,14 @@ Each change says what was found, what was done, and how to revert it. Device fac
 - `sh bigme/debloat.sh`, run from Termux on a phone through wireless debugging: disables the 55 packages
   in `debloat.txt` (Chinese education suite, Bigme store/cloud/AI/translators, Google extras, MediaTek
   test apps, DuraSpeed).
-- Checked: 55 × `new state: disabled-user`; `pm list packages -d` = 56 before and after a reboot (Bigme's
+- Checked: 55 x `new state: disabled-user`; `pm list packages -d` = 56 before and after a reboot (Bigme's
   `xrz_app_freeze_service` doesn't re-enable them).
 
 **Revert**: `sh bigme/debloat.sh undo` re-enables them all; one package:
-`adb shell pm enable <package>`. If the device doesn't boot: recovery (Power + Vol+) → factory reset,
+`adb shell pm enable <package>`. If the device doesn't boot: recovery (Power + Vol+) -> factory reset,
 which clears `/data` and with it every disabled state (and the user's data).
 
-## 2026-11-08 – Change set 2: KOReader + EdiKOla, installed through adb
+## 2026-11-08 - Change set 2: KOReader + EdiKOla, installed through adb
 
 **Found**: no KOReader on the device.
 
@@ -36,7 +36,7 @@ which clears `/data` and with it every disabled state (and the user's data).
 `adb uninstall org.koreader.launcher`; `adb shell rm -r /sdcard/koreader` removes settings and plugin
 (the `KoNewspaper`, `Libri`, `Appunti` folders stay).
 
-## 2026-11-08 – Change set 3: minimal launcher and apps (Play Store)
+## 2026-11-08 - Change set 3: minimal launcher and apps (Play Store)
 
 **Found**: home screen is Bigme's xLauncher3 (`com.android.launcher3`); Play Store and GMS work.
 
@@ -48,5 +48,39 @@ which clears `/data` and with it every disabled state (and the user's data).
 - Olauncher set as default home from its own settings; its daily wallpaper off (e-ink).
 - Per-app display profiles set in E-Ink Center (Bigme's own per-app policies, see DEVICE.md).
 
-**Revert**: Settings → Apps → Default apps → Home app → the Bigme launcher; then uninstall what isn't
+**Revert**: Settings -> Apps -> Default apps -> Home app -> the Bigme launcher; then uninstall what isn't
 wanted (`adb uninstall <package>`). E-Ink Center profiles: reset per app in E-Ink Center.
+
+## 2026-11-08 - Change set 4: firmware backup (read-only)
+
+**Found**: no backup existed yet. The unit reports `Target config 0x0`, so SBC, SLA and DAA are all
+disabled: mtkclient connects in plain preloader mode (`0e8d:2000`, `Detected regular mode !`) and needs
+no Kamakiri exploit, the failure reported on some other MT6877 units. Storage is UFS, not eMMC
+(blocksize 0x1000, LU0 255.4 GB, LU1 and LU2 4 MB each), so the preloader sits on the boot LUNs outside
+the GPT. The GPT holds 61 entries against the 74 names in `/dev/block/by-name`: the 13 extra are `sda`,
+`sdb`, `sdc`, `bootloader1`, `bootloader2` and the six `preloader_*` aliases.
+
+**What** (Linux PC over USB, device off; full procedure in [BACKUP.md](BACKUP.md))
+- mtkclient V2.1.4 in `~/mtkclient`, venv with the command-line dependencies only: `requirements.txt`
+  also pulls PySide6 and shiboken6 for the GUI, hundreds of MB the CLI never loads.
+- `python mtk.py printgpt > gpt.txt`, then `python mtk.py rl ~/bigme-backup --skip userdata`:
+  7 min 47 s at about 35 MB/s, ending on `All Dumped partitions success`.
+- Backup in `~/bigme-backup`, **outside the repo**: 62 images and 13.25 GiB, the 60 GPT partitions except
+  `userdata` plus `gpt.bin` and `gpt_backup.bin`. Neither the images nor `gpt.txt` are committed.
+- `sha256sum * > SHA256SUMS` over the folder, 69 lines, 70 files and 13.27 GiB in total.
+- The logs there carry this unit's `ME_ID`, `SOC_ID` and UFS serial, so they stay on the PC.
+
+**Checked**
+- Every GPT entry has its file except `userdata`, skipped on purpose; the only two files not in the GPT
+  are `gpt.bin` and `gpt_backup.bin`.
+- `vbmeta_a` read again in a later session and compared with `cmp`: identical, same SHA256.
+- Still to do by hand: copy `~/bigme-backup` to a second disk. These images are unique to this unit,
+  `nvram`, `nvdata`, `proinfo` and `protect1`/`protect2` carry its IMEI and calibration.
+
+**Gap**: the preloader is not in the backup. `rf --parttype=lu1` fails with `Exceed available range`, and
+the only route left, `dumppreloader`, crashes the preloader into BROM to run the Kamakiri payload, so it
+was left out of a read-only backup. Low impact: nothing in levels 2-3 writes the preloader, and BROM mode
+stays reachable on this unprotected unit. Details and how to close it: [BACKUP.md](BACKUP.md).
+
+**Revert**: nothing to revert, every command was a read. Do not delete `~/bigme-backup`: Bigme publishes
+no firmware, so these images are the only copy of this unit's calibration partitions.

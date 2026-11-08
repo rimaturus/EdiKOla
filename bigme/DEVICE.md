@@ -19,12 +19,13 @@ Read from the device on 2026-11-08 (Termux `getprop`, then `adb` over wireless d
 - This is a **B6 Pro**, but its firmware reports `HiBreak` and the SoC is the same MT6877: it is built
   on the platform of the **Bigme HiBreak Pro** (e-ink phone), which has an active XDA community: its
   root and backup work should apply here. **To check** on this device before relying on it.
-- **Unlock**: on the HiBreak Pro, Developer options → OEM unlocking, then `adb reboot bootloader` and
+- **Unlock**: on the HiBreak Pro, Developer options -> OEM unlocking, then `adb reboot bootloader` and
   `fastboot flashing unlock`. Unlocking wipes all data (FBE).
-- **Backup**: the HiBreak Pro owners use [mtkclient](https://github.com/bkerler/mtkclient) in BROM mode
-  (phone off, both volume keys held while plugging USB), dumping every partition except `userdata`.
-  On some recent units the public Kamakiri payload fails on MT6877 ("Error on sending payload"). If that
-  happens here, the fallback is to capture Bigme's own OTA package before unlocking.
+- **Backup**: done on 2026-11-08, see [BACKUP.md](BACKUP.md) and change set 4 in [CHANGES.md](CHANGES.md).
+  Neither BROM mode nor any key combination was needed: this unit reports `Target config 0x0`, with SBC,
+  SLA and DAA all disabled, so [mtkclient](https://github.com/bkerler/mtkclient) reads it in plain
+  preloader mode and the Kamakiri "Error on sending payload" failure seen on some MT6877 units never
+  arises. Storage is UFS, so the preloader lives outside the GPT and is not in the backup.
 - **OTA with root** works on the HiBreak Pro: re-root after each update; each OTA switches slot.
 - **Debloat**: on the HiBreak Pro, apps removed with `pm uninstall --user 0` came back after a firmware
   update; `pm disable-user` holds. So `debloat.sh` only disables.
