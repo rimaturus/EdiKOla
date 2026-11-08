@@ -12,11 +12,12 @@ Read from the device on 2026-11-08 (Termux `getprop`, then `adb` over wireless d
 | Boot | bootloader locked (`flash.locked=1`, `vbmeta.device_state=locked`, `verifiedbootstate=green`) |
 | OEM unlock | toggle off (`sys.oem_unlock_allowed=0`); `ro.oem_unlock_supported` not set |
 | Storage | file-based encryption (FBE, metadata encryption) |
-| Bigme services | `handwrittenservice` (`com.xrz.IHandwrittenService`); EdiKOla also uses `xrz_display_policy_service` (**to check**: not in the grep) |
+| Bigme services | `handwrittenservice` (`com.xrz.IHandwrittenService`), `xrz_display_policy_service` (`IDisplayPolicyManager`: per-app refresh modes, used by EdiKOla), `xrz_app_freeze_service`, `xrz_split_screen_service`, `xrz_system_proxy_service` (all `xrz.framework.manager.*`, in Bigme's framework) |
 
 ## What this means
 
-- Same platform as the **Bigme HiBreak Pro** (e-ink phone, MT6877), which has an active XDA community: its
+- This is a **B6 Pro**, but its firmware reports `HiBreak` and the SoC is the same MT6877: it is built
+  on the platform of the **Bigme HiBreak Pro** (e-ink phone), which has an active XDA community: its
   root and backup work should apply here. **To check** on this device before relying on it.
 - **Unlock**: on the HiBreak Pro, Developer options → OEM unlocking, then `adb reboot bootloader` and
   `fastboot flashing unlock`. Unlocking wipes all data (FBE).
