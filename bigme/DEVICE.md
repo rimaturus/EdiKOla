@@ -48,6 +48,15 @@ Read from the device on 2026-11-08 (Termux `getprop`, then `adb` over wireless d
     `sys.video_refresh_mode` 179; factory defaults `ro.vendor.xrz.default_*` (color enhance 30,
     refresh mode 178);
   - `persist.vendor.xrz.fps` 120, `fps_high` 50, `fps_low` 40.
+- **These globals move on their own**: the values above are a snapshot, not settings that stay put.
+  `global_color_mode` follows the foreground app's policy (read 0 with `com.android.launcher3` in front,
+  2 with `com.xrz.standby`, whose policy says `appColorMode=2`). `global_contrast` was read as both 20
+  and 30 in one session, and `global_color_enhance` was found at 60 some minutes after being set back to
+  0, with no one touching it; neither matches the foreground policy's `appContrast=20` /
+  `appColorEnhance=30`, so something besides the per-app policy writes them too (60 is also
+  `sys.comic_color_enhance`). Checked 2026-11-08: `adb shell setprop vendor.xrz.global_color_enhance 60`
+  **is** accepted and reads back at once, but it does not hold. For feature 5, drive the per-app policies
+  through E-Ink Center instead of these properties.
 - **Per-app profiles already exist**: the service holds 284 policies (Bigme's presets plus apps seen),
   each with `appDpi`, `refreshMode` (178 reading, 179 video/fast; `sys.comic_refresh_mode` 180),
   `refreshFrequency` (auto clean), `appContrast`, `appColorEnhance`, `appColorMode` (0 default,
