@@ -161,3 +161,39 @@ with stock, unmodified `boot`, `init_boot` and `vbmeta` in place: locking a devi
 been modified is a reliable way to make it refuse to boot. Those images are in the backup.
 Nothing has been flashed and there is no root yet: the only thing this change set altered is the lock
 state.
+
+## 2026-11-09 - Change set 6: root with Magisk 31.1 (level 3)
+
+**Found**: Magisk refused `init_boot_a` with "unable to unpack boot image", because that image is 8 MiB
+of zeros. This firmware has no `init_boot`: `boot_a` is a monolithic header-v2 Android boot image holding
+the ramdisk itself. Details in [DEVICE.md](DEVICE.md). So the patch target is `boot`, not `init_boot`,
+Android 14 notwithstanding.
+
+**What**
+- Magisk 31.1 from the project's own GitHub release, sha256
+  `89cefac0a318afa39fb3880c45c87b036c05bc1ebf02a7a715b7f8d7c26ac6e7`, 10679283 bytes. The release-asset
+  host answered 504 through this network on four attempts, so it was fetched from the GitHub API asset
+  endpoint instead, same source. `adb install`, which reports version 31.1.
+- `boot_a.bin` from the verified backup copied to `boot_a.img` (sha256 identical to the backup entry) and
+  pushed to `/sdcard/Download`, then patched in the app with Install -> Select and Patch a File.
+- `fastboot flash boot magisk_patched-31100_QyCVw.img`, which the bootloader resolved to `boot_a`:
+  40960 KB written in about a second. `vbmeta` was deliberately left stock, and that was enough. Neither
+  `--disable-verity` nor `--disable-verification` was needed, which fits Magisk patching with
+  `KEEPVERITY=true` and `KEEPFORCEENCRYPT=true`.
+
+**Validated before flashing**, since a bad boot image is the brick risk here: `ANDROID!` magic and header
+version 2 preserved, page size 2048, kernel size byte-for-byte unchanged at 14411775, ramdisk grown from
+11552975 to 11734976 bytes, and the first differing byte at offset 16, which is the ramdisk-size field.
+Magisk's own log says `Stock boot image detected`, adds `init` plus `overlay.d/sbin/magisk.xz` and
+`init-ld.xz`, and backs the stock `init` up to `.backup/init` inside the ramdisk.
+
+**Checked after reboot**: boot completes, `magisk -V` 31100, `magisk -v` `31.1:MAGISK:R`,
+`magisk --path` `/debug_ramdisk`, and `/debug_ramdisk/su` present. `verifiedbootstate` orange,
+`flash.locked` 0, slot still `_a`, firmware still `1763796060`. `su` from `adb shell` answers
+`Permission denied` until Superuser access is set to include ADB in the Magisk app; that is a Magisk
+setting, not a flashing problem.
+
+**Revert**: `fastboot flash boot ~/bigme-backup/boot_a.bin` puts the stock image back, or Magisk's own
+Uninstall -> Restore Images does it from the device. The stock `init` also lives inside the patched
+ramdisk at `.backup/init`. Re-locking the bootloader must come only after the stock `boot` is restored:
+locking with a patched boot chain is a reliable way to make the device refuse to start.
