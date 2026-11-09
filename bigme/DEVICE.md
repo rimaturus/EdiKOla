@@ -26,6 +26,13 @@ Read from the device on 2026-11-08 (Termux `getprop`, then `adb` over wireless d
   SLA and DAA all disabled, so [mtkclient](https://github.com/bkerler/mtkclient) reads it in plain
   preloader mode and the Kamakiri "Error on sending payload" failure seen on some MT6877 units never
   arises. Storage is UFS, so the preloader lives outside the GPT and is not in the backup.
+- **Boot layout: this firmware has no `init_boot`.** `boot_a` is a legacy monolithic Android boot image,
+  header version 2, holding both the kernel (13.74 MiB) and the ramdisk (11.02 MiB), not the post-GKI
+  split. `init_boot_a`/`_b` and `vendor_boot_a`/`_b` exist as GPT entries, as MediaTek's scatter defines
+  them, but they are blank and `vbmeta_a` does not describe them: its descriptors cover `boot`, `dtbo`,
+  `product`, `vbmeta_system` and `vbmeta_vendor` only. So anything that patches the ramdisk, Magisk
+  included, targets **`boot`**, not `init_boot`, despite this being Android 14.
+  Checked 2026-11-09, after Magisk refused `init_boot_a` with "unable to unpack boot image".
 - **OTA with root** works on the HiBreak Pro: re-root after each update; each OTA switches slot.
 - **Debloat**: on the HiBreak Pro, apps removed with `pm uninstall --user 0` came back after a firmware
   update; `pm disable-user` holds. So `debloat.sh` only disables.

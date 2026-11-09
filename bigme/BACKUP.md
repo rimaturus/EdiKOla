@@ -76,7 +76,14 @@ they are not for the repo.
 **Check**:
 - one file per entry of `gpt.txt` except `userdata`, plus `gpt.bin` and `gpt_backup.bin`;
 - read one again and compare: `python mtk.py r vbmeta_a /tmp/v.bin && cmp /tmp/v.bin ~/bigme-backup/vbmeta_a.bin`;
-- copy `~/bigme-backup` to a second disk: these files are unique to this unit.
+- copy `~/bigme-backup` to a second disk: these files are unique to this unit;
+- look at the content, not just the file list. 26 of the 62 images here are all-zero and that is right:
+  20 are `_b`-slot partitions, blank until the first OTA, and the rest are `boot_para`, `otp`, `para`,
+  `sec1` and `init_boot_a` / `vendor_boot_a`, which this firmware does not use. What must not be blank is
+  `boot_a` (`ANDROID!` magic, header v2, kernel plus ramdisk), `vbmeta_a` (`AVB0`), `super` (the
+  logical-partition geometry magic at offset 4096) and the calibration partitions `nvram`, `nvdata`,
+  `proinfo`, `protect1`, `protect2`. Checking presence and checksums alone will not catch an empty dump,
+  since an empty file hashes perfectly well.
 
 ## The preloader is not in this backup
 

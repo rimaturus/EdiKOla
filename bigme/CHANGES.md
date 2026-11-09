@@ -92,6 +92,20 @@ the GPT. The GPT holds 61 entries against the 74 names in `/dev/block/by-name`: 
 - These images cannot be regenerated: they are unique to this unit, `nvram`, `nvdata`, `proinfo` and
   `protect1`/`protect2` carry its IMEI and calibration, and Bigme publishes no firmware to download.
 
+**26 of the 62 images are all-zero, and that is correct.** Twenty are `_b`-slot partitions, blank on a
+unit that has never taken an OTA. The others are `boot_para`, `otp`, `para`, `sec1` (MediaTek parameter
+and one-time-programmable areas) and `init_boot_a` / `vendor_boot_a`, which this firmware does not use at
+all: `boot_a` is a monolithic header-v2 image carrying the ramdisk itself, and `vbmeta_a` describes no
+`init_boot` or `vendor_boot`. See [DEVICE.md](DEVICE.md). Confirmed 2026-11-09 by parsing the images:
+`boot_a` has the `ANDROID!` magic with a 13.74 MiB kernel and an 11.02 MiB ramdisk, `vbmeta_a` the `AVB0`
+magic, `super` the logical-partition geometry magic at offset 4096.
+
+**What the checks above did and did not cover**: they established that every GPT entry has a file, that
+the files are self-consistent against `SHA256SUMS`, and that one partition (`vbmeta_a`) re-read identically
+from the device. They did **not** look at whether each image held plausible content. That gap surfaced on
+2026-11-09 when Magisk could not unpack `init_boot_a`; checking the headers then confirmed the dump is
+faithful, but the content check belongs in the procedure, not in hindsight.
+
 **Gap**: the preloader is not in the backup. `rf --parttype=lu1` fails with `Exceed available range`, and
 the only route left, `dumppreloader`, crashes the preloader into BROM to run the Kamakiri payload, so it
 was left out of a read-only backup. Low impact: nothing in levels 2-3 writes the preloader, and BROM mode
