@@ -10,6 +10,10 @@ Everything is generated here (knp_cruciverba, knp_crucipuzzle, knp_sudoku), work
 is saved at once (settings/edikola_giochi.lua): a puzzle stays where it was left until it is solved or
 replaced with "Nuovo".
 
+The pen writes in the squares, as on paper: a digit or a letter, read on the device (knp_scrittura); a key
+typed over it in the same square teaches the reader that hand. In the crucipuzzle a pen line over a word
+finds it. The eraser end empties a square. Fingers tap as before.
+
     require("knp_giochi").show(articles)  -- articles(): today's { { title =, paper = } } for the crossword
 ]]
 local Blitbuffer = require("ffi/blitbuffer")
@@ -35,7 +39,9 @@ local VerticalSpan = require("ui/widget/verticalspan")
 local Cards = require("knp_cards")
 local C = require("knp_cruciverba")
 local P = require("knp_parole")
+local Penna = require("knp_penna")
 local S = require("knp_sudoku")
+local Scrittura = require("knp_scrittura")
 local W = require("knp_crucipuzzle")
 local theme = require("knp_theme")
 local Screen = Device.screen
@@ -192,13 +198,124 @@ function Gioco:onClose()
     return true
 end
 
+-- The pen on the grid: its strokes show in ink as it moves, then go to the puzzle (onPenStroke).
+-- Fingers, and the pen off the grid, tap as usual.
+function Gioco:onShow()
+    self.release = Penna.capture(function(s) return self:feedPen(s) end)
+end
+
 function Gioco:onCloseWidget()
+    if self.release then self.release() end
+    if self.read_cb then UIManager:unschedule(self.read_cb) end
+    if self.restore then UIManager:unschedule(self.restore); self.restore() end
     if self.close_callback then self.close_callback() end
 end
 
+function Gioco:feedPen(s)
+    if not (s.x and s.y) then return false end
+    local x, y = Penna.position(s)
+    local ink = theme.color("scritto")
+    if self.pen_slot == s.slot then
+        if s.id == -1 then
+            local st = self.stroke
+            self.pen_slot, self.stroke = nil, nil
+            Penna.fastPanel(self, false)
+            if st then self:onPenStroke(st, self.rubbing) end
+        else
+            local p = self.stroke
+            local lx, ly = p[#p - 1], p[#p]
+            if math.abs(x - lx) + math.abs(y - ly) >= 2 then
+                p[#p + 1], p[#p + 2] = x, y
+                if not self.rubbing then UIManager:setDirty(nil, "fast", Penna.segment(Screen.bb, 0, 0, ink, lx, ly, x, y)) end
+            end
+        end
+        return true
+    end
+    if s.id == -1 or self.pen_slot or not (s.tool == Penna.PEN or s.tool == Penna.ERASER) or not self.board then
+        return false
+    end
+    local b = self.board.dimen
+    if x < b.x or y < b.y or x >= b.x + b.w or y >= b.y + b.h then return false end
+    self.pen_slot, self.rubbing, self.stroke = s.slot, s.tool == Penna.ERASER, { x, y }
+    Penna.fastPanel(self, true)
+    if not self.rubbing then UIManager:setDirty(nil, "fast", Penna.segment(Screen.bb, 0, 0, ink, x, y, x, y)) end
+    return true
+end
+
+function Gioco:cellAt(x, y)
+    local b = self.board
+    local c = math.floor((x - b.dimen.x) / b.size) + 1
+    local r = math.floor((y - b.dimen.y) / b.size) + 1
+    if c >= 1 and c <= b.cols and r >= 1 and r <= b.rows then return c, r end
+end
+
+-- Handwriting in a square (sudoku, crossword): strokes gather per square and are read as one character
+-- 0.8 s after the pen lifts, or at once when the pen starts in another square. The eraser empties a square.
+function Gioco:onPenStroke(st, rubbing)
+    local x0, y0, x1, y1 = math.huge, math.huge, -math.huge, -math.huge
+    for i = 1, #st - 1, 2 do
+        x0, y0, x1, y1 = math.min(x0, st[i]), math.min(y0, st[i + 1]), math.max(x1, st[i]), math.max(y1, st[i + 1])
+    end
+    local c, r = self:cellAt((x0 + x1) / 2, (y0 + y1) / 2)
+    if not c then return end
+    local w = self.writing
+    if w and (w.c ~= c or w.r ~= r or rubbing) then self:readWriting(); w = nil end
+    if rubbing then return self:penWrite(c, r, false) end -- false: empty the square
+    if not w then
+        w = { c = c, r = r, strokes = {} }
+        self.writing = w
+    end
+    table.insert(w.strokes, st)
+    self.read_cb = self.read_cb or function() self:readWriting() end
+    UIManager:unschedule(self.read_cb)
+    UIManager:scheduleIn(0.8, self.read_cb)
+end
+
+local function learned() return db():readSetting("scrittura") or {} end
+
+function Gioco:readWriting()
+    if self.read_cb then UIManager:unschedule(self.read_cb) end
+    local w = self.writing
+    self.writing = nil
+    if not w then return end
+    local ch = Scrittura.recognize(w.strokes, self.charset, learned())
+    if ch then self.last_pen = { c = w.c, r = w.r, strokes = w.strokes, ch = ch, time = os.time() } end
+    self:penWrite(w.c, w.r, ch) -- nil: nothing read, the ink just goes
+end
+
+--- A key typed over what the pen just wrote in the same square: the pen read it wrong. That writing becomes
+-- one of the user's own shapes for the key's character (five kept per character), so it is read right next time.
+function Gioco:learn(c, r, ch)
+    local lp = self.last_pen
+    self.last_pen = nil
+    if not lp or lp.c ~= c or lp.r ~= r or lp.ch == ch or os.time() - lp.time > 60 then return end
+    local all = learned()
+    all[ch] = all[ch] or {}
+    table.insert(all[ch], Scrittura.cloud(lp.strokes))
+    if #all[ch] > 5 then table.remove(all[ch], 1) end
+    save("scrittura", all)
+end
+
 ---------------------------------------------------------------------------------------------- Sudoku
-local Sudoku = Gioco:extend{ color = "sudoku", level = 2 }
+local Sudoku = Gioco:extend{ color = "sudoku", level = 2, charset = "123456789" }
 local LEVELS = { "facile", "medio", "difficile" }
+
+-- the pen wrote a digit in a square (false: the eraser emptied it, nil: nothing readable)
+function Sudoku:penWrite(c, r, ch)
+    local i = (r - 1) * 9 + c
+    if ch == nil or self.st.puz:sub(i, i) ~= "0" then -- unreadable, or a printed digit: only the ink goes
+        self.sel = i
+        self:build()
+        return UIManager:setDirty(self, "ui", self.board.dimen)
+    end
+    self.sel = i
+    self:put(ch or "0")
+end
+
+function Sudoku:key(d) -- a digit from the keys: maybe correcting what the pen wrote
+    if self.sel then self:learn((self.sel - 1) % 9 + 1, math.floor((self.sel - 1) / 9) + 1, d) end
+    self:put(d)
+end
 
 function Sudoku:load()
     self.key = "sudoku" .. self.level
@@ -246,10 +363,11 @@ function Sudoku:build()
         end,
     }
     local digits = {}
-    for d = 1, 9 do digits[d] = { tostring(d), function() self:put(tostring(d)) end } end
+    for d = 1, 9 do digits[d] = { tostring(d), function() self:key(tostring(d)) end } end
     local empty = 0
     for i = 1, 81 do if st.cur:sub(i, i) == "0" then empty = empty + 1 end end
-    local status = st.done and "Risolto! Complimenti." or ("Caselle vuote: %d - tocca una casella, poi un numero"):format(empty)
+    local status = st.done and "Risolto! Complimenti." or
+        ("Vuote: %d - scrivi con la penna nella casella, o toccala e scegli il numero"):format(empty)
     self:frame{
         CenterContainer:new{ dimen = Geom:new{ w = self.cw, h = 9 * size + 1 }, self.board },
         theme.Text:new{ text = status, face = Font:getFace("NotoSans-Regular.ttf", 17), fgcolor = theme.color("sudoku"), max_width = self.cw },
@@ -298,7 +416,19 @@ function Sudoku:hint()
 end
 
 -------------------------------------------------------------------------------------------- Cruciverba
-local Cruciverba = Gioco:extend{ color = "cruciverba", title = "Cruciverba", key = "cruciverba", articles = nil }
+local Cruciverba = Gioco:extend{ color = "cruciverba", title = "Cruciverba", key = "cruciverba", articles = nil,
+    charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" }
+
+-- the pen wrote a letter in a square (false: the eraser emptied it, nil: nothing readable)
+function Cruciverba:penWrite(c, r, ch)
+    if not self:isLetter(c, r) then return self:redrawBoard() end
+    self.sel.x, self.sel.y = c, r -- that square is now the selected one, its word the current one
+    if ch ~= nil and not self.st.done then
+        self:set(c, r, ch or " ")
+        save(self.key, self.st)
+    end
+    self:redrawBoard()
+end
 
 function Cruciverba:load()
     self.st = db():readSetting(self.key) or self:newGame(today())
@@ -439,6 +569,7 @@ end
 function Cruciverba:type(ch)
     local wd, k = self:current()
     if not wd or self.st.done then return end
+    self:learn(self.sel.x, self.sel.y, ch) -- maybe correcting what the pen wrote there
     self:set(self.sel.x, self.sel.y, ch)
     if k < #wd.word - 1 then -- next square of the word
         self.sel.x = self.sel.x + (wd.dir == "a" and 1 or 0)
@@ -593,7 +724,7 @@ function Crucipuzzle:build()
         table.insert(list, VerticalSpan:new{ width = px(4) })
     end
     local status = all and ("La chiave: " .. (wp.key or "")) or
-        ("Trovate %d di %d - tocca la prima e l'ultima lettera di una parola"):format(st.nfound, #wp.words)
+        ("Trovate %d di %d - riga a penna sulla parola, o tocca la prima e l'ultima lettera"):format(st.nfound, #wp.words)
     self:frame{
         CenterContainer:new{ dimen = Geom:new{ w = self.cw, h = wp.h * size + 1 }, self.board },
         TextBoxWidget:new{ text = status, face = Font:getFace(all and "NotoSans-Bold.ttf" or "NotoSans-Regular.ttf", all and 20 or 16),
@@ -603,6 +734,19 @@ function Crucipuzzle:build()
             { "Soluzione", function() self:solve() end },
         }, act_h, 18),
     }
+end
+
+-- a pen line over a word: its first and last letters, as two taps (a dot: one tap)
+function Crucipuzzle:onPenStroke(st, rubbing)
+    if rubbing then return end
+    local c1, r1 = self:cellAt(st[1], st[2])
+    local c2, r2 = self:cellAt(st[#st - 1], st[#st])
+    if not c1 then return end -- can't happen: the pen is only taken when it starts on the grid
+    if not c2 then return self:tap(c1, r1) end -- the line ran off the grid: just its start
+    self.start = nil
+    if c1 == c2 and r1 == r2 then return self:tap(c1, r1) end
+    self:tap(c1, r1)
+    self:tap(c2, r2)
 end
 
 function Crucipuzzle:tap(c, r)
