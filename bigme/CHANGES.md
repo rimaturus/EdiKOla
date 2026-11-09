@@ -270,3 +270,29 @@ no saving is claimed.
 
 **Revert**: one package, `adb shell pm enable <package>`; everything, `sh bigme/debloat.sh undo`.
 The four apps: `adb uninstall <package>`.
+
+## 2026-11-09 - Change set 9: the debloat list uninstalled, not just disabled
+
+**Found**: change set 8 left the 86 packages of `debloat.txt` installed but disabled. Wanted: Kindle and
+everything else outside the kept set uninstalled.
+
+**What**
+- `debloat.sh` gains two modes: `uninstall` runs `pm uninstall --user 0` on each listed package, and
+  `undo` now runs `cmd package install-existing --user 0` then `pm enable`, so it reverses either mode.
+  Plain `sh bigme/debloat.sh` still only disables.
+- `sh bigme/debloat.sh uninstall`: `Success` 86 of 86; none of them is listed by `pm list packages` any
+  more, 172 packages left in all. 84 are system apps (Play Store and Play services included, as updated
+  system apps): their APKs stay in `/system`, `/product` and so on, only user 0 loses them and their data.
+  The other two, `com.amazon.kindle` and `org.Multi_TTS`, are not system apps, so their APKs are deleted;
+  they come back only with a factory reset, which reinstalls them.
+- On the HiBreak Pro, apps removed this way came back after a firmware update (DEVICE.md). With an
+  unlocked, rooted device OTAs are unlikely here; after one, run `sh bigme/debloat.sh uninstall` again.
+
+**Checked**: the `undo` path on one package, `com.android.deskclock`: `install-existing` brought it back
+installed and enabled, then it was uninstalled again. Reboot completes; KOReader, browser, notes,
+Termux, Olauncher, LocalSend, Kiwix, AntennaPod, Magisk, Settings and files all open to the foreground
+with nothing in the crash log; the home role is still `com.android.launcher3`.
+
+**Revert**: `sh bigme/debloat.sh undo` for all, or for one package
+`adb shell cmd package install-existing --user 0 <package>`. Kindle and Multi_TTS cannot come back this
+way: reinstall Kindle from Amazon if wanted.

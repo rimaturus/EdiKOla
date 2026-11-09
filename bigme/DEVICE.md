@@ -35,7 +35,8 @@ Read from the device on 2026-11-08 (Termux `getprop`, then `adb` over wireless d
   Checked 2026-11-09, after Magisk refused `init_boot_a` with "unable to unpack boot image".
 - **OTA with root** works on the HiBreak Pro: re-root after each update; each OTA switches slot.
 - **Debloat**: on the HiBreak Pro, apps removed with `pm uninstall --user 0` came back after a firmware
-  update; `pm disable-user` holds. So `debloat.sh` only disables.
+  update; `pm disable-user` holds. So `debloat.sh` disables by default; since change set 9 it also has an
+  `uninstall` mode, used on this unit, to re-run after any firmware update.
 - **GSI**: one boots on the HiBreak Pro with HW overlays disabled. Whether the pen, E-Ink Center refresh
   modes and color survive is unknown: level 4 question.
 - `com.mediatek.miravision.ui` (MiraVision) is MediaTek's display color tuning: a first candidate for
