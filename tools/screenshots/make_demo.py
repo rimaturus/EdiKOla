@@ -20,7 +20,9 @@ PAPERS = [  # id, name, section, headline
     ("sunny", "Sunny Side Post", "buone", "A retired baker teaches the whole street to make bread on Sundays"),
     ("stelle", "Cronache delle Stelle", "scienza", "Una nuova cometa sarà visibile a occhio nudo prima di Natale"),
     ("lab", "Lab Notes Demo", "scienza", "Quieter, cheaper heat pumps reach small apartments"),
+    ("pianura", "L'Eco della Pianura", "italia", "Raccolta delle castagne: la sagra torna in paese dopo tre anni"),
 ]
+NOT_SELECTED = {"pianura"}  # in the catalog but off the shelf: the "+ Altri giornali" place shows
 
 ARTICLE = ("Questo è un testo di esempio scritto per le immagini del README. "
            "Serve a mostrare come appare un articolo su EdiKOla: solo testo e foto, "
@@ -95,7 +97,7 @@ for i, (pid, name, section, headline) in enumerate(PAPERS):
 # The demo catalog: fictional papers, all selected
 with open(os.path.join(home, "giornali_demo.lua"), "w", encoding="utf8") as f:
     f.write("return {\n" + "".join(
-        f'  {{ id = "{p}", section = "{s}", name = "{n}", feed = "https://example.invalid/{p}", default = true }},\n'
+        f'  {{ id = "{p}", section = "{s}", name = "{n}", feed = "https://example.invalid/{p}", default = {str(p not in NOT_SELECTED).lower()} }},\n'
         for p, n, s, _ in PAPERS) + "}\n")
 
 # A few books for "I miei libri" (names only matter for the list)

@@ -1,24 +1,29 @@
--- Self-check for knp_ink.lua (pen notes), run from the repo root: texlua tests/notes-test.lua
+-- Self-check for knp_ink.lua (pen ink) and knp_android.lua (pen input), from the repo root: lua5.1 tests/notes-test.lua
 package.path = "konewspaper.koplugin/?.lua;" .. package.path
 local ink = require("knp_ink")
 
--- ids: one per article of an edition, safe as a file name
-assert(ink.id("/sdcard/KoNewspaper/rainews/2026-11-05.epub", 3) == "rainews-2026-11-05-3", ink.id("/sdcard/KoNewspaper/rainews/2026-11-05.epub", 3))
-assert(ink.id("/sdcard/Libri/Un libro (2).epub", 7) == "Libri-Un_libro__2_-7")
-assert(ink.id():match("^foglio%-%d+%-%d+$"))
+-- ids: one per document, safe as a file name
+assert(ink.id("/sdcard/KoNewspaper/rainews/2026-11-05.epub") == "rainews-2026-11-05", ink.id("/sdcard/KoNewspaper/rainews/2026-11-05.epub"))
+assert(ink.id("/sdcard/Libri/Un libro (2).epub") == "Libri-Un_libro__2_")
 
--- round trip, titles with quotes and newlines
-local n = { title = 'Il "titolo"\ndue righe', sub = "RaiNews24", file = "/x/y.epub", chapter = 4, w = 1072, h = 1200,
-    strokes = { { c = "blu", p = { 10, 20, 30, 40, 50, 60 } }, { c = "rosso", p = { 500, 500 } } } }
-local back = ink.decode(ink.encode(n))
-assert(back.title == n.title and back.sub == n.sub and back.file == n.file and back.chapter == 4)
-assert(#back.strokes == 2 and back.strokes[1].c == "blu" and back.strokes[1].p[6] == 60 and back.strokes[2].p[1] == 500)
-local free = ink.decode(ink.encode{ title = "", w = 10, h = 10, strokes = {} })
-assert(free.file == nil and free.chapter == nil and #free.strokes == 0)
+-- round trip: pages keyed by where they start in the text, with quotes and brackets in the key
+local key = '/body/DocFragment[3]/body/p[2]/text().17 "x"'
+local doc = { pages = {
+    [key] = { w = 1072, h = 1448, strokes = { { c = "blu", p = { 10, 20, 30, 40, 50, 60 }, q = { 2, 5, 8 } }, { c = "rosso", p = { 500, 500 } } } },
+    p12 = { w = 1072, h = 1448, strokes = { { c = "nero", p = { 1, 2 } } } },
+    empty = { w = 1, h = 1, strokes = {} },
+} }
+local back = ink.decode(ink.encode(doc))
+local pg = back.pages[key]
+assert(#pg.strokes == 2 and pg.strokes[1].c == "blu" and pg.strokes[1].p[6] == 60 and pg.strokes[1].q[3] == 8)
+assert(pg.strokes[2].p[1] == 500 and pg.w == 1072 and back.pages.p12 and back.pages.empty == nil)
+assert(ink.encode{ pages = { a = { w = 1, h = 1, strokes = {} } } } == nil) -- no ink at all: no file
 
 -- a planted file gets no globals, and junk is refused
-assert(ink.decode("return { strokes = {}, x = os }").x == nil)
+assert(ink.decode("return { pages = {}, x = os }").x == nil)
+assert(ink.decode("return { pages = { [1] = { strokes = {} } } }") == nil)
 assert(ink.decode("os.exit(1)") == nil)
+assert(ink.decode(string.dump(function() return { pages = {} } end)) == nil) -- bytecode is refused
 assert(ink.decode("not lua at all") == nil)
 assert(ink.decode(nil) == nil)
 
@@ -34,37 +39,9 @@ local big = { w = 2000, h = 2000, strokes = { { c = "nero", p = { 1000, 2000 } }
 ink.fit(big, 1000, 1500)
 assert(big.w == 1000 and big.strokes[1].p[1] == 500 and big.strokes[1].p[2] == 1000)
 
--- pressure: stored per point, width follows it, old notes (no q) keep the normal width
-local pq = ink.decode(ink.encode{ w = 10, h = 10, text = "ciao\nmondo", strokes = { { c = "nero", p = { 1, 2, 3, 4 }, q = { 2, 8 } } } })
-assert(pq.strokes[1].q[2] == 8 and pq.text == "ciao\nmondo")
+-- pressure: width follows it, a stroke without pressure keeps the normal width
 assert(ink.level(nil) == nil and ink.level(0) == nil and ink.level(0.5) == 5 and ink.level(2) == 9 and ink.level(0.01) == 1)
 assert(ink.width(4, nil) == 4 and ink.width(4, 5) == 5 and ink.width(4, 1) == 2 and ink.width(4, 9) == 7)
-
--- handwriting: lines along the rules, the request, the reply
-local hwr = require("knp_hwr")
-local s1 = { c = "nero", p = { 10, 30, 20, 50 } }   -- middle 40: line 1 (step 34)
-local s2 = { c = "nero", p = { 10, 80, 30, 90 } }   -- middle 85: line 2
-local s3 = { c = "nero", p = { 40, 35, 50, 45 } }   -- line 1 again, drawn later
-local lines = hwr.lines({ s1, s2, s3 }, 34)
-assert(#lines == 2 and lines[1][1] == s1 and lines[1][2] == s3 and lines[2][1] == s2)
-local body = hwr.request(lines[1], 1072, 1200, "it")
-assert(body:find('"ink":%[%[%[10,20%],%[30,50%]%],%[%[40,50%],%[35,45%]%]%]'), body)
-assert(body:find('"writing_area_width":1072') and body:find('"language":"it"'))
-assert(hwr.parse('["SUCCESS",[["922de3eeef8d7cd6",["10","IO","I0"],[],{"is_html_escaped":false}]]]') == "10")
-assert(hwr.parse('["SUCCESS",[["x",["perch\\u00e8 \\"no\\""],[],{}]]]') == 'perchè "no"')
-assert(hwr.parse('["SUCCESS",[["x",[],[],{"is_html_escaped":false}]]]') == "")
-assert(hwr.parse('["FAILED_TO_PARSE_REQUEST_BODY"]') == nil)
-assert(hwr.parse(nil) == nil)
-local answers = { '["SUCCESS",[["a",["prima riga"],[],{}]]]', '["SUCCESS",[["b",["seconda"],[],{}]]]' }
-local calls = 0
-local text = hwr.transcribe({ s1, s2, s3 }, 34, 1072, 1200, function(url, b)
-    calls = calls + 1
-    assert(url:find("^https://inputtools%.google%.com/request%?ime=handwriting") and b:find('"ink"'))
-    return answers[calls]
-end)
-assert(text == "prima riga\nseconda" and calls == 2, text)
-local t2, err = hwr.transcribe({ s1 }, 34, 10, 10, function() return nil, "HTTP 500" end)
-assert(t2 == nil and err == "HTTP 500")
 
 -- Android: tool and pressure added to KOReader's touch events (fake input_android, same shape as the real one)
 package.preload.logger = function() return { warn = function() end, info = function() end } end
@@ -72,7 +49,8 @@ local A = require("knp_android")
 assert(A.toolOf(2, 0) == A.PEN and A.toolOf(4, 0) == A.ERASER and A.toolOf(1, 0) == A.FINGER)
 assert(A.toolOf(2, 0x20) == A.ERASER and A.toolOf(2, 0x40) == A.ERASER and A.toolOf(2, 0x80) == A.PEN)
 assert(A.toolOf(1, 0, true) == A.PEN) -- Bigme's pen reported as a finger, known by its device
-local C = { EV_ABS = 3, ABS_MT_SLOT = 0x2f, ABS_MT_TOOL_TYPE = 0x37, ABS_MT_PRESSURE = 0x3a, ABS_MT_POSITION_X = 0x35 }
+local C = { EV_ABS = 3, EV_SYN = 0, SYN_REPORT = 0, ABS_MT_SLOT = 0x2f, ABS_MT_TOOL_TYPE = 0x37, ABS_MT_PRESSURE = 0x3a,
+    ABS_MT_POSITION_X = 0x35, ABS_MT_POSITION_Y = 0x36 }
 local fake = (function()
     local inputQueue = {}
     local function genInputTimeval(ts) return { sec = ts } end
@@ -93,6 +71,10 @@ local lib = {
     AMotionEvent_getToolType = function(ev) return ev.tool end, AMotionEvent_getButtonState = function(ev) return ev.buttons end,
     AMotionEvent_getPressure = function(ev) return ev.p end, AInputEvent_getDeviceId = function(ev) return ev.dev end,
     AMotionEvent_getEventTime = function() return 1 end,
+    AMotionEvent_getHistorySize = function(ev) return ev.hist and #ev.hist or 0 end,
+    AMotionEvent_getHistoricalX = function(ev, _, h) return ev.hist[h + 1][1] end,
+    AMotionEvent_getHistoricalY = function(ev, _, h) return ev.hist[h + 1][2] end,
+    AMotionEvent_getHistoricalPressure = function() return 0.4 end,
 }
 assert(A.hookInput(fake, { C = C, lib = lib, penDevice = function(dev) return dev == 7 end }))
 local function tool_in(q) for _, e in ipairs(q) do if e[2] == C.ABS_MT_TOOL_TYPE then return e[3] end end end
@@ -106,6 +88,21 @@ assert(tool_in(fake.waitForEvent{ down = true, x = 6, tool = 4, buttons = 0, p =
 assert(A.hookInput(fake, { C = C, lib = lib }) == true) -- a second call doesn't wrap twice
 assert(#fake.waitForEvent{ down = true, x = 1, tool = 2, buttons = 0, p = 1, dev = 1 } == 5)
 assert(A.hookInput({ waitForEvent = function() end }, { C = C, lib = lib }) == false) -- unexpected shape: left alone
+
+-- the pen's in-between positions: one input frame each, before the event's own position; none for a finger
+local function frames(q)
+    local out, x = {}, nil
+    for _, e in ipairs(q) do
+        if e[2] == C.ABS_MT_POSITION_X then x = e[3] end
+        if e[1] == C.EV_SYN then out[#out + 1] = x end
+    end
+    return out
+end
+q = fake.waitForEvent{ x = 9, tool = 2, buttons = 0, p = 1, dev = 1, hist = { { 7, 70 }, { 8, 80 } } }
+local f = frames(q)
+assert(#f == 2 and f[1] == 7 and f[2] == 8, #f)
+assert(q[#q][2] == C.ABS_MT_POSITION_X and q[#q][3] == 9) -- then the current position, as before
+assert(#frames(fake.waitForEvent{ x = 9, tool = 1, buttons = 0, p = 1, dev = 2, hist = { { 7, 70 } } }) == 0)
 
 -- ABS_MT_PRESSURE kept in the slot
 local input = { ev_slots = { [3] = {} }, cur_slot = 3, seen = 0 }

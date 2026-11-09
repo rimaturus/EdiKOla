@@ -1,17 +1,18 @@
 --[[--
-Android (Bigme B6 Pro Color) extras for the pen notes. Each one is best-effort: if KOReader or the Bigme
-firmware isn't what we expect, it logs why and leaves KOReader as it was.
+Android (Bigme B6 Pro Color) extras for the pen ink (knp_penna). Each one is best-effort: if KOReader or
+the Bigme firmware isn't what we expect, it logs why and leaves KOReader as it was.
 
 1. Pen, eraser and pressure. Android reports, for every touch, which tool made it (finger, stylus, eraser
    end), the stylus button and the pressure; KOReader's Android input (ffi/input_android.lua) drops all
    three. hookInput() wraps its touch functions so each contact also carries ABS_MT_TOOL_TYPE and
    ABS_MT_PRESSURE, the way Kobo's pen panels send them. Bigme firmware may call its pen a finger: the
-   pen is then recognised by its input device's name ("fts_ts_pen").
+   pen is then recognised by its input device's name ("fts_ts_pen"). For the pen it also passes on the
+   positions Android batches in between two events, so strokes follow the pen instead of cutting corners.
 2. A faster screen for the pen. KOReader copies the whole screen to Android on every refresh; for "fast"
    refreshes (the pen's) only the changed rectangle is copied, so Android and the e-ink panel only
    update that.
 3. Bigme's E-Ink Center has a low-latency handwriting mode (1029), set per app through its system service
-   xrz_display_policy_service; the notes sheet switches KOReader to it, and back when it closes.
+   xrz_display_policy_service; the pen ink switches KOReader to it while the pen writes, and back after.
    (Mode numbers and service names from the Kalamos project's notes on Bigme firmware.)
 ]]
 local logger = require("logger")
@@ -65,16 +66,33 @@ function M.hookInput(input_mod, deps)
         end)
         if not ok then return end
         local pen_device = deps.penDevice and deps.penDevice(device)
+        local t = M.toolOf(tool, buttons, pen_device)
         emu(C.EV_ABS, C.ABS_MT_SLOT, slot, timev)
-        emu(C.EV_ABS, C.ABS_MT_TOOL_TYPE, M.toolOf(tool, buttons, pen_device), timev)
+        emu(C.EV_ABS, C.ABS_MT_TOOL_TYPE, t, timev)
         emu(C.EV_ABS, C.ABS_MT_PRESSURE, pressure, timev)
+        return t
+    end
+    -- Android hands over a moving pen ~60 times a second, each event carrying the positions in between
+    -- ("history", often several). KOReader reads only the last one: the line would be a chain of straight
+    -- bits. For the pen, each in-between position becomes an input frame of its own.
+    local function history(event, timev, slot, index)
+        local ok, n = pcall(function() return tonumber(lib.AMotionEvent_getHistorySize(event)) end)
+        if not ok or not n then return end
+        for h = 0, n - 1 do
+            emu(C.EV_ABS, C.ABS_MT_SLOT, slot, timev)
+            emu(C.EV_ABS, C.ABS_MT_POSITION_X, lib.AMotionEvent_getHistoricalX(event, index, h), timev)
+            emu(C.EV_ABS, C.ABS_MT_POSITION_Y, lib.AMotionEvent_getHistoricalY(event, index, h), timev)
+            emu(C.EV_ABS, C.ABS_MT_PRESSURE, lib.AMotionEvent_getHistoricalPressure(event, index, h), timev)
+            emu(C.EV_SYN, C.SYN_REPORT, 0, timev)
+        end
     end
     debug.setupvalue(motion, di, function(event, slot, index)
         extra(event, timeval(lib.AMotionEvent_getEventTime(event)), slot, index)
         return down(event, slot, index)
     end)
     debug.setupvalue(motion, vi, function(event, timev, slot, index)
-        extra(event, timev, slot, index)
+        local t = extra(event, timev, slot, index)
+        if t == M.PEN or t == M.ERASER then history(event, timev, slot, index) end
         return move(event, timev, slot, index)
     end)
     input_mod.edikola_hooked = true
@@ -237,6 +255,10 @@ function M.setup(Device)
         for _, decl in ipairs{
             "int32_t AMotionEvent_getToolType(const AInputEvent* motion_event, size_t pointer_index);",
             "int32_t AMotionEvent_getButtonState(const AInputEvent* motion_event);",
+            "size_t AMotionEvent_getHistorySize(const AInputEvent* motion_event);",
+            "float AMotionEvent_getHistoricalX(const AInputEvent* motion_event, size_t pointer_index, size_t history_index);",
+            "float AMotionEvent_getHistoricalY(const AInputEvent* motion_event, size_t pointer_index, size_t history_index);",
+            "float AMotionEvent_getHistoricalPressure(const AInputEvent* motion_event, size_t pointer_index, size_t history_index);",
         } do pcall(ffi.cdef, decl) end -- already declared on some builds: fine
         if M.hookInput(require("ffi/input_android"), { C = ffi.C, lib = android.lib, penDevice = M.penDevice }) then
             M.keepPressure(Device.input, ffi.C)

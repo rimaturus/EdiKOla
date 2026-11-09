@@ -1,21 +1,20 @@
--- Pen notes, the parts without screen: storage format, eraser hit test. Pure Lua (tests/notes-test.lua).
--- A note: { title=, sub=, file=, chapter=, w=, h=, text=, strokes = { { c = "blu", p = { x1, y1, ... }, q = { 5, ... } } } }
--- Points are pixels of the paper (w x h), so a note opened on another screen size is scaled.
--- q: the pen's pressure at each point, 1 (light) to 9 (hard); absent for a finger. text: its transcription.
+-- Pen ink, the parts without screen: storage format, eraser hit test. Pure Lua (tests/notes-test.lua).
+-- One file per document: { v = 2, pages = { [page key] = { w =, h =, strokes = { { c = "blu", p = { x1, y1, ... }, q = { 5, ... } } } } } }
+-- The page key is where the page starts in the text (or "p<number>" in a PDF), see knp_penna.lua.
+-- Points are screen pixels of a w x h page, so ink seen on another screen size is scaled.
+-- q: the pen's pressure at each point, 1 (light) to 9 (hard).
 local M = {}
 
---- File name (no extension) for the note of chapter `chapter` of document `file`, or a free sheet
-function M.id(file, chapter)
-    if not file then return "foglio-" .. os.date("%Y%m%d-%H%M%S") end
+--- File name (no extension) for the ink of document `file`
+function M.id(file)
     local base = file:match("([^/]+)%.%w+$") or file:match("[^/]+$")
-    local paper = file:match("([^/]+)/[^/]+$") or ""
-    local id = ((paper ~= "" and paper .. "-" or "") .. base .. "-" .. (chapter or 0)):gsub("[^%w%-_]", "_")
-    return id
+    local folder = file:match("([^/]+)/[^/]+$") or ""
+    return ((folder ~= "" and folder .. "-" or "") .. base):gsub("[^%w%-_]", "_")
 end
 
-function M.encode(n)
+local function strokes(list)
     local s = {}
-    for _, st in ipairs(n.strokes) do
+    for _, st in ipairs(list) do
         local p = {}
         for i, v in ipairs(st.p) do p[i] = ("%d"):format(v) end
         local q = ""
@@ -26,29 +25,49 @@ function M.encode(n)
         end
         s[#s + 1] = ("{ c = %q, p = { %s }%s }"):format(st.c, table.concat(p, ","), q)
     end
-    return ("return { v = 1, title = %q, sub = %q, file = %s, chapter = %s, w = %d, h = %d, text = %s, strokes = {\n%s\n} }\n"):format(
-        n.title or "", n.sub or "", n.file and ("%q"):format(n.file) or "nil", n.chapter and ("%d"):format(n.chapter) or "nil",
-        n.w, n.h, n.text and ("%q"):format(n.text) or "nil", table.concat(s, ",\n"))
+    return table.concat(s, ",\n")
 end
 
---- The note in a file's text, or nil. Runs with no globals: a planted file can't reach anything.
+--- The document's ink as file text; nil when no page has a stroke (the file is then removed)
+function M.encode(doc)
+    local s = {}
+    for key, pg in pairs(doc.pages) do
+        if #pg.strokes > 0 then
+            s[#s + 1] = ("[%q] = { w = %d, h = %d, strokes = {\n%s\n} }"):format(key, pg.w, pg.h, strokes(pg.strokes))
+        end
+    end
+    if #s == 0 then return nil end
+    table.sort(s)
+    return "return { v = 2, pages = {\n" .. table.concat(s, ",\n") .. "\n} }\n"
+end
+
+--- The document's ink in a file's text, or nil. Runs with no globals: a planted file can't reach anything.
 function M.decode(text)
-    local f = type(text) == "string" and load(text, "note", "t", {}) -- text only: no bytecode
+    if type(text) ~= "string" or text:byte(1) == 27 then return nil end -- text only: no bytecode
+    local f
+    if setfenv then -- LuaJIT / Lua 5.1: compile, then an empty environment
+        f = loadstring(text, "ink")
+        if f then setfenv(f, {}) end
+    else
+        f = load(text, "ink", "t", {})
+    end
     if not f then return nil end
-    if setfenv then setfenv(f, {}) end -- LuaJIT: make sure of the empty environment
-    local ok, n = pcall(f)
-    if not (ok and type(n) == "table" and type(n.strokes) == "table") then return nil end
-    return n
+    local ok, doc = pcall(f)
+    if not (ok and type(doc) == "table" and type(doc.pages) == "table") then return nil end
+    for key, pg in pairs(doc.pages) do
+        if type(key) ~= "string" or type(pg) ~= "table" or type(pg.strokes) ~= "table" then return nil end
+    end
+    return doc
 end
 
---- Fits a note drawn on a w x h paper to this one (another device or orientation): one scale, top-left kept
-function M.fit(n, w, h)
-    if not (n.w and n.h) or (n.w == w and n.h == h) then return end
-    local k = math.min(w / n.w, h / n.h)
-    for _, st in ipairs(n.strokes) do
+--- Fits a page drawn on a w x h screen to this one (another device or orientation): one scale, top-left kept
+function M.fit(pg, w, h)
+    if not (pg.w and pg.h) or (pg.w == w and pg.h == h) then return end
+    local k = math.min(w / pg.w, h / pg.h)
+    for _, st in ipairs(pg.strokes) do
         for i, v in ipairs(st.p) do st.p[i] = math.floor(v * k + 0.5) end
     end
-    n.w, n.h = w, h
+    pg.w, pg.h = w, h
 end
 
 --- Pressure 0..1 (Android) to the stored 1..9; nil when there's none

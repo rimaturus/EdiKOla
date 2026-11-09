@@ -25,6 +25,18 @@ local PALETTE = { -- name = { color, gray }
     rosso = { "#C62828", G.COLOR_DARK_GRAY },     verde = { "#2E7D32", G.COLOR_DARK_GRAY },
     rule = { "#BCD3EC", G.COLOR_GRAY_D },        margin = { "#E88B8B", G.COLOR_GRAY_B },
     neutral = { "#757575", G.COLOR_GRAY_9 },
+    -- the newsstand frame: ink-blue masthead, its light tint for buttons
+    ink = { "#1C2E4A", G.COLOR_BLACK },          ink_tint = { "#DCE3EE", G.COLOR_GRAY_E },
+    -- puzzles: one color each, a tint for their highlights
+    giochi = { "#D84315", G.COLOR_BLACK },       giochi_tint = { "#FBE0D3", G.COLOR_GRAY_E },
+    sudoku = { "#00695C", G.COLOR_BLACK },       sudoku_tint = { "#D3ECE8", G.COLOR_GRAY_E },
+    cruciverba = { "#283593", G.COLOR_BLACK },   cruciverba_tint = { "#DCE0F5", G.COLOR_GRAY_E },
+    crucipuzzle = { "#AD1457", G.COLOR_BLACK },  crucipuzzle_tint = { "#F7D7E5", G.COLOR_GRAY_E },
+    errore = { "#C62828", G.COLOR_BLACK },       scritto = { "#1A3FA8", G.COLOR_DARK_GRAY },
+    -- found words in the crucipuzzle, each in its own light color
+    f1 = { "#FFE082", G.COLOR_GRAY_D }, f2 = { "#A5D6A7", G.COLOR_GRAY_B }, f3 = { "#90CAF9", G.COLOR_GRAY_D },
+    f4 = { "#F48FB1", G.COLOR_GRAY_B }, f5 = { "#FFCC80", G.COLOR_GRAY_D }, f6 = { "#CE93D8", G.COLOR_GRAY_B },
+    f7 = { "#80CBC4", G.COLOR_GRAY_D }, f8 = { "#E6EE9C", G.COLOR_GRAY_B },
 }
 
 local cache = {}
@@ -45,10 +57,64 @@ function T.rect(bb, x, y, w, h, c)
     if Blitbuffer.isColor8(c) then bb:paintRect(x, y, w, h, c) else bb:paintRectRGB32(x, y, w, h, c) end
 end
 
---- A plain colored block, for stripes and bands
+--- A plain colored block, for stripes and bands; with a radius, a rounded one (radius = half: a dot)
 local Geom = require("ui/geometry")
-T.Box = require("ui/widget/widget"):extend{ width = 0, height = 0, color = nil }
+T.Box = require("ui/widget/widget"):extend{ width = 0, height = 0, color = nil, radius = nil }
 function T.Box:getSize() return Geom:new{ w = self.width, h = self.height } end
-function T.Box:paintTo(bb, x, y) T.rect(bb, x, y, self.width, self.height, self.color) end
+function T.Box:paintTo(bb, x, y)
+    if not self.radius then return T.rect(bb, x, y, self.width, self.height, self.color) end
+    local f = Blitbuffer.isColor8(self.color) and bb.paintRoundedRect or bb.paintRoundedRectRGB32
+    f(bb, x, y, self.width, self.height, self.color, self.radius)
+end
+
+--- The buffer as KOReader's text code sees it, but glyphs keep fg's real color: TextWidget and
+-- RenderText blit glyphs with colorblitFrom, which turns any color gray (TextBoxWidget does it right).
+function T.inColor(bb, fg)
+    if not fg or Blitbuffer.isColor8(fg) then return bb end
+    return setmetatable({ colorblitFrom = function(_, src, ...) return bb:colorblitFromRGB32(src, ...) end }, {
+        __index = function(_, k)
+            local v = bb[k]
+            if type(v) == "function" then return function(_, ...) return v(bb, ...) end end
+            return v
+        end,
+    })
+end
+
+--- A TextWidget that shows its fgcolor in color
+local TextWidget = require("ui/widget/textwidget")
+T.Text = TextWidget:extend{}
+function T.Text:paintTo(bb, x, y) return TextWidget.paintTo(self, T.inColor(bb, self.fgcolor), x, y) end
+
+--- A rounded, filled, tappable label: the newsstand's buttons and tabs, the puzzles' keys.
+-- Pill:new{ text =, width =, height =, fill = color, fg = color, size = 20, callback =, enabled = true }
+local CenterContainer = require("ui/widget/container/centercontainer")
+local Font = require("ui/font")
+local FrameContainer = require("ui/widget/container/framecontainer")
+local GestureRange = require("ui/gesturerange")
+local TextBoxWidget = require("ui/widget/textboxwidget")
+T.Pill = require("ui/widget/container/inputcontainer"):extend{
+    text = "", width = 100, height = 50, fill = nil, fg = nil, size = 20, callback = nil, enabled = true,
+    border = false, face = "NotoSans-Bold.ttf",
+}
+function T.Pill:init()
+    local fill = self.fill or G.COLOR_WHITE
+    local bw = self.border and Screen:scaleBySize(2) or 0
+    local fg = self.enabled and (self.fg or G.COLOR_BLACK) or G.COLOR_GRAY_9
+    local text = TextBoxWidget:new{
+        text = self.text, face = Font:getFace(self.face, self.size), alignment = "center",
+        width = self.width - 2 * bw - Screen:scaleBySize(8), fgcolor = fg, bgcolor = fill,
+    }
+    self.dimen = Geom:new{ x = 0, y = 0, w = self.width, h = self.height }
+    self[1] = FrameContainer:new{
+        width = self.width, height = self.height, padding = 0, margin = 0, bordersize = bw,
+        radius = Screen:scaleBySize(12), background = fill,
+        CenterContainer:new{ dimen = Geom:new{ w = self.width - 2 * bw, h = self.height - 2 * bw }, text },
+    }
+    self.ges_events = { TapPill = { GestureRange:new{ ges = "tap", range = function() return self.dimen end } } }
+end
+function T.Pill:onTapPill()
+    if self.enabled and self.callback then self.callback() end
+    return true
+end
 
 return T

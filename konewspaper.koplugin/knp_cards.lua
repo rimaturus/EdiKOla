@@ -46,7 +46,7 @@ function Card:init()
         self[1] = VerticalGroup:new{
             align = "left",
             VerticalSpan:new{ width = 6 * s },
-            TextWidget:new{ text = it.header:upper(), face = Font:getFace("NotoSans-Bold.ttf", 17),
+            theme.Text:new{ text = it.header:upper(), face = Font:getFace("NotoSans-Bold.ttf", 17),
                 fgcolor = theme.color(it.color), max_width = self.width },
             theme.Box:new{ width = self.width, height = 2 * s, color = theme.color(it.color) },
         }

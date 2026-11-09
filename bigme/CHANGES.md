@@ -296,3 +296,38 @@ with nothing in the crash log; the home role is still `com.android.launcher3`.
 **Revert**: `sh bigme/debloat.sh undo` for all, or for one package
 `adb shell cmd package install-existing --user 0 <package>`. Kindle and Multi_TTS cannot come back this
 way: reinstall Kindle from Amazon if wanted.
+
+## 2026-11-09 - Change set 10: EdiKOla redesigned, pen on the page, La Settimana di EdiKOla
+
+**Found**: on Italia and Mondo the shelves held exactly 4 papers, one page, so nothing scrolled and nothing
+said that the catalog had 10 more; EdiKOla's own pen notes lagged and lived on a separate sheet; Bigme's
+notes app could not be launched from KOReader (`am start` from the app answers 255 on Android 14, and
+KOReader's intent helper only accepts dictionary actions), and Bigme's low-latency handwriting service
+(`com.xrz.IHandwrittenService`) needs a Java client, which a KOReader plugin cannot provide.
+
+**What** (plugin pushed to `/sdcard/koreader/plugins/konewspaper.koplugin`, old copy removed first)
+- Edicola redesigned in color: an ink-blue masthead with **Luce** and **Giochi**, tabs filled with their
+  shelf's color, colored buttons. Every shelf ends with a **+ Altri giornali** place that opens the catalog of
+  that shelf only, so even a shelf of 4 papers has a second page; arrows and page dots whenever there are
+  pages to turn. Reading a paper, **Prossimo** opens the next paper of the same shelf.
+- The pen writes straight on the page being read (`knp_penna.lua`); fingers still turn pages. The standalone
+  notebook, the ruled sheet and the online transcription are removed (`knp_notes.lua`, `knp_hwr.lua`). Ink is
+  kept per document in `/sdcard/Appunti/<doc>.lua`, page by page. `knp_android.lua` now also passes on
+  Android's in-between pen positions, and the pen switches E-Ink Center to handwriting mode while it writes.
+- **La Settimana di EdiKOla** (`knp_giochi.lua` and the pure-Lua generators): crossword of the day with clues
+  from today's headlines, crucipuzzle with its key, sudoku facile/medio/difficile. State in
+  `/sdcard/koreader/settings/edikola_giochi.lua`.
+
+**Checked** on the Bigme: the new Edicola opens with no Lua error in logcat; the crossword opens and takes
+letters from its keyboard; a stylus injected with `adb shell input stylus swipe` draws on a RaiNews page, the
+strokes are saved to `/sdcard/Appunti/rainews-2026-11-09.lua`, logcat shows
+`EdiKOla: E-Ink Center mode 178 -> 1029` at the pen's touch and `-> 178` three seconds later, and a finger
+swipe afterwards turns the page without drawing. The test ink and the test crossword were deleted afterwards.
+On the PC: `lua5.1 tests/notes-test.lua`, `lua5.1 tests/giochi-test.lua` and the screenshot run
+(`BIGME=1 KO=~/ko2607 sh tools/screenshots/run.sh`, which also plays each puzzle and the pen) pass.
+
+**Revert**: put the previous plugin back from git,
+`git checkout 8152b11 -- konewspaper.koplugin`, then
+`adb shell rm -rf /sdcard/koreader/plugins/konewspaper.koplugin` and
+`adb push konewspaper.koplugin /sdcard/koreader/plugins/`. Ink and puzzle files can stay or go:
+`adb shell rm -r /sdcard/Appunti /sdcard/koreader/settings/edikola_giochi.lua`.

@@ -18,7 +18,6 @@ KoNewspaper: a newsstand ("edicola") home screen on top of KOReader's reader.
 ]]
 
 local Blitbuffer = require("ffi/blitbuffer")
-local Button = require("ui/widget/button")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
 local Event = require("ui/event")
@@ -46,9 +45,7 @@ local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local Build = require("knp_build")
 local Cards = require("knp_cards")
-local Notes = require("knp_notes")
 local giornali = require("giornali")
-local ink = require("knp_ink")
 local theme = require("knp_theme")
 local topics = require("knp_topics")
 local Screen = Device.screen
@@ -77,8 +74,9 @@ local SECTIONS = {
 }
 local PER_PAGE = 4 -- front pages per shelf page (2 x 2)
 local ANDROID = Device:isAndroid() -- Bigme B6 Pro Color: KOReader as an Android app, Android owns Wi-Fi/4G
--- Pen notes ("Appunti"): on by default where there's a pen (Android e-readers); setting konewspaper_notes
-local function notesOn() return G_reader_settings:readSetting("konewspaper_notes", ANDROID) end
+-- Pen ink on what is being read (knp_penna): the "Penna" button where there's a pen (Android e-readers,
+-- or once a pen has touched a Kobo)
+local function penOn() return ANDROID or require("knp_penna").penSeen() end
 
 -- Network: on Kobo KOReader turns Wi-Fi on and off itself; on Android it can only open the settings
 -- (it would do that after every update), and the Bigme may be online over 4G with Wi-Fi off.
@@ -207,14 +205,29 @@ local function openFile(file)
     require("apps/reader/readerui"):showReader(file)
 end
 
-local function bigButton(text, width, height, callback, selected, tint)
-    return Button:new{
-        text = text, width = width, height = height, callback = callback,
-        text_font_face = "NotoSans-Bold.ttf", text_font_size = 22,
-        bordersize = Screen:scaleBySize(selected and 4 or 2),
-        radius = Screen:scaleBySize(10),
-        background = selected and (tint or Blitbuffer.COLOR_GRAY_D) or nil,
-    }
+local WHITE = Blitbuffer.COLOR_WHITE
+
+-- Today's articles of every paper on the shelves, for the puzzles: { { title =, paper = } }
+local function todaysArticles()
+    local out = {}
+    for _, sec in ipairs(SECTIONS) do
+        for _, p in ipairs(shelf(sec.id)) do
+            local f = Build.latest(p)
+            if isToday(f) then
+                for _, a in ipairs(Build.meta(f).articles or {}) do table.insert(out, { title = a.title, paper = p.name }) end
+            end
+        end
+    end
+    return out
+end
+
+-- How many papers of a section's catalog are not on its shelf yet
+local function notOnShelf(section)
+    local sel, n = selection(), 0
+    for _, p in ipairs(giornali) do
+        if p.section == section and not sel[p.id] then n = n + 1 end
+    end
+    return n
 end
 
 -- A newspaper on the shelf: masthead, date rule, then today's front page (headline + photo)
@@ -308,6 +321,34 @@ function FrontPage:onTapPaper()
     return true
 end
 
+-- The last place on a shelf: "+ Altri giornali", the section's catalog. It also shows that a shelf scrolls.
+local AddTile = InputContainer:extend{ width = nil, height = nil, section = nil, count = 0, callback = nil }
+
+function AddTile:init()
+    self.dimen = Geom:new{ x = 0, y = 0, w = self.width, h = self.height }
+    self.ges_events = { TapAdd = { GestureRange:new{ ges = "tap", range = function() return self.dimen end } } }
+    local w = self.width - 2 * Screen:scaleBySize(12)
+    local color, tint = theme.color(self.section), theme.color(self.section .. "_tint")
+    self[1] = FrameContainer:new{
+        width = self.width, height = self.height, bordersize = 0, padding = 0, radius = Screen:scaleBySize(10),
+        background = tint,
+        CenterContainer:new{ dimen = Geom:new{ w = self.width, h = self.height }, VerticalGroup:new{
+            align = "center",
+            theme.Text:new{ text = "+", face = Font:getFace("NotoSans-Bold.ttf", 54), fgcolor = color },
+            theme.Text:new{ text = "Altri giornali", face = Font:getFace("NotoSerif-Bold.ttf", 22), fgcolor = color, max_width = w },
+            VerticalSpan:new{ width = Screen:scaleBySize(6) },
+            TextBoxWidget:new{ text = ("%d da scegliere\ntocca per vederli"):format(self.count),
+                face = Font:getFace("NotoSerif-Italic.ttf", 16), width = w, alignment = "center",
+                fgcolor = Blitbuffer.COLOR_GRAY_3, bgcolor = tint },
+        } },
+    }
+end
+
+function AddTile:onTapAdd()
+    if self.callback then self.callback() end
+    return true
+end
+
 local Edicola = InputContainer:extend{
     covers_fullscreen = true,
     section = "italia",
@@ -320,21 +361,23 @@ function Edicola:init()
     local m = Screen:scaleBySize(12)
     local gap = Screen:scaleBySize(10)
     local cw = sw - 2 * m
+    local ink, ink_tint = theme.color("ink"), theme.color("ink_tint")
 
-    -- Masthead, flanked by the two things an elder reaches for: light and "get a file from my phone"
-    local side_w = Screen:scaleBySize(110)
-    local side_h = Screen:scaleBySize(52)
-    self.clock = TextWidget:new{ text = os.date("%H:%M"), face = Font:getFace("NotoSans-Bold.ttf", 18) }
+    -- Masthead: a band of ink with the title, the date and the clock; light on the left, puzzles on the right
+    local side_w, side_h = Screen:scaleBySize(104), Screen:scaleBySize(48)
+    local band_pad = Screen:scaleBySize(8)
+    self.clock = TextWidget:new{ text = os.date("%H:%M"), face = Font:getFace("NotoSans-Bold.ttf", 18), fgcolor = WHITE }
     local date_line = HorizontalGroup:new{
-        TextWidget:new{ text = Build.dateLabel(os.time()) .. "  ·  ", face = Font:getFace("NotoSerif-Italic.ttf", 18) },
+        TextWidget:new{ text = Build.dateLabel(os.time()) .. "  ·  ", face = Font:getFace("NotoSerif-Italic.ttf", 18), fgcolor = WHITE },
         self.clock,
     }
     local masthead = VerticalGroup:new{
         align = "center",
-        TextWidget:new{ text = "Edicola", face = Font:getFace("NotoSerif-Bold.ttf", 38) },
+        TextWidget:new{ text = "Edicola", face = Font:getFace("NotoSerif-Bold.ttf", 38), fgcolor = WHITE },
         date_line,
     }
-    local masthead_box = CenterContainer:new{ dimen = Geom:new{ w = cw - 2 * side_w, h = masthead:getSize().h }, masthead }
+    local masthead_box = CenterContainer:new{
+        dimen = Geom:new{ w = cw - 2 * side_w - 2 * band_pad, h = masthead:getSize().h }, masthead }
     local day = os.date("%Y-%m-%d")
     self.refreshClock = function()
         if os.date("%Y-%m-%d") ~= day then return self:redraw() end -- midnight: new date, new editions
@@ -343,94 +386,108 @@ function Edicola:init()
         masthead:resetLayout()
         UIManager:setDirty(self, "ui", masthead_box.dimen)
     end
-    local header = VerticalGroup:new{
-        align = "center",
+    local header = FrameContainer:new{
+        width = cw, bordersize = 0, padding = band_pad, radius = Screen:scaleBySize(12), background = ink,
         HorizontalGroup:new{
             align = "center",
-            bigButton("Luce", side_w, side_h, function() Device:showLightDialog() end),
+            theme.Pill:new{ text = "Luce", width = side_w, height = side_h, size = 20, fill = WHITE, fg = ink,
+                callback = function() Device:showLightDialog() end },
             masthead_box,
-            -- Android: phones send with the LocalSend app straight to the Bigme, so that corner is for notes
-            notesOn() and bigButton("Appunti", side_w, side_h, function() self:showNotebook() end)
-                or bigButton("Telefono", side_w, side_h, function() self:receiveFromPhone() end),
+            theme.Pill:new{ text = "Giochi", width = side_w, height = side_h, size = 20, fill = theme.color("giochi"),
+                fg = WHITE, callback = function() self:showGiochi() end },
         },
-        VerticalSpan:new{ width = Screen:scaleBySize(4) },
-        LineWidget:new{ dimen = Geom:new{ w = cw, h = Screen:scaleBySize(3) } },
-        VerticalSpan:new{ width = Screen:scaleBySize(2) },
-        LineWidget:new{ dimen = Geom:new{ w = cw, h = Screen:scaleBySize(1) } },
     }
     local header_h = header:getSize().h
     self.ges_events = {
         HoldTitle = { GestureRange:new{ ges = "hold", range = Geom:new{ x = 0, y = 0, w = sw, h = header_h + m } } },
     }
 
-    -- Section tabs
+    -- Section tabs: the open one filled with its color, the others in its light tint
     local tab_w = math.floor((cw - (#SECTIONS - 1) * gap) / #SECTIONS)
     local tabs = HorizontalGroup:new{}
     for i, s in ipairs(SECTIONS) do
+        local open = s.id == self.section
         if i > 1 then table.insert(tabs, HorizontalSpan:new{ width = gap }) end
-        table.insert(tabs, bigButton(s.name, tab_w, Screen:scaleBySize(52), function()
-            if s.id == self.section then return end
-            self.section, self.page = s.id, 1
-            self:redraw("ui")
-        end, s.id == self.section, theme.color(s.id .. "_tint")))
+        table.insert(tabs, theme.Pill:new{
+            text = s.name, width = tab_w, height = Screen:scaleBySize(50), size = 19,
+            fill = theme.color(open and s.id or s.id .. "_tint"), fg = open and WHITE or theme.color(s.id),
+            callback = function()
+                if open then return end
+                self.section, self.page = s.id, 1
+                self:redraw("ui")
+            end,
+        })
     end
 
-    -- Bottom bar
-    local quarter = math.floor((cw - 3 * gap) / 4)
-    local btn_h = Screen:scaleBySize(56)
-    local bottom = HorizontalGroup:new{
-        bigButton("I miei libri", quarter, btn_h, function() self:showBooks() end),
-        HorizontalSpan:new{ width = gap },
-        bigButton("Aggiorna", quarter, btn_h, function()
+    -- Bottom bar: "Aggiorna" stands out in ink, the rest in its tint
+    local actions = {
+        { "I miei libri", function() self:showBooks() end },
+        { "Aggiorna", function()
             local all = {}
             for _, s in ipairs(SECTIONS) do
                 for _, p in ipairs(shelf(s.id)) do table.insert(all, p) end
             end
             self:fetch(all, function() self:showNews() end)
-        end),
-        HorizontalSpan:new{ width = gap },
-        bigButton("Sommario", quarter, btn_h, function() self:showNews() end),
-        HorizontalSpan:new{ width = gap },
-        bigButton("Giornali", quarter, btn_h, function() self:showCatalog() end),
+        end, true },
+        { "Sommario", function() self:showNews() end },
+        { "Giornali", function() self:showCatalog() end },
     }
+    if not ANDROID then table.insert(actions, { "Telefono", function() self:receiveFromPhone() end }) end
+    local btn_w = math.floor((cw - (#actions - 1) * gap) / #actions)
+    local bottom = HorizontalGroup:new{}
+    for i, a in ipairs(actions) do
+        if i > 1 then table.insert(bottom, HorizontalSpan:new{ width = gap }) end
+        table.insert(bottom, theme.Pill:new{ text = a[1], width = btn_w, height = Screen:scaleBySize(56), size = #actions > 4 and 16 or 20,
+            fill = a[3] and ink or ink_tint, fg = a[3] and WHITE or ink, callback = a[2] })
+    end
 
-    -- Pages of the shelf: arrows only when there is more than one page; a swipe turns them too
+    -- Pages of the shelf: its papers, then the "+ Altri giornali" place when the catalog has more.
+    -- Arrows and dots whenever there is more than one page; a swipe turns them too.
     local papers = shelf(self.section)
-    local pages = math.max(1, math.ceil(#papers / PER_PAGE))
+    local more = notOnShelf(self.section)
+    local slots = #papers + (more > 0 and 1 or 0)
+    local pages = math.max(1, math.ceil(slots / PER_PAGE))
     self.page = math.min(self.page, pages)
     self.turn = function(d)
         local p = self.page + d
         if p >= 1 and p <= pages then self.page = p; self:redraw("ui") end
     end
+    local color, tint = theme.color(self.section), theme.color(self.section .. "_tint")
     local pager
     if pages > 1 then
-        local arrow_w, pager_h = Screen:scaleBySize(130), Screen:scaleBySize(44)
+        local arrow_w, pager_h = Screen:scaleBySize(120), Screen:scaleBySize(44)
         local arrow = function(text, d, enabled)
-            return Button:new{ text = text, width = arrow_w, height = pager_h, enabled = enabled,
-                bordersize = Screen:scaleBySize(2), radius = Screen:scaleBySize(10), text_font_size = 24,
-                callback = function() self.turn(d) end }
+            return theme.Pill:new{ text = text, width = arrow_w, height = pager_h, size = 26, enabled = enabled,
+                fill = enabled and tint or WHITE, fg = color, callback = function() self.turn(d) end }
+        end
+        local dot = Screen:scaleBySize(14)
+        local dots = HorizontalGroup:new{ align = "center" }
+        for p = 1, pages do
+            if p > 1 then table.insert(dots, HorizontalSpan:new{ width = Screen:scaleBySize(8) }) end
+            table.insert(dots, theme.Box:new{ width = dot, height = dot, radius = math.floor(dot / 2),
+                color = p == self.page and color or tint })
         end
         pager = HorizontalGroup:new{
             align = "center",
-            arrow("◀", -1, self.page > 1),
-            CenterContainer:new{
-                dimen = Geom:new{ w = cw - 2 * arrow_w, h = pager_h },
-                TextWidget:new{ text = ("Pagina %d di %d"):format(self.page, pages), face = Font:getFace("cfont", 20) },
-            },
-            arrow("▶", 1, self.page < pages),
+            arrow("<", -1, self.page > 1),
+            CenterContainer:new{ dimen = Geom:new{ w = cw - 2 * arrow_w, h = pager_h }, HorizontalGroup:new{
+                align = "center", dots, HorizontalSpan:new{ width = Screen:scaleBySize(14) },
+                theme.Text:new{ text = ("pagina %d di %d"):format(self.page, pages), face = Font:getFace("cfont", 18), fgcolor = color },
+            } },
+            arrow(">", 1, self.page < pages),
         }
     end
     self.ges_events.Swipe = { GestureRange:new{ ges = "swipe", range = self.dimen } }
 
-    -- Shelves: 2 rows of 2 front pages, each row standing on a shelf board. Sizes are measured
-    -- (a Button is taller than its height, by its border), so the bottom bar never runs off the screen.
+    -- Shelves: 2 rows of 2 front pages, each row standing on a shelf board in the section's color.
+    -- Sizes are measured, so the bottom bar never runs off the screen.
     local board_h = Screen:scaleBySize(8)
     local shelves_h = sh - 2 * m - header_h - tabs:getSize().h - bottom:getSize().h - 3 * gap
         - (pager and pager:getSize().h + gap or 0)
     local row_h = math.floor(shelves_h / 2) - board_h - gap
     local tile_w = math.floor((cw - 2 * gap) / 2)
     local shelves = VerticalGroup:new{ align = "center" }
-    if #papers == 0 then
+    if slots == 0 then
         table.insert(shelves, CenterContainer:new{
             dimen = Geom:new{ w = cw, h = shelves_h },
             TextBoxWidget:new{
@@ -439,22 +496,27 @@ function Edicola:init()
             },
         })
     else
-        for r = 1, 2 do
+        local on_page = math.min(PER_PAGE, slots - (self.page - 1) * PER_PAGE)
+        for r = 1, math.ceil(on_page / 2) do -- a half-empty last page shows one shelf, not an empty board
             local row = HorizontalGroup:new{ align = "bottom", HorizontalSpan:new{ width = gap } }
             for c = 1, 2 do
-                local paper = papers[(self.page - 1) * PER_PAGE + (r - 1) * 2 + c]
+                local n = (self.page - 1) * PER_PAGE + (r - 1) * 2 + c
+                local paper = papers[n]
                 if c > 1 then table.insert(row, HorizontalSpan:new{ width = gap }) end
                 if paper then
                     table.insert(row, FrontPage:new{
                         width = tile_w, height = row_h, paper = paper,
                         callback = function() self:openPaper(paper) end,
                     })
+                elseif n == #papers + 1 and more > 0 then
+                    table.insert(row, AddTile:new{ width = tile_w, height = row_h, section = self.section, count = more,
+                        callback = function() self:showCatalog(self.section) end })
                 else
                     table.insert(row, HorizontalSpan:new{ width = tile_w })
                 end
             end
             table.insert(shelves, row)
-            table.insert(shelves, theme.Box:new{ width = cw, height = board_h, color = theme.color(self.section) })
+            table.insert(shelves, theme.Box:new{ width = cw, height = board_h, color = color })
             table.insert(shelves, VerticalSpan:new{ width = gap })
         end
     end
@@ -630,17 +692,19 @@ function Edicola:receiveFromPhone()
     end)
 end
 
--- Catalog: tap a newspaper to put it on (✓) or take it off the shelves
-function Edicola:showCatalog()
+-- Catalog: tap a newspaper to put it on (✓) or take it off the shelves. With a section: only its papers.
+function Edicola:showCatalog(section)
     local sel = {}
     for id in pairs(selection()) do sel[id] = true end
     local menu
     local function items()
         local t = {}
         for _, s in ipairs(SECTIONS) do
-            table.insert(t, { text = "— " .. s.name:upper() .. " —", select_enabled = false, bold = true })
+            if not section then
+                table.insert(t, { text = "— " .. s.name:upper() .. " —", select_enabled = false, bold = true })
+            end
             for _, p in ipairs(giornali) do
-                if p.section == s.id then
+                if p.section == s.id and (not section or section == s.id) then
                     table.insert(t, {
                         text = (sel[p.id] and "✓  " or "      ") .. p.name,
                         callback = function()
@@ -658,8 +722,10 @@ function Edicola:showCatalog()
         end
         return t
     end
+    local name
+    for _, s in ipairs(SECTIONS) do if s.id == section then name = s.name end end
     menu = Menu:new{
-        title = "Scegli i giornali",
+        title = name and ("Giornali: " .. name) or "Scegli i giornali",
         item_table = items(),
         width = Screen:getWidth(),
         height = Screen:getHeight(),
@@ -733,8 +799,7 @@ function Edicola:showNews()
                 table.concat(heads, " · "), function()
                     local rows = {}
                     for _, e in ipairs(list) do
-                        local note = notesOn() and Notes.has(ink.id(e.file, e.i + 1)) and " · con appunti" or ""
-                        entry(rows, e.title, ("%s%s · %s"):format(e.paper.name, note, e.brief), function() read(e) end, t)
+                        entry(rows, e.title, ("%s · %s"):format(e.paper.name, e.brief), function() read(e) end, t)
                     end
                     show(t, rows)
                 end, t)
@@ -774,6 +839,11 @@ local function findBooks(dir, out, depth)
     end
 end
 
+-- Enigmistica: crossword from today's headlines, crucipuzzle, sudoku (knp_giochi)
+function Edicola:showGiochi()
+    return require("knp_giochi").show(todaysArticles)
+end
+
 function Edicola:showBooks()
     local books = {}
     findBooks(Device.home_dir or "/mnt/onboard", books, 0)
@@ -797,34 +867,6 @@ function Edicola:showBooks()
     list = Cards.show{ title = "I miei libri", items = items }
 end
 
--- Taccuino: a new free sheet, then every note (newest first) with its picture. A note of an article
--- has an "Articolo" button that opens the article.
-function Edicola:showNotebook()
-    local list
-    local function reopen() UIManager:close(list); self:showNotebook() end
-    local items = { {
-        title = "+ Nuovo foglio", text = "Un foglio bianco per scrivere con la penna",
-        callback = function() Notes.open(ink.id(), { title = "Foglio libero", sub = Build.dateLabel(os.time()) }, { close_callback = reopen }) end,
-    } }
-    for _, n in ipairs(Notes.list()) do
-        local note = n.note
-        local exists = note.file and lfs.attributes(note.file, "mode") == "file"
-        table.insert(items, {
-            title = note.title ~= "" and note.title or "Foglio libero",
-            text = ("%s · %s\n%s"):format(os.date("%d/%m %H:%M", n.time), note.sub or "",
-                note.text and note.text ~= "" and note.text:gsub("\n", " / ") or ("%d tratti, non trascritto"):format(#note.strokes)),
-            image = n.png, color = "mondo", title_lines = 2, lines = 2,
-            callback = function()
-                Notes.open(n.id, note, { close_callback = reopen, on_article = exists and function()
-                    UIManager:close(list)
-                    self:openArticle(note.file, (note.chapter or 2) - 1)
-                end or nil })
-            end,
-        })
-    end
-    list = Cards.show{ title = "Appunti", items = items }
-end
-
 -- The plugin: newsstand over the file browser, home button in the reader
 local KoNewspaper = WidgetContainer:extend{
     name = "konewspaper",
@@ -835,7 +877,6 @@ KoNewspaper.Edicola = Edicola -- for tools/screenshots
 function KoNewspaper:init()
     applyDefaults(self.path)
     require("knp_android").setup(Device) -- pen, pressure, fast pen refresh (Android only, once)
-    Notes.online = whenOnline
     if self.ui.document then
         self:addReaderControls()
     else
@@ -849,16 +890,32 @@ local TAP_ZONES = { -- KOReader's own taps that our buttons take precedence over
     "tap_top_left_corner", "tap_top_right_corner", "konewspaper_photo",
 }
 
-local function label(text)
+local function label(text, fill, fg)
     return FrameContainer:new{
-        bordersize = Screen:scaleBySize(2),
-        radius = Screen:scaleBySize(8),
-        padding = Screen:scaleBySize(6),
-        padding_left = Screen:scaleBySize(12),
-        padding_right = Screen:scaleBySize(12),
-        background = Blitbuffer.COLOR_WHITE,
-        TextWidget:new{ text = text, face = Font:getFace("NotoSans-Bold.ttf", 18) },
+        bordersize = fill and 0 or Screen:scaleBySize(2),
+        radius = Screen:scaleBySize(10),
+        padding = Screen:scaleBySize(6) + (fill and Screen:scaleBySize(2) or 0),
+        padding_left = Screen:scaleBySize(14),
+        padding_right = Screen:scaleBySize(14),
+        background = fill or Blitbuffer.COLOR_WHITE,
+        TextWidget:new{ text = text, face = Font:getFace("NotoSans-Bold.ttf", 18), fgcolor = fg },
     }
+end
+
+-- The paper after this one on its shelf that has an edition to open (wrapping round), or nil
+local function nextPaper(file)
+    local id = file:match("/([^/]+)/[^/]+$")
+    local here
+    for _, p in ipairs(giornali) do if p.id == id then here = p end end
+    if not here then return end
+    local list, at = shelf(here.section), nil
+    for i, p in ipairs(list) do if p.id == id then at = i end end
+    if not at then return end
+    for k = 1, #list - 1 do
+        local p = list[(at - 1 + k) % #list + 1]
+        local f = Build.latest(p)
+        if f then return p, f end
+    end
 end
 
 -- While reading: "◀ Edicola" (and "Titoli" in a newspaper) top-left, clock top-centre, "A− A+" top-right
@@ -866,17 +923,33 @@ end
 function KoNewspaper:addReaderControls()
     local sw = Screen:getWidth()
     local margin = Screen:scaleBySize(6)
-    local left = { { label("◀ Edicola"), function() self.ui:onHome() end } }
-    if (self.ui.document.file or ""):find(Build.root, 1, true) == 1 then -- a newspaper: back to its headlines
-        table.insert(left, { label("Titoli"), function() self.ui:handleEvent(Event:new("GotoPage", 1)) end })
-    end
+    local ink = theme.color("ink")
+    local file = self.ui.document.file or ""
+    local left = { { label("Edicola", ink, WHITE), function() self.ui:onHome() end } }
     local right = {}
+    if file:find(Build.root, 1, true) == 1 then -- a newspaper: back to its headlines, on to the next paper
+        table.insert(left, { label("Titoli", theme.color("ink_tint"), ink), function() self.ui:handleEvent(Event:new("GotoPage", 1)) end })
+        local nextp, next_file = nextPaper(file)
+        if nextp then
+            table.insert(right, { label("Prossimo", theme.color(nextp.section), WHITE), function()
+                self.ui:switchDocument(next_file)
+            end })
+        end
+    end
     if self.ui.rolling then -- reflowable: text size; PDFs keep KOReader's zoom
         table.insert(right, { label("A+"), function() self.ui:handleEvent(Event:new("ChangeSize", 2)) end })
         table.insert(right, { label("A−"), function() self.ui:handleEvent(Event:new("ChangeSize", -2)) end })
     end
-    if notesOn() then -- pen notes on this article (chapter); a book's chapter works the same
-        table.insert(right, { label("Appunti"), function() self:openNote() end })
+    local pen_button
+    if penOn() then -- the pen writes on the page; this button: ink color, undo, clear the page
+        local color = function() return theme.color(G_reader_settings:readSetting("konewspaper_ink") or "nero") end
+        pen_button = { label("Penna", color(), WHITE), function()
+            self.pen:menu(function() -- the button takes the new ink's color
+                pen_button[1] = label("Penna", color(), WHITE)
+                UIManager:setDirty(self.ui, "ui")
+            end)
+        end }
+        table.insert(right, pen_button)
     end
     local buttons, x = {}, margin
     for _, b in ipairs(left) do -- left to right from the left edge
@@ -909,9 +982,15 @@ function KoNewspaper:addReaderControls()
     local clock_face = Font:getFace("NotoSans-Bold.ttf", 18)
     local clock_rect = Geom:new{ x = math.floor(sw / 2) - Screen:scaleBySize(60), y = 0,
                                  w = Screen:scaleBySize(120), h = Screen:scaleBySize(40) }
+    local clock_free = true -- no button over the clock's place (with many buttons the clock gives way)
+    for _, b in ipairs(buttons) do
+        local w = b[1]:getSize().w
+        if b.x < clock_rect.x + clock_rect.w and b.x + w > clock_rect.x then clock_free = false end
+    end
     self.ui.view:registerViewModule("konewspaper_controls", {
         paintTo = function(_, bb, px, py)
             for _, b in ipairs(buttons) do b[1]:paintTo(bb, px + b.x, py + margin) end
+            if not clock_free then return end
             local clock = TextWidget:new{ text = os.date("%H:%M"), face = clock_face }
             clock:paintTo(bb, px + math.floor((sw - clock:getSize().w) / 2), py + margin + Screen:scaleBySize(6))
             clock:free()
@@ -949,18 +1028,11 @@ function KoNewspaper:addReaderControls()
     table.insert(zones, { id = "konewspaper_photo_zoom", ges = "spread", screen_zone = whole, handler = openPhoto,
         overrides = { "spread_gesture" } })
     self.ui:registerTouchZones(zones)
-end
 
-function KoNewspaper:openNote()
-    local file = self.ui.document.file
-    local toc = self.ui.toc
-    local chapter = toc:getTocIndexByPage(self.ui:getCurrentPage()) or 0
-    local entry = toc.toc and toc.toc[chapter]
-    local doc = self.ui.doc_props and self.ui.doc_props.display_title or ""
-    Notes.open(ink.id(file, chapter), {
-        title = entry and entry.title or doc, sub = entry and doc or "",
-        file = file, chapter = chapter,
-    })
+    -- the pen writes anywhere below the top bar; its buttons stay buttons for the pen too
+    local bar_h = 0
+    for _, b in ipairs(buttons) do bar_h = math.max(bar_h, b[1]:getSize().h) end
+    self.pen = require("knp_penna").attach(self.ui, { top = bar_h + 3 * margin })
 end
 
 function KoNewspaper:onReaderReady() -- opened from the Sommario: go to that article
@@ -975,6 +1047,7 @@ end
 
 function KoNewspaper:onCloseDocument()
     clock_refresh = nil
+    if self.pen then self.pen:detach(); self.pen = nil end
 end
 
 function KoNewspaper:onResume()
