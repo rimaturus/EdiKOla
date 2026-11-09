@@ -169,6 +169,39 @@ local steps = {
         if wrong ~= 1 or not g.st.wrong[ty * 100 + tx] then print("SHOT STEP FAILED crossword check", wrong) end
     end,
     function() shot("32-cruciverba-in-corso"); UIManager:close(last) end, -- the message
+    function() -- the pen writes a letter in an empty square, as on paper
+        local g = knp_game
+        -- strokes of a character, drawn inside square (c, r) of the game's grid
+        _G.knp_write = function(game, c, r, ch)
+            local b = game.board
+            local x0 = b.dimen.x + (c - 1) * b.size + b.size * 0.2
+            local y0 = b.dimen.y + (r - 1) * b.size + b.size * 0.15
+            for _, st in ipairs(require("knp_scrittura").shapes[ch][1]) do
+                local pts = {}
+                for i = 1, #st - 1, 2 do
+                    pts[#pts + 1] = math.floor(x0 + st[i] * b.size * 0.6)
+                    pts[#pts + 1] = math.floor(y0 + st[i + 1] * b.size * 0.7)
+                end
+                knp_stroke(pts)
+            end
+            game:readWriting() -- what the 0.8 s pause would do
+        end
+        for y = 1, g.st.cw.h do
+            for x = 1, g.st.cw.w do
+                local sol = g.st.cw.rows[y]:sub(x, x)
+                if not _G.knp_pen_cell and sol ~= "." and g.st.cur[y]:sub(x, x) == " " then _G.knp_pen_cell = { x, y, sol } end
+            end
+        end
+        local x, y, sol = knp_pen_cell[1], knp_pen_cell[2], knp_pen_cell[3]
+        knp_write(g, x, y, sol)
+        if g.st.cur[y]:sub(x, x) ~= sol then print("SHOT STEP FAILED pen letter", sol, g.st.cur[y]:sub(x, x)) end
+        -- a key typed over the pen's letter in that square teaches the reader; then the right letter back
+        local other = sol == "A" and "B" or "A"
+        g:type(other)
+        g.sel.x, g.sel.y = x, y
+        g:type(sol)
+    end,
+    function() shot("38-cruciverba-penna") end,
     function() UIManager:close(knp_game) end, -- the crossword: the menu comes back
     function() last.items[2].callback(); knp_game = last end,
     function() shot("33-crucipuzzle") end,

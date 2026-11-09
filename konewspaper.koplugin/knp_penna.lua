@@ -76,6 +76,7 @@ end
 
 -- one bit of stroke, as squares of side d along it; returns the rectangle it touched
 local function segment(bb, ox, oy, c, x0, y0, x1, y1, d)
+    d = d or math.max(2, Screen:scaleBySize(2))
     local half = math.floor(d / 2)
     local steps = math.max(1, math.ceil(math.max(math.abs(x1 - x0), math.abs(y1 - y0)) / math.max(1, half)))
     for i = 0, steps do
@@ -234,9 +235,7 @@ end
 -- (fingers, and the pen on the top bar) goes on to KOReader's gestures as usual.
 function Ink:feed(s)
     if not (s.x and s.y) then return false end
-    local g = Device.input.gesture_detector:adjustGesCoordinate{ ges = "touch", pos = Geom:new{ x = s.x, y = s.y, w = 0, h = 0 } }
-    local x = math.max(0, math.min(math.floor(g.pos.x), self.sw - 1))
-    local y = math.max(0, math.min(math.floor(g.pos.y), self.sh - 1))
+    local x, y = M.position(s)
     if self.slot == s.slot then
         if s.id == -1 then
             self.slot = nil
@@ -258,25 +257,43 @@ function Ink:feed(s)
     return true
 end
 
-function Ink:hook()
+--- Raw contacts, before KOReader's gestures: handler(slot) returns true for the ones it takes (they never
+-- become taps or swipes). Returns the function that gives the contacts back to whoever had them before.
+function M.capture(handler)
     local input = Device.input
-    self.saved_route = rawget(input, "routeStylusEvents")
+    local saved = rawget(input, "routeStylusEvents")
     input.routeStylusEvents = function(inp)
         local slots = inp.MTSlots
         if not slots or #slots == 0 then return end
         local keep = {}
         for _, s in ipairs(slots) do
-            if not self:feed(s) then keep[#keep + 1] = s end
+            if not handler(s) then keep[#keep + 1] = s end
         end
         if #keep ~= #slots then
             for i = #slots, 1, -1 do slots[i] = nil end
             for i, s in ipairs(keep) do slots[i] = s end
         end
     end
+    return function() input.routeStylusEvents = saved end
+end
+
+--- A contact's position on screen (rotation applied), clamped to the screen
+function M.position(s)
+    local g = Device.input.gesture_detector:adjustGesCoordinate{ ges = "touch", pos = Geom:new{ x = s.x, y = s.y, w = 0, h = 0 } }
+    return math.max(0, math.min(math.floor(g.pos.x), Screen:getWidth() - 1)),
+        math.max(0, math.min(math.floor(g.pos.y), Screen:getHeight() - 1))
+end
+
+M.segment = segment
+M.PEN, M.ERASER = PEN, ERASER
+M.fastPanel = function(owner, on) return Ink.fastPanel(owner, on) end
+
+function Ink:hook()
+    self.release = M.capture(function(s) return self:feed(s) end)
 end
 
 function Ink:detach()
-    Device.input.routeStylusEvents = self.saved_route
+    self.release()
     if self.restore then UIManager:unschedule(self.restore); self.restore() end
     self:save()
 end
