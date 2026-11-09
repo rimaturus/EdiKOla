@@ -64,6 +64,9 @@ Read from the device on 2026-11-08 (Termux `getprop`, then `adb` over wireless d
   `sys.comic_color_enhance`). Checked 2026-11-08: `adb shell setprop vendor.xrz.global_color_enhance 60`
   **is** accepted and reads back at once, but it does not hold. For feature 5, drive the per-app policies
   through E-Ink Center instead of these properties.
+  Corroborated on 2026-11-09, after the factory wipe of change set 5: on a freshly erased system, where
+  nothing had ever written that property, `vendor.xrz.global_color_enhance` read 60 again. So the value
+  comes from Bigme's own stack and was never a leftover of the adb test.
 - **Per-app profiles already exist**: the service holds 284 policies (Bigme's presets plus apps seen),
   each with `appDpi`, `refreshMode` (178 reading, 179 video/fast; `sys.comic_refresh_mode` 180),
   `refreshFrequency` (auto clean), `appContrast`, `appColorEnhance`, `appColorMode` (0 default,

@@ -152,8 +152,14 @@ re-authorised.
 `ro.boot.flash.locked` is 0 (was 1), `sys.oem_unlock_allowed` 1, slot still `_a`, firmware still
 `1763796060`, `sys.boot_completed` 1. The wipe is confirmed too: third-party packages down from 8 to 2,
 disabled packages from 56 to 1 (the stock state change set 1 started from), and `/sdcard` back to the
-stock empty skeleton, 0 files, with `Appunti`, `KoNewspaper`, `Note`, `koreader`, `ScreenShot`,
-`XRZBookCache` and `XRZNoteCache` gone. The device boots and runs normally; it shows the orange-state
+stock empty skeleton, with `Appunti`, `KoNewspaper`, `Note`, `koreader`, `ScreenShot`, `XRZBookCache` and
+`XRZNoteCache` gone.
+
+Correction of 2026-11-09: this entry first cited `find /sdcard -type f | wc -l` answering 0 as part of
+that proof. It proves nothing. On this device `find` on the `/sdcard` FUSE root always answers 0, with or
+without content: it answered 0 on 876 restored files too, and `du -sh /sdcard` reported 0 against 857 MiB
+before the wipe. Count per folder instead, `find /sdcard/<folder> -type f`, which does work. The wipe
+itself is not in doubt, the missing folders and the package counts establish it. The device boots and runs normally; it shows the orange-state
 warning at startup, as an unlocked bootloader does.
 
 **Revert**: `fastboot flashing lock` re-locks the bootloader and wipes `/data` a second time. Only do it
@@ -197,3 +203,39 @@ setting, not a flashing problem.
 Uninstall -> Restore Images does it from the device. The stock `init` also lives inside the patched
 ramdisk at `.backup/init`. Re-locking the bootloader must come only after the stock `boot` is restored:
 locking with a patched boot chain is a reliable way to make the device refuse to start.
+
+## 2026-11-09 - Change set 7: putting change sets 1 to 3 back after the unlock wipe
+
+**Found**: the unlock of change set 5 wiped `/data`, so the device was back to 1 disabled package, no
+KOReader, no EdiKOla and an empty `/sdcard`. Everything needed was in `~/bigme-userdata-20261108`.
+
+**What**
+- `/sdcard` content pushed back from the backup, except `Android/`: that folder is app-private data,
+  restricted to write on Android 14, and its 623 MiB are mostly redownloadable Microsoft TTS voice packs
+  for `org.Multi_TTS` plus app caches. Restored and checked per folder against the backup: `Books` 8,
+  `KoNewspaper` 795, `koreader` 33, `Pictures` 12, `XRZBookCache` 8, `Music` 4, `Movies` 3 and the rest,
+  876 files in all. `koreader/` brought back the EdiKOla plugin, the Bigme patch and the reader settings
+  in one go, so there was no need to push `build.sh`'s `koreader/` folder over it.
+- `sh bigme/debloat.sh`: 55 `new state: disabled-user`, no errors, disabled packages 1 -> 56, the same
+  count as change set 1.
+- KOReader reinstalled: `sh bigme/build.sh`, then `adb install`. The APK is pinned by SHA-256 in
+  `build.sh` and the pin matched. Then the two steps of change set 2 again,
+  `appops set --uid org.koreader.launcher MANAGE_EXTERNAL_STORAGE allow` (reads back `allow`) and
+  `dumpsys deviceidle whitelist +org.koreader.launcher` (reads back in the whitelist).
+- Termux 0.118.3 from F-Droid, `adb install`, as in change set 3.
+- Removed the images left in `/sdcard/Download` by the rooting work.
+
+**Note on downloads from this network**: GitHub's release-asset host answers 504 here, four attempts in a
+row, for both Magisk and KOReader. The GitHub API asset endpoint
+(`/repos/<o>/<r>/releases/assets/<id>` with `Accept: application/octet-stream`) works and is the same
+source. Both files were checked against a known SHA-256 afterwards.
+
+**Still to do**: the four Play Store apps of change set 3. The Play Store sits on
+`UnauthenticatedMainActivity` after the wipe, since the factory reset removed the Google account, so
+`market://` links cannot install anything until someone signs in. Olauncher, LocalSend and AntennaPod are
+all on F-Droid at versions equal to or newer than the ones that were installed; Kiwix is not on F-Droid
+under `org.kiwix.kiwixmobile` and would come from its own GitHub release. The E-Ink Center per-app
+profiles also still need re-entering by hand, from `~/bigme-userdata-20261108/config`.
+
+**Revert**: `sh bigme/debloat.sh undo` for the debloat; the revert lines of change sets 2 and 3 for the
+rest.
