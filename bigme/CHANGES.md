@@ -55,8 +55,9 @@ own settings. It never was. `adb shell cmd role get-role-holders android.app.rol
 
 **Checked** (during the change set 4 session): `pm list packages -3` lists the five apps above,
 Olauncher 6.9.1, LocalSend 1.18.2, Kiwix 3.14.1, AntennaPod 3.12.3, Termux googleplay.2026.10.09,
-next to KOReader 2026.07.1 from change set 2. Two more that no change set installed are present too,
-`com.amazon.kindle` and `org.Multi_TTS`.
+next to KOReader 2026.07.1 from change set 2. Two more are present that no change set installed,
+`com.amazon.kindle` and `org.Multi_TTS`; they survived the wipe of change set 5, so they are part
+of the stock image.
 
 **Revert**: uninstall what isn't wanted (`adb uninstall <package>`). The home screen needs no revert,
 it was never changed. E-Ink Center profiles: reset per app in E-Ink Center.
@@ -132,6 +133,14 @@ and the adb steps of change set 2; the Play Store and F-Droid apps by reinstalli
 per-app profiles have to be re-entered by hand, since without root there is no documented way to write
 them back. adb access is gone until Developer options and USB debugging are on again and the PC is
 re-authorised.
+
+**Checked after the first boot**: `ro.boot.verifiedbootstate` is `orange` (was `green`),
+`ro.boot.flash.locked` is 0 (was 1), `sys.oem_unlock_allowed` 1, slot still `_a`, firmware still
+`1763796060`, `sys.boot_completed` 1. The wipe is confirmed too: third-party packages down from 8 to 2,
+disabled packages from 56 to 1 (the stock state change set 1 started from), and `/sdcard` back to the
+stock empty skeleton, 0 files, with `Appunti`, `KoNewspaper`, `Note`, `koreader`, `ScreenShot`,
+`XRZBookCache` and `XRZNoteCache` gone. The device boots and runs normally; it shows the orange-state
+warning at startup, as an unlocked bootloader does.
 
 **Revert**: `fastboot flashing lock` re-locks the bootloader and wipes `/data` a second time. Only do it
 with stock, unmodified `boot`, `init_boot` and `vbmeta` in place: locking a device whose boot chain has
