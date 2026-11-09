@@ -239,3 +239,34 @@ profiles also still need re-entering by hand, from `~/bigme-userdata-20261108/co
 
 **Revert**: `sh bigme/debloat.sh undo` for the debloat; the revert lines of change sets 2 and 3 for the
 rest.
+
+## 2026-11-09 - Change set 8: only the reader, browser, notes and chosen apps
+
+**Found**: after change set 7 the device still ran phone, messages, contacts, Bigme's shelf, reader,
+video, music, recorder, calendar, two dictionaries, two image viewers, the clock, Kindle, Multi_TTS,
+Play Store and Google Play services, with no Google account to use them. The wanted set is: KOReader,
+the browser, Bigme's notes app (`com.xrz.note`; EdiKOla's own Appunti have too much pen input lag),
+Termux, Olauncher, LocalSend, Kiwix, AntennaPod, plus Magisk.
+
+**What**
+- Olauncher 6.10.27, LocalSend 1.18.2 and AntennaPod 3.12.3 from F-Droid, Kiwix 3.14.1 from its GitHub
+  release (arm64 standalone build, package `org.kiwix.kiwixmobile.standalone`), all with `adb install`.
+  No Play Store involved, so no Google account is needed.
+- `bigme/debloat.txt` gains a second pass of 31 packages, then `sh bigme/debloat.sh`: 86 of 86
+  `new state: disabled-user`, 87 disabled in all with the one disabled at the factory. Kindle and
+  Multi_TTS are disabled rather than uninstalled, like everything else, so one `undo` brings all back.
+- Kept on purpose, because what stays needs them: Gboard (the only keyboard on the device; without it
+  nothing, Termux included, can be typed), WebView (Kiwix and the browser render with it), the Google
+  file picker and package installer, the telephony services and providers, and the whole e-ink and pen
+  stack. The browser is `com.b300.xrz.web`, the only app that answers http links.
+- Animations: all three scales were already 0 on Bigme's firmware, nothing to change.
+- Olauncher asks to become the home app on its first launch; that was dismissed and the home role is
+  still `com.android.launcher3`, as decided in change set 3.
+
+**Checked**: reboot completes; every kept app opened to the foreground with nothing in the crash log
+(KOReader, browser, notes, Termux, Olauncher, LocalSend, Kiwix, AntennaPod, Magisk, Settings, files);
+`MemAvailable` 4608 of 7416 MiB at the home screen after boot. There is no measurement from before, so
+no saving is claimed.
+
+**Revert**: one package, `adb shell pm enable <package>`; everything, `sh bigme/debloat.sh undo`.
+The four apps: `adb uninstall <package>`.

@@ -65,33 +65,66 @@ com.mediatek.voiceunlock      # voice unlock
 com.mediatek.callrecorder     # call recorder
 com.mediatek.omacp            # operator over-the-air provisioning
 
-# KEEP: never disable (Bigme e-ink, pen, system)
+# Second pass (2026-11-09, change set 8): the device keeps only KOReader, the browser, Bigme's notes,
+# Termux, Olauncher, LocalSend, Kiwix, AntennaPod, Magisk, and what those need to run.
+# Phone apps (telephony services and providers stay enabled)
+com.android.dialer            # phone
+com.android.mms               # messages
+com.android.contacts          # contacts app (the contacts provider stays)
+# Bigme and AOSP apps replaced or not wanted
+com.xrz.ebook.shelf           # Bigme bookshelf (KOReader)
+com.xrz.xreaderV3             # Bigme reader (KOReader)
+com.xrz.video                 # video player
+com.xrz.music                 # music player
+com.xrz.soundrecord           # recorder
+com.ebook.wifitransferbook    # Wi-Fi book transfer (LocalSend)
+com.example.test              # Bigme calendar
+com.socialnmobile.colordict   # ColorDict (KOReader has its own dictionaries)
+com.xrz.dictapp               # Bigme dictionary
+com.ebook.imagemanager        # image viewer
+com.android.gallery3d         # gallery
+com.android.deskclock         # clock and alarms
+com.mediatek.gnss.nonframeworklbs # GPS test tool with a launcher icon
+com.android.musicfx           # audio effects
+com.android.printspooler      # printing
+com.android.bips              # built-in print service
+com.android.dynsystem         # dynamic system updates (GSI testing)
+# Preloaded apps that come back after a factory reset
+com.amazon.kindle             # Kindle
+org.Multi_TTS                 # Multi TTS engine and its voice packs
+# Google: no account on the device, nothing kept needs Play services
+com.android.vending           # Play Store (apps come from F-Droid and GitHub releases)
+com.google.android.gms        # Google Play services
+com.google.android.gsf        # Google Services Framework
+com.google.android.tts        # Google text to speech and voice typing
+com.google.android.syncadapters.calendar # Google calendar sync
+com.google.android.partnersetup          # partner setup
+com.google.android.onetimeinitializer    # first-boot initializer
+com.google.android.apps.restore          # restore from Google backup
+com.google.android.configupdater         # Google config updates
+
+# KEEP: never disable (what the kept apps and the e-ink/pen stack need)
+# com.b300.xrz.web            the browser: the only app that opens http links (Tencent TBS)
+# com.xrz.note                Bigme notes (pen-optimized, low latency)
+# com.google.android.inputmethod.latin  Gboard: the ONLY keyboard installed
+# com.google.android.webview  WebView: Kiwix and the browser render with it
+# com.google.android.documentsui  file picker (LocalSend, KOReader imports)
+# com.google.android.packageinstaller  installs APKs
 # com.xrz.sys.control         xMenu: E-Ink Center / control panel
 # com.xrz.res.service         Bigme resources service
 # com.xrz.settings            Bigme settings (refresh, color)
 # com.android.settings        Settings (Bigme build)
 # com.xrz.globalwritingservice  system-wide pen writing
 # com.xrz.recognize           handwriting recognition
-# com.xrz.input               Bigme keyboard (handwriting input)
+# com.xrz.input               Bigme input helper (not a keyboard)
 # com.xrz.standby             lock screen / standby picture
 # com.xrz.mutidisplay         display handling (unknown, keep)
 # com.xrz.appmanager          per-app settings (unknown, keep)
-# com.xrz.hoverballdemo       floating button (E-Ink Center shortcut)
+# com.xrz.hoverballdemo       floating button (E-Ink Center shortcut, refresh)
 # com.xrz.tts.service         text to speech
 # com.android.launcher3       xLauncher3: the home screen, kept on purpose (change set 3); never disable
 # com.xrz.ebook.launcher      Bigme e-book launcher (not the default home; keep, unknown dependants)
 # com.xrz.file.manager        files (installing APKs, imports)
 # com.mediatek.miravision.ui  MiraVision display color tuning (feature 5)
 # com.mediatek.engineermode, com.mediatek.factorymode  diagnostics/factory menu
-# telephony, GMS, Play Store, WebView, Gboard, Google TTS, MTP, NFC
-
-# LATER: decide once the replacement is installed or tried
-# com.xrz.ebook.shelf, com.xrz.xreaderV3  Bigme shelf and reader (PDF pen notes? compare with KOReader)
-# com.xrz.note                Bigme notes (pen-optimized: candidate for the journal)
-# com.xrz.video               video player (may carry the e-ink video profile)
-# com.xrz.music, com.xrz.soundrecord  music, recorder
-# com.ebook.wifitransferbook  Wi-Fi book transfer (after LocalSend)
-# com.b300.xrz.web            "WebExport" (unknown)
-# com.socialnmobile.colordict, com.xrz.dictapp  dictionaries (KOReader has its own)
-# com.example.test            Bigme calendar
-# com.ebook.imagemanager, com.android.gallery3d  image viewers
+# telephony services and providers, MTP, NFC, network stack, mainline modules
