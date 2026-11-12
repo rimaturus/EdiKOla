@@ -15,7 +15,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke as DrawStroke
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.input.pointer.PointerType
+import androidx.compose.ui.input.pointer.isSecondaryPressed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.runtime.remember
 import org.json.JSONArray
@@ -98,6 +100,7 @@ class InkDoc(private val file: File) {
  * Draws the block's ink and lets a stylus write on it. relative: points are fractions of the size (PDF pages).
  * dark: ink black becomes white, so it stays visible on a dark page.
  */
+@OptIn(ExperimentalComposeUiApi::class)
 fun Modifier.ink(doc: InkDoc, block: String, relative: Boolean = false, dark: Boolean = false): Modifier = composed {
     val live = remember { mutableStateOf<FloatArray?>(null) }
     this
