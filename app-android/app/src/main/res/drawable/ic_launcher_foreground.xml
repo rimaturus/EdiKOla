@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A folded newspaper: a page with a headline bar and lines of text -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#FFFFFF" android:pathData="M34,32h40a4,4 0,0 1,4 4v36a4,4 0,0 1,-4 4h-40a4,4 0,0 1,-4 -4v-36a4,4 0,0 1,4 -4z" />
+    <path android:fillColor="#C62828" android:pathData="M36,38h36v7h-36z" />
+    <path android:fillColor="#1C2E4A" android:pathData="M36,50h16v14h-16z M56,50h16v2.5h-16z M56,55.5h16v2.5h-16z M56,61h16v2.5h-16z M36,67h36v2.5h-36z" />
+</vector>
