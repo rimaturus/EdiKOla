@@ -37,8 +37,9 @@ xml = open("/tmp/ui.xml", encoding="utf-8").read()
 want = sys.argv[1]
 for m in re.finditer(r'<node [^>]*>', xml):
     n = m.group(0)
-    t = re.search(r' text="([^"]*)"', n).group(1)
-    d = re.search(r' content-desc="([^"]*)"', n).group(1)
+    t = re.search(r' text="([^"]*)"', n)
+    d = re.search(r' content-desc="([^"]*)"', n)
+    t, d = t and t.group(1), d and d.group(1)
     if want in (t, d):
         x1, y1, x2, y2 = map(int, re.search(r'bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', n).groups())
         print((x1 + x2) // 2, (y1 + y2) // 2)
