@@ -35,7 +35,12 @@ for m in re.finditer(r'<node [^>]*>', xml):
         break
 PY
 )
-    if [ -z "$xy" ]; then echo "NOT FOUND: $1" | tee -a "$OUT/steps.txt"; return 1; fi
+    if [ -z "$xy" ]; then
+        echo "NOT FOUND: $1" | tee -a "$OUT/steps.txt"
+        cp /tmp/ui.xml "$OUT/notfound-$n-$(echo "$1" | tr -c 'A-Za-z0-9' _).xml"
+        adb shell uiautomator dump /sdcard/x.xml >> "$OUT/steps.txt" 2>&1
+        return 1
+    fi
     echo "tap $1 at $xy" >> "$OUT/steps.txt"
     adb shell input tap $xy
 }
