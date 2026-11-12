@@ -12,6 +12,8 @@ KoNewspaper: a newsstand ("edicola") home screen on top of KOReader's reader.
 - "Giornali": tick which newspapers from the catalog (giornali.lua) are on the shelves.
 - While reading, a big "Edicola" button in the top-left corner goes back, "A− A+" top-right change
   the text size, the clock sits top-centre, and a tap on a photo opens it full screen to zoom.
+- Phone APK (android/build.sh): "Ascolta" on a front page reads the edition aloud, offline (knp_ascolta.lua),
+  and "Notte" in place of "Luce" switches KOReader's night mode (knp_theme keeps the colors' hues).
 - Lock screen: lockscreen/edikola.png.
   Long-press a word for the dictionaries (Italian, English, both translations).
 - Admin escape hatch: long-press the "Edicola" title to reach KOReader's file browser.
@@ -43,6 +45,7 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local ffiutil = require("ffi/util")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
+local Ascolta = require("knp_ascolta")
 local Build = require("knp_build")
 local Cards = require("knp_cards")
 local giornali = require("giornali")
@@ -72,8 +75,8 @@ local SECTIONS = {
     { id = "buone", name = "Buone notizie" },
     { id = "scienza", name = "Scienza e tecnologia" }, -- long labels wrap to 2 lines on their own
 }
-local PER_PAGE = 4 -- front pages per shelf page (2 x 2)
 local ANDROID = Device:isAndroid() -- Bigme B6 Pro Color: KOReader as an Android app, Android owns Wi-Fi/4G
+local PHONE = ANDROID and not Device:hasEinkScreen() -- an Android phone: night mode instead of the light
 -- Pen ink on what is being read (knp_penna): the "Penna" button where there's a pen (Android e-readers,
 -- or once a pen has touched a Kobo)
 local function penOn() return ANDROID or require("knp_penna").penSeen() end
@@ -232,7 +235,7 @@ end
 
 -- A newspaper on the shelf: masthead, date rule, then today's front page (headline + photo)
 local FrontPage = InputContainer:extend{
-    width = nil, height = nil, paper = nil, callback = nil,
+    width = nil, height = nil, paper = nil, callback = nil, listen = nil,
 }
 
 function FrontPage:init()
@@ -275,6 +278,14 @@ function FrontPage:init()
         VerticalSpan:new{ width = Screen:scaleBySize(6) },
     }
     local left = h - page:getSize().h
+    -- "Ascolta" at the bottom, where there's a voice (phone APK) and an edition to read
+    local listen
+    if self.listen and latest and require("knp_voce").ready() then
+        listen = theme.Pill:new{ text = Ascolta.playing(latest) and "In ascolto" or "▶ Ascolta", width = w,
+            height = Screen:scaleBySize(40), size = 16, fill = theme.color(self.paper.section .. "_tint"),
+            fg = theme.color(self.paper.section), callback = function() self.listen(latest) end }
+        left = left - listen:getSize().h - Screen:scaleBySize(6)
+    end
     if meta.headline and left > Screen:scaleBySize(40) then
         local headline = TextBoxWidget:new{
             text = meta.headline, face = Font:getFace("NotoSerif-Bold.ttf", 15), width = w, alignment = "left",
@@ -307,6 +318,11 @@ function FrontPage:init()
     end
 
     page:resetLayout() -- getSize() above cached offsets before the headline/photo were added
+    if listen then
+        table.insert(page, VerticalSpan:new{ width = h - page:getSize().h - listen:getSize().h })
+        table.insert(page, listen)
+        page:resetLayout()
+    end
 
     self[1] = FrameContainer:new{
         width = self.width, height = self.height,
@@ -390,8 +406,12 @@ function Edicola:init()
         width = cw, bordersize = 0, padding = band_pad, radius = Screen:scaleBySize(12), background = ink,
         HorizontalGroup:new{
             align = "center",
-            theme.Pill:new{ text = "Luce", width = side_w, height = side_h, size = 20, fill = WHITE, fg = ink,
-                callback = function() Device:showLightDialog() end },
+            theme.Pill:new{ text = PHONE and (Screen.night_mode and "Giorno" or "Notte") or "Luce",
+                width = side_w, height = side_h, size = 20, fill = WHITE, fg = ink, callback = function()
+                    if not PHONE then return Device:showLightDialog() end
+                    UIManager:broadcastEvent(Event:new("ToggleNightMode")) -- KOReader's own, kept in its settings
+                    self:redraw()
+                end },
             masthead_box,
             theme.Pill:new{ text = "Giochi", width = side_w, height = side_h, size = 20, fill = theme.color("giochi"),
                 fg = WHITE, callback = function() self:showGiochi() end },
@@ -446,7 +466,13 @@ function Edicola:init()
     local papers = shelf(self.section)
     local more = notOnShelf(self.section)
     local slots = #papers + (more > 0 and 1 or 0)
-    local pages = math.max(1, math.ceil(slots / PER_PAGE))
+    -- Rows of 2 front pages: as many as fit with front pages about as tall as wide (2 on e-readers, 3 on a phone).
+    -- The room is the screen less everything else, the pager included (measured below, estimated here).
+    local board_h = Screen:scaleBySize(8)
+    local tile_w = math.floor((cw - 2 * gap) / 2)
+    local room = sh - 2 * m - header_h - Screen:scaleBySize(50) - bottom:getSize().h - 4 * gap - Screen:scaleBySize(44)
+    local per_page = 2 * math.max(2, math.floor(room / (0.9 * tile_w + board_h + 2 * gap)))
+    local pages = math.max(1, math.ceil(slots / per_page))
     self.page = math.min(self.page, pages)
     self.turn = function(d)
         local p = self.page + d
@@ -479,13 +505,11 @@ function Edicola:init()
     end
     self.ges_events.Swipe = { GestureRange:new{ ges = "swipe", range = self.dimen } }
 
-    -- Shelves: 2 rows of 2 front pages, each row standing on a shelf board in the section's color.
+    -- Shelves: rows of 2 front pages, each row standing on a shelf board in the section's color.
     -- Sizes are measured, so the bottom bar never runs off the screen.
-    local board_h = Screen:scaleBySize(8)
     local shelves_h = sh - 2 * m - header_h - tabs:getSize().h - bottom:getSize().h - 3 * gap
         - (pager and pager:getSize().h + gap or 0)
-    local row_h = math.floor(shelves_h / 2) - board_h - gap
-    local tile_w = math.floor((cw - 2 * gap) / 2)
+    local row_h = math.floor(shelves_h / (per_page / 2)) - board_h - gap
     local shelves = VerticalGroup:new{ align = "center" }
     if slots == 0 then
         table.insert(shelves, CenterContainer:new{
@@ -496,17 +520,22 @@ function Edicola:init()
             },
         })
     else
-        local on_page = math.min(PER_PAGE, slots - (self.page - 1) * PER_PAGE)
+        local on_page = math.min(per_page, slots - (self.page - 1) * per_page)
         for r = 1, math.ceil(on_page / 2) do -- a half-empty last page shows one shelf, not an empty board
             local row = HorizontalGroup:new{ align = "bottom", HorizontalSpan:new{ width = gap } }
             for c = 1, 2 do
-                local n = (self.page - 1) * PER_PAGE + (r - 1) * 2 + c
+                local n = (self.page - 1) * per_page + (r - 1) * 2 + c
                 local paper = papers[n]
                 if c > 1 then table.insert(row, HorizontalSpan:new{ width = gap }) end
                 if paper then
                     table.insert(row, FrontPage:new{
                         width = tile_w, height = row_h, paper = paper,
                         callback = function() self:openPaper(paper) end,
+                        listen = function(epub)
+                            local y, mo, d = epub:match("(%d+)%-(%d+)%-(%d+)%.epub$")
+                            Ascolta.listen(epub, paper.name, Build.dateLabel(os.time{ year = y, month = mo, day = d, hour = 12 }),
+                                function() if Edicola.instance then Edicola.instance:redraw("ui") end end)
+                        end,
                     })
                 elseif n == #papers + 1 and more > 0 then
                     table.insert(row, AddTile:new{ width = tile_w, height = row_h, section = self.section, count = more,

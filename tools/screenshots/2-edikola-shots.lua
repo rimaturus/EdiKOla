@@ -200,6 +200,63 @@ local steps = {
     function() os.exit(0) end,
 }
 
+-- Phone (PHONE=1): Ascolta, with the voices when run.sh gets VOCI, and night mode
+local function closeToEdicola()
+    local stack = UIManager._window_stack
+    for k = #stack, 1, -1 do
+        local w = stack[k].widget
+        if w == edicola().instance then break end
+        UIManager:close(w)
+    end
+end
+local phone = {
+    closeToEdicola,
+    function() shot("40-edicola-ascolta") end,
+    function()
+        local A = require("knp_ascolta")
+        if not require("knp_voce").ready() then return print("SHOT STEP FAILED no voices (VOCI)") end
+        local dir = os.getenv("XDG_DOCUMENTS_DIR") .. "/KoNewspaper/borgo/"
+        A.listen(dir .. os.date("%Y-%m-%d") .. ".epub", "Il Corriere del Borgo", "giovedì 12 novembre 2026")
+        _G.knp_A = A
+    end,
+    function() end, function() end, function() end, function() end, -- the voice gets going
+    function()
+        shot("41-ascolta")
+        if not knp_A.cur and knp_A.k == 1 then print("SHOT STEP FAILED nothing playing after 15 s") end
+    end,
+    function() knp_A.go(2) end,
+    function() end, function() end, function() end, function() end, function() end, -- slow on a 2-core PC:
+    function() end, function() end, function() end, function() end, function() end, -- the voice catches up
+    function()
+        shot("42-ascolta-articolo-2")
+        if knp_A.article() ~= 2 then print("SHOT STEP FAILED not on article 2", knp_A.article(), knp_A.k) end
+        knp_A.toggle()
+        if not knp_A.paused then print("SHOT STEP FAILED pause") end
+    end,
+    function() shot("43-ascolta-pausa"); knp_A.stop() end,
+    function()
+        if knp_A.chunks or knp_A.pid then print("SHOT STEP FAILED stop") end
+        UIManager:broadcastEvent(require("ui/event"):new("ToggleNightMode"))
+        edicola().instance:redraw()
+    end,
+    function() shot("50-notte-edicola"); edicola().instance:showNews() end,
+    function() shot("51-notte-sommario"); UIManager:close(last) end,
+    function()
+        local dir = os.getenv("XDG_DOCUMENTS_DIR") .. "/KoNewspaper/borgo/"
+        edicola().instance:open(dir .. os.date("%Y-%m-%d") .. ".epub")
+    end,
+    function() UIManager:sendEvent(require("ui/event"):new("GotoViewRel", 1)) end,
+    function() shot("52-notte-articolo"); require("apps/reader/readerui").instance:onHome() end,
+    function() edicola().instance:showGiochi() end,
+    function() shot("53-notte-enigmistica"); last.items[4].callback() end,
+    function() shot("54-notte-sudoku") end,
+}
+if os.getenv("KNP_PHONE") then
+    local exit = table.remove(steps)
+    for _, f in ipairs(phone) do table.insert(steps, f) end
+    table.insert(steps, exit)
+end
+
 local i = 0
 local function step()
     i = i + 1

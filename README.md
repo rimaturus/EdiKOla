@@ -28,8 +28,9 @@ the pen writing straight on articles and books (pen only, pressure, eraser end),
 EdiKOla**, free puzzles made on the device: a crossword whose clues are the day's headlines, a crucipuzzle
 with its key, sudoku in three levels. Install: [docs/BIGME.md](docs/BIGME.md).
 
-On an Android phone (`Android` branch): the same, as one APK, KOReader with EdiKOla inside.
-Build and install: [docs/ANDROID.md](docs/ANDROID.md).
+On an Android phone (`Android` branch): the same, as one APK, KOReader with EdiKOla inside, plus **Ascolta**:
+the news read aloud like an audiobook, offline, in an Italian or English voice by the article's language,
+and a night mode. Build and install: [docs/ANDROID.md](docs/ANDROID.md).
 
 <p>
 <img src="docs/images/bigme/01-edicola-italia.png" width="24%" alt="Bigme: newsstand in color">
@@ -91,9 +92,9 @@ are fictional demo content (`tools/screenshots/make_demo.py`).*
 |---|---|
 | `konewspaper.koplugin/` | The KOReader plugin: `main.lua` (UI), `knp_build.lua` (download → EPUB), `knp_extract.lua` (RSS + article extraction, pure Lua), `giornali.lua` (catalog), `knp_cards.lua` (card lists), `knp_theme.lua` (colors, gray on grayscale screens), `knp_penna.lua` + `knp_ink.lua` (pen ink on the page), `knp_android.lua` (pen, pressure, in-between pen positions and fast pen refresh on Android), `knp_giochi.lua` (the puzzles' screens) with `knp_cruciverba.lua`, `knp_crucipuzzle.lua`, `knp_sudoku.lua`, `knp_parole.lua` (generators and words, pure Lua) |
 | `bigme/` | Bigme B6 Pro Color: `build.sh` (KOReader APK + plugin + `patches/2-edikola-bigme.lua`, which turns color on) |
-| `android/` | Android phone: `build.sh` (one signed APK: KOReader with the plugin inside) |
+| `android/` | Android phone: `build.sh` (one signed APK: KOReader with the plugin inside, sherpa-onnx and the Piper voices for Ascolta: `knp_voce.lua`, `knp_ascolta.lua`) |
 | `autoboot/` | `KoboRoot.tgz` that starts KOReader right after Nickel boots. Nickel stays installed as the fallback |
-| `tests/` | `lua5.1 tests/notes-test.lua` (pen ink and pen input), `lua5.1 tests/giochi-test.lua` (the puzzle generators: unique sudoku, valid crossword, crucipuzzle key), `texlua tests/konewspaper-test.lua` (fixtures), `… live` (checks every newspaper in the catalog). `build-cache-test.lua` runs on KOReader's Linux build: `cd $KO/lib/koreader && ./luajit <repo>/tests/build-cache-test.lua` |
+| `tests/` | `lua5.1 tests/notes-test.lua` (pen ink and pen input), `lua5.1 tests/giochi-test.lua` (the puzzle generators: unique sudoku, valid crossword, crucipuzzle key), `texlua tests/konewspaper-test.lua` (fixtures), `… live` (checks every newspaper in the catalog). `build-cache-test.lua` runs on KOReader's Linux build: `cd $KO/lib/koreader && ./luajit <repo>/tests/build-cache-test.lua`; so does `voce-test.lua` (Ascolta, see [docs/ANDROID.md](docs/ANDROID.md)) |
 | `tools/screenshots/` | Regenerates `docs/images` with KOReader's Linux build: `KO=~/kosim sh tools/screenshots/run.sh` (`BIGME=1` for `docs/images/bigme`) |
 | `CHANGES.md` | Every change made to the device, with how to undo it |
 
