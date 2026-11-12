@@ -17,6 +17,16 @@ dump() { # UI Automator gives up on a screen that keeps changing ("could not get
         sleep 1
     done
     adb pull /sdcard/ui.xml /tmp/ui.xml >/dev/null 2>&1 || echo '<x/>' > /tmp/ui.xml
+    # the emulator's own apps sometimes hang ("Pixel Launcher isn't responding"): wait, and look again
+    if grep -q "isn't responding" /tmp/ui.xml; then
+        echo "system dialog: isn't responding" >> "$OUT/steps.txt"
+        b=$(grep -o 'text="Wait"[^>]*bounds="\[[0-9]*,[0-9]*\]\[[0-9]*,[0-9]*\]"' /tmp/ui.xml | grep -o '[0-9]*,[0-9]*' | tr ',\n' '  ')
+        set -- $b
+        [ -n "$4" ] && adb shell input tap $((($1 + $3) / 2)) $((($2 + $4) / 2))
+        sleep 2
+        adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
+        adb pull /sdcard/ui.xml /tmp/ui.xml >/dev/null 2>&1
+    fi
 }
 
 tap() {
