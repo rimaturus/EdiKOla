@@ -136,9 +136,11 @@ object Ascolta {
 
     fun isReading(edition: Edition) = state.value != null && key == edition.paper + edition.date
 
-    /** Reads an edition aloud from article `from`; if it's the one being read, just jumps there */
-    fun listen(edition: Edition, from: Int = 0) {
+    /** Reads an edition aloud from article `from`. If it's the one being read: jumps there, or with no `from`
+     *  just goes on (the player screen shows it). */
+    fun listen(edition: Edition, from: Int? = null) {
         val p = Repo.paper(edition.paper)
+        if (isReading(edition) && from == null) return
         if (!isReading(edition)) {
             stop()
             key = edition.paper + edition.date
@@ -149,7 +151,7 @@ object Ascolta {
             dir.deleteRecursively()
             dir.mkdirs()
         }
-        withController { go(from) }
+        withController { go(from ?: 0) }
     }
 
     private fun withController(then: () -> Unit) {

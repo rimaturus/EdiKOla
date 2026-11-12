@@ -14,6 +14,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -68,13 +70,13 @@ fun PlayerScreen() {
             Spacer(Modifier.height(12.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 FilledTonalButton(onClick = { Ascolta.go(s.article - 1) }, enabled = s.article > 0, modifier = Modifier.weight(1f)) {
-                    Text("◀◀", fontSize = 20.sp)
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "Articolo precedente")
                 }
                 Button(onClick = { Ascolta.toggle() }, modifier = Modifier.weight(2f)) {
                     Text(if (s.playing) "Pausa" else "Riprendi", fontSize = 20.sp)
                 }
                 FilledTonalButton(onClick = { Ascolta.go(s.article + 1) }, enabled = s.article < s.titles.size - 1,
-                    modifier = Modifier.weight(1f)) { Text("▶▶", fontSize = 20.sp) }
+                    modifier = Modifier.weight(1f)) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Articolo successivo") }
             }
             Text("Il volume si regola con i tasti del telefono. Continua anche a schermo spento.",
                 Modifier.padding(vertical = 8.dp), style = MaterialTheme.typography.bodySmall,

@@ -43,6 +43,10 @@ wait_for() { # text, seconds
 }
 
 adb shell cmd uimode night no
+read W H <<EOF2
+$(adb shell wm size | sed -n 's/.*: \([0-9]*\)x\([0-9]*\).*/\1 \2/p' | tail -1)
+EOF2
+echo "screen $W x $H" >> "$OUT/steps.txt"
 adb install -r "$APK" 2>&1 | tee "$OUT/install.txt"
 adb logcat -c
 adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
@@ -56,14 +60,17 @@ shot edicola
 
 tap "Ascolta" && sleep 25 && shot player
 adb shell dumpsys media_session > "$OUT/media_session.txt" 2>&1
-sleep 20 && shot player-dopo
+sleep 60 && shot player-dopo
+tap "Articolo successivo" && sleep 45 && shot player-articolo-2
+adb shell dumpsys media_session > "$OUT/media_session-2.txt" 2>&1
 adb shell input keyevent KEYCODE_VOLUME_DOWN; sleep 1; shot volume
 adb shell dumpsys audio | grep -A3 -i "STREAM_MUSIC" > "$OUT/audio.txt" 2>&1
 adb shell input keyevent KEYCODE_BACK; sleep 2
 
 tap "Il Fatto Quotidiano" || tap "RaiNews"
 sleep 3 && shot giornale
-adb shell input tap 540 600; sleep 3; shot articolo
+adb shell input tap $((W / 2)) $((H * 30 / 100)); sleep 3; shot articolo
+adb shell input swipe $((W / 2)) $((H * 70 / 100)) $((W / 2)) $((H * 30 / 100)) 300; sleep 2; shot articolo-giu
 adb shell input keyevent KEYCODE_BACK; sleep 1
 adb shell input keyevent KEYCODE_BACK; sleep 1
 
