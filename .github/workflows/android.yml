@@ -41,17 +41,35 @@ jobs:
           gh release create android-latest EdiKOla-android.apk --prerelease --target "${{ github.sha }}" \
             --title "EdiKOla per Android ($(git rev-parse --short HEAD))" \
             --notes "App nativa EdiKOla, compilata dal branch Android. Apri questa pagina dal telefono e scarica EdiKOla-android.apk."
+      - name: Enable KVM for the emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Smoke test on an emulator (screenshots and log into ci-report)
+        continue-on-error: true
+        timeout-minutes: 25
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          script: bash app-android/ci-smoke.sh EdiKOla-android.apk smoke
       - name: Report
         if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p /tmp/r
           cp app-android/build.log /tmp/r/build.log 2>/dev/null || echo "no build log" > /tmp/r/build.log
           echo "${{ github.sha }} ${{ job.status }}" > /tmp/r/status.txt
+          if [ -d smoke ]; then cp -r smoke /tmp/r/; fi
+          cd /tmp/r
+          git init -q
+          git checkout -q -b ci-report
           git config user.name "edikola-ci"
           git config user.email "edikola-ci@users.noreply.github.com"
-          git checkout -q --orphan ci-report
-          git rm -rf -q . || true
-          cp /tmp/r/build.log /tmp/r/status.txt .
-          git add build.log status.txt
+          git add -A .
           git commit -q -m "CI report ${{ github.sha }}"
-          git push -q -f origin ci-report
+          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" ci-report
