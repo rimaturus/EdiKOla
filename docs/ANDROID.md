@@ -1,90 +1,66 @@
-# EdiKOla on an Android phone
+# EdiKOla per Android (app nativa)
 
-The `Android` branch: the same EdiKOla as on the Bigme (`bigme-main`), packed as one APK for a phone.
-`EdiKOla.apk` is the official KOReader for Android (v2026.07.1, arm64) with EdiKOla already inside: install it
-and the Edicola is there, nothing to copy.
+Il branch `Android` contiene `app-android/`, EdiKOla come app Android vera (Kotlin + Jetpack Compose), senza
+KOReader. Per il telefono è la strada giusta: KOReader è fatto per gli e-reader (luminosità sua, tasti del
+volume che girano pagina, notte = colori invertiti, niente audio in background).
 
-What's different on a phone:
-- **Ascolta**: every front page has a **▶ Ascolta** button that reads the edition aloud, like an audiobook,
-  all on the phone (no internet, no account). The paper's name and date, then each article, title first.
-  Italian articles are read by an Italian voice (Paola), English ones by a British voice (Alba): the language
-  is told from each article's text.
-- **Notte** (top left, where e-readers have **Luce**): KOReader's night mode, light text on black. EdiKOla's
-  colors keep their hue in it (a red shelf stays red, light tints turn dark).
-- **Taller shelves**: on a phone's tall screen the Edicola shows 3 rows of front pages instead of 2.
+## Cosa fa
 
-<p>
-<img src="images/android/01-edicola-italia.png" width="24%" alt="Edicola on a phone, with Ascolta">
-<img src="images/android/42-ascolta-articolo-2.png" width="24%" alt="Ascolta: the player">
-<img src="images/android/50-notte-edicola.png" width="24%" alt="Edicola at night">
-<img src="images/android/52-notte-articolo.png" width="24%" alt="An article at night">
-</p>
+- **Edicola**: gli scaffali Italia, Mondo, Buone notizie, Scienza; ogni giornale con la prima pagina di oggi
+  (titolo e foto). **Aggiorna** (in alto) scarica tutti i giornali scelti, 6 alla volta; un giornale mai
+  scaricato si scarica toccandolo. **Ingranaggio**: scegli i giornali (lo stesso catalogo di `giornali.lua`).
+- **Lettore**: articoli puliti (solo testo e foto), A− A+, articolo precedente e successivo, una foto toccata
+  si apre a schermo intero con lo zoom.
+- **Sommario**: le notizie di oggi di tutti i giornali, per argomento; quelle inglesi con titolo e riassunto in
+  italiano.
+- **Ascolta**: legge il giornale ad alta voce come un audiolibro, tutto sul telefono (sherpa-onnx con le voci
+  Piper Paola per l'italiano e Alba per l'inglese, scelte articolo per articolo). Suona come un contenuto
+  multimediale: altoparlante, tasti del volume, controlli nella notifica e sulla schermata di blocco, continua a
+  schermo spento e in altre app, si ferma per una chiamata o se stacchi le cuffie. Dal lettore, **▶** legge
+  dall'articolo aperto.
+- **Giochi** (La Settimana di EdiKOla): cruciverba del giorno con le definizioni dai titoli di oggi,
+  crucipuzzle con la chiave, sudoku facile, medio, difficile. Ogni mossa è salvata.
+- **Libri**: EPUB e PDF, da **Aggiungi** o condivisi da un'altra app (LocalSend, browser, posta). L'EPUB si
+  legge come gli articoli, il PDF pagina per pagina (due dita per lo zoom). Riprende dove eri rimasto.
+- **Penna** (S Pen o altro pennino): scrive direttamente su articoli, libri e PDF; le dita scorrono e toccano
+  come sempre. Gommino o tasto della penna cancellano il tratto, la pressione ingrossa la linea. La matita in
+  alto: colore, annulla, cancella gli appunti.
+- **Luminosità**: quella di sistema. **Tema scuro**: segue quello di Android.
 
-## Build (on the computer)
+## Installare
 
-```sh
-sh android/build.sh out-android
-```
+Dal telefono apri https://github.com/rimaturus/EdiKOla/releases/tag/android-latest, scarica
+`EdiKOla-android.apk` e aprilo (consenti l'installazione dal browser). Gli aggiornamenti si installano sopra.
+È un'app a sé (`it.rimaturus.edikola`): non tocca KOReader né il Bigme.
 
-Needs `curl`, `7z`, `zip` and Java. Downloads, all pinned by SHA-256: KOReader, uber-apk-signer, sherpa-onnx
-v1.13.6 for Android (the speech engine: its C library goes next to KOReader's own libraries in the APK) and
-the two Piper voices (int8, about 18 MB each, into the plugin's `voci/` folder, with espeak-ng's Italian and
-English dictionaries). The APK is about 66 MB.
+## Come si compila
 
-The first run makes a signing key in `~/.config/edikola/android.jks` (other path: `KEYSTORE=...`): **keep it**,
-Android only installs an update over the app if it is signed with the same key.
+GitHub Actions (`.github/workflows/android.yml`) a ogni push su `Android` che tocca `app-android/`:
+1. `app-android/fetch-native.sh` scarica (SHA-256 fissati) sherpa-onnx v1.13.6 per Android e le due voci
+   (int8, circa 18 MB l'una) con i dati di espeak-ng solo per italiano e inglese;
+2. `gradle assembleRelease` (AGP 8.7, Kotlin 2.1, Compose BOM 2024.12, media3 1.5, jsoup, coil);
+3. pubblica l'APK nella pre-release `android-latest`;
+4. prova l'app su un emulatore Pixel 6 (`app-android/ci-smoke.sh`): aggiorna i giornali, fa partire Ascolta,
+   apre un articolo, i giochi, i libri, il tema scuro; screenshot, albero dell'interfaccia e log finiscono nel
+   branch `ci-report` insieme al log della compilazione.
 
-**Check**: `out-android/EdiKOla.apk` is there.
+In locale: `sh app-android/fetch-native.sh`, poi apri `app-android/` con Android Studio.
 
-## Install (on the phone)
+La chiave di firma `app-android/edikola.jks` è nel repo (pubblica): serve solo perché gli aggiornamenti si
+installino sopra. Per una chiave tua: secret `EDIKOLA_KEYSTORE` (percorso) e `EDIKOLA_KEYSTORE_PASSWORD`.
 
-1. The app is KOReader with another signature, under KOReader's own id (`org.koreader.launcher`): if the
-   official KOReader is installed, uninstall it first (its `koreader` folder stays, with settings and books).
-2. Copy `EdiKOla.apk` to the phone (USB, LocalSend, ...) and open it; allow installing from that app.
-3. Open **KOReader** and allow access to all files (EdiKOla keeps `KoNewspaper`, `Libri`, `Appunti` on the
-   internal storage).
+## Il codice
 
-**Check**: the Edicola opens; **Aggiorna** downloads the papers.
+| File | |
+|---|---|
+| `Catalog.kt`, `Topics.kt`, `ParoleData.kt` | catalogo, argomenti del Sommario, parole dei giochi (da `giornali.lua`, `knp_topics.lua`, `knp_parole.lua`) |
+| `Extract.kt` | RSS/Atom e estrazione dell'articolo (port di `knp_extract.lua`, con jsoup) |
+| `Store.kt`, `Repo.kt` | download, cache degli articoli, edizioni (JSON per giornale e giorno, ultime 3), stato dell'app |
+| `Testo.kt`, `Ascolta.kt` | lingua per articolo, pezzi da leggere, WAV; voci sherpa-onnx e `AscoltaService` (media3) |
+| `Giochi.kt`, `GiochiUi.kt` | generatori (port di `knp_sudoku`, `knp_crucipuzzle`, `knp_cruciverba`) e schermate |
+| `Libri.kt`, `Reader.kt`, `Ink.kt` | libri EPUB/PDF, lettore, penna |
+| `Home.kt`, `Player.kt`, `Theme.kt`, `MainActivity.kt` | schermate e colori (chiari e scuri) |
+| `com/k2fsa/sherpa/onnx/Tts.kt` | API Kotlin di sherpa-onnx v1.13.6 (Apache-2.0), deve corrispondere alla libreria |
 
-## Ascolta
-
-- **▶ Ascolta** on a front page (once its edition is downloaded) opens the player and starts reading.
-  The first words come after a moment: the voice makes the audio a few sentences ahead.
-- The player: the article being read, **Pausa**/**Riprendi**, **◀◀ ▶▶** previous and next article, the list
-  of articles (tap one to jump there), **Stop**. **Indietro** goes back to the Edicola and keeps reading;
-  the front page says **In ascolto**, tap it to come back to the player.
-- **With the screen off it keeps reading**, as long as EdiKOla is the last app you had open. If you switch to
-  another app, Android freezes EdiKOla after a few seconds and the reading stops within a few sentences
-  (going on would take a foreground service, which a KOReader plugin can't add).
-- The audio is made in `koreader/cache/edikola-voce` and deleted as it is played, and when reading stops.
-
-**Check**: Ascolta on a paper with an English article: the voice changes. Turn the screen off: it keeps
-reading into the next article.
-
-How it works (`knp_voce.lua`, `knp_ascolta.lua`): a child process calls sherpa-onnx's C API through LuaJIT's
-FFI and writes one WAV per few sentences; EdiKOla plays them with Android's MediaPlayer through JNI, each
-chained to the next (`setNextMediaPlayer`) so there are no gaps. While audio plays Android keeps the phone
-awake, so EdiKOla's timer still runs with the screen off and chains the next piece. If Android stops the child
-process, the player starts it again.
-
-Voices: Paola (`it_IT-paola-medium`, dataset licence on its page:
-https://huggingface.co/datasets/paolapersico1/Voice-Dataset-Italian) and Alba (`en_GB-alba-medium`, CC BY 4.0),
-from the Piper project, as converted by sherpa-onnx. Their model cards are in `voci/it` and `voci/en`.
-
-## Differences from the Bigme
-
-- No `2-edikola-bigme.lua` patch: a phone screen is color for KOReader already.
-- The pen part (`knp_android.lua`) works with any Android stylus (e.g. S Pen); E-Ink Center's handwriting
-  mode is Bigme only and is skipped (a line in `crash.log`, nothing else).
-- KOReader's own update check offers official builds: they don't install over this one (other signature).
-  Update by rebuilding and installing the new `EdiKOla.apk`.
-
-## Tests and screenshots (computer)
-
-- `tests/voce-test.lua`, on KOReader's Linux build: reading an edition, language, pieces, and the player
-  (on a silent player and a 20 times faster clock: pause, jump, the child process killed, the end).
-  `VOCI=` a `voci/` folder (`~/.cache/edikola-build/voci` after a build) with a `lib/` holding
-  `libsherpa-onnx-c-api.so` and `libonnxruntime.so` from `sherpa-onnx-v1.13.6-linux-x64-shared.tar.bz2`:
-  `cd $KO/lib/koreader && VOCI=... ./luajit <repo>/tests/voce-test.lua`
-- Screenshots at a phone's 1080x2340, 450 dpi, with Ascolta and night mode, into `docs/images/android`:
-  `PHONE=1 VOCI=... KO=~/ko2607 sh tools/screenshots/run.sh`
+Voci: Paola (`it_IT-paola-medium`, licenza del dataset alla sua pagina) e Alba (`en_GB-alba-medium`, CC BY 4.0),
+del progetto Piper, convertite da sherpa-onnx.

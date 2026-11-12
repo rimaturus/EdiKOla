@@ -215,7 +215,7 @@ object Ascolta {
         val k = current().coerceIn(0, chunks.size - 1)
         state.value = State(
             paper = paperName, titles = titles, article = chunks[k].article,
-            playing = c.playWhenReady,
+            playing = c.playWhenReady || made == 0, // before the first piece it's about to play, not paused
             waiting = made == 0 || (c.playbackState == Player.STATE_ENDED && job?.isActive == true) ||
                 c.playbackState == Player.STATE_BUFFERING,
             lang = chunks[k].lang,

@@ -10,9 +10,17 @@ n=0
 shot() { n=$((n + 1)); adb exec-out screencap -p > "$OUT/$(printf %02d $n)-$1.png"; }
 
 # tap the first element whose text or description is $1 (from the accessibility tree, as UI Automator sees it)
+dump() { # UI Automator gives up on a screen that keeps changing ("could not get idle state"): try again
+    adb shell rm -f /sdcard/ui.xml
+    for i in 1 2 3 4 5 6; do
+        adb shell uiautomator dump /sdcard/ui.xml 2>&1 | grep -q dumped && break
+        sleep 1
+    done
+    adb pull /sdcard/ui.xml /tmp/ui.xml >/dev/null 2>&1 || echo '<x/>' > /tmp/ui.xml
+}
+
 tap() {
-    adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
-    adb pull /sdcard/ui.xml /tmp/ui.xml >/dev/null 2>&1
+    dump
     xy=$(python3 - "$1" <<'PY'
 import re, sys
 xml = open("/tmp/ui.xml", encoding="utf-8").read()
@@ -34,8 +42,8 @@ PY
 
 wait_for() { # text, seconds
     for i in $(seq 1 "$2"); do
-        adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
-        adb shell cat /sdcard/ui.xml 2>/dev/null | grep -q "$1" && return 0
+        dump
+        grep -q "$1" /tmp/ui.xml && return 0
         sleep 1
     done
     echo "TIMEOUT waiting for: $1" | tee -a "$OUT/steps.txt"

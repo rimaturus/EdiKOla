@@ -28,6 +28,10 @@ the pen writing straight on articles and books (pen only, pressure, eraser end),
 EdiKOla**, free puzzles made on the device: a crossword whose clues are the day's headlines, a crucipuzzle
 with its key, sudoku in three levels. Install: [docs/BIGME.md](docs/BIGME.md).
 
+On an Android phone (`Android` branch): a native app, without KOReader (`app-android/`): the same newsstand,
+Sommario, puzzles, books and pen, plus **Ascolta**, the news read aloud offline in an Italian or English voice.
+Install and build: [docs/ANDROID.md](docs/ANDROID.md).
+
 <p>
 <img src="docs/images/bigme/01-edicola-italia.png" width="24%" alt="Bigme: newsstand in color">
 <img src="docs/images/bigme/14-penna-sull-articolo.png" width="24%" alt="Bigme: the pen writing on an article">
