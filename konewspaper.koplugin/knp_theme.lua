@@ -39,31 +39,16 @@ local PALETTE = { -- name = { color, gray }
     f7 = { "#80CBC4", G.COLOR_GRAY_D }, f8 = { "#E6EE9C", G.COLOR_GRAY_B },
 }
 
--- Night mode (phones): KOReader inverts the whole screen, which turns every hue into its opposite (red into
--- cyan). So in night mode a color is painted as the inverse of itself with its lightness flipped: once
--- inverted on screen it keeps its hue, and light tints become dark ones, like white becomes black.
-local function night(hex)
-    local r, g, b = tonumber(hex:sub(2, 3), 16) / 255, tonumber(hex:sub(4, 5), 16) / 255, tonumber(hex:sub(6, 7), 16) / 255
-    local max, min = math.max(r, g, b), math.min(r, g, b)
-    local l = (max + min) / 2
-    local nl = 1 - l -- same hue and saturation, flipped lightness: scale the distance from gray
-    local k = (l == 0 or l == 1) and 0 or math.min(nl, 1 - nl) / math.min(l, 1 - l)
-    local function ch(c) return math.floor(255 * (1 - (nl + (c - l) * k)) + 0.5) end
-    return ("#%02X%02X%02X"):format(ch(r), ch(g), ch(b))
-end
-
 local cache = {}
 local T = {}
 
---- The color for a name (falls back to gray); follows KOReader's "color rendering" switch and night mode
+--- The color for a name (falls back to gray); follows KOReader's "color rendering" switch
 function T.color(name)
     local p = PALETTE[name] or PALETTE.neutral
     if not Screen:isColorEnabled() then return p[2] end
-    local hex = Screen.night_mode and night(p[1]) or p[1]
-    cache[hex] = cache[hex] or Blitbuffer.colorFromString(hex)
-    return cache[hex]
+    cache[p[1]] = cache[p[1]] or Blitbuffer.colorFromString(p[1])
+    return cache[p[1]]
 end
-T.night = night -- for the tests
 
 T.inks = { "nero", "blu", "rosso", "verde" }
 
@@ -101,7 +86,7 @@ T.Text = TextWidget:extend{}
 function T.Text:paintTo(bb, x, y) return TextWidget.paintTo(self, T.inColor(bb, self.fgcolor), x, y) end
 
 --- A rounded, filled, tappable label: the newsstand's buttons and tabs, the puzzles' keys.
--- Pill:new{ text =, width =, height =, fill = color, fg = color, size = 20, callback =, enabled = true, lines = n }
+-- Pill:new{ text =, width =, height =, fill = color, fg = color, size = 20, callback =, enabled = true }
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
@@ -109,25 +94,16 @@ local GestureRange = require("ui/gesturerange")
 local TextBoxWidget = require("ui/widget/textboxwidget")
 T.Pill = require("ui/widget/container/inputcontainer"):extend{
     text = "", width = 100, height = 50, fill = nil, fg = nil, size = 20, callback = nil, enabled = true,
-    border = false, face = "NotoSans-Bold.ttf", lines = nil, -- lines: at most that many, then "…"
+    border = false, face = "NotoSans-Bold.ttf",
 }
 function T.Pill:init()
     local fill = self.fill or G.COLOR_WHITE
     local bw = self.border and Screen:scaleBySize(2) or 0
     local fg = self.enabled and (self.fg or G.COLOR_BLACK) or G.COLOR_GRAY_9
-    local function box(height)
-        return TextBoxWidget:new{
-            text = self.text, face = Font:getFace(self.face, self.size), alignment = "center",
-            width = self.width - 2 * bw - Screen:scaleBySize(8), fgcolor = fg, bgcolor = fill,
-            height = height, height_overflow_show_ellipsis = height and true,
-        }
-    end
-    local text = box()
-    local max_h = self.lines and self.lines * text:getLineHeight()
-    if max_h and text:getSize().h > max_h + 1 then -- too long: "…"
-        text:free()
-        text = box(max_h)
-    end
+    local text = TextBoxWidget:new{
+        text = self.text, face = Font:getFace(self.face, self.size), alignment = "center",
+        width = self.width - 2 * bw - Screen:scaleBySize(8), fgcolor = fg, bgcolor = fill,
+    }
     self.dimen = Geom:new{ x = 0, y = 0, w = self.width, h = self.height }
     self[1] = FrameContainer:new{
         width = self.width, height = self.height, padding = 0, margin = 0, bordersize = bw,

@@ -65,26 +65,33 @@ tap "Articolo successivo" && sleep 45 && shot player-articolo-2
 adb shell dumpsys media_session > "$OUT/media_session-2.txt" 2>&1
 adb shell input keyevent KEYCODE_VOLUME_DOWN; sleep 1; shot volume
 adb shell dumpsys audio | grep -A3 -i "STREAM_MUSIC" > "$OUT/audio.txt" 2>&1
-adb shell input keyevent KEYCODE_BACK; sleep 2
+sleep 4; tap "Indietro"; sleep 2
 
 tap "Il Fatto Quotidiano" || tap "RaiNews"
 sleep 3 && shot giornale
 adb shell input tap $((W / 2)) $((H * 30 / 100)); sleep 3; shot articolo
 adb shell input swipe $((W / 2)) $((H * 70 / 100)) $((W / 2)) $((H * 30 / 100)) 300; sleep 2; shot articolo-giu
-adb shell input keyevent KEYCODE_BACK; sleep 1
-adb shell input keyevent KEYCODE_BACK; sleep 1
+tap "Indietro"; sleep 2
+tap "Indietro"; sleep 2
 
 tap "Sommario" && sleep 3 && shot sommario
 tap "Giochi" && sleep 2 && shot giochi
 tap "Cruciverba del giorno" && sleep 15 && shot cruciverba
+tap "A"; sleep 1; tap "Definizioni"; sleep 2; shot definizioni
 adb shell input keyevent KEYCODE_BACK; sleep 1
+tap "Indietro"; sleep 2
+tap "Crucipuzzle" && sleep 15 && shot crucipuzzle
+tap "Indietro"; sleep 2
 tap "Sudoku medio" && sleep 10 && shot sudoku
-adb shell input keyevent KEYCODE_BACK; sleep 1
+tap "Indietro"; sleep 2
 tap "Libri" && sleep 2 && shot libri
 
 adb shell cmd uimode night yes
 sleep 3
 tap "Edicola"; sleep 3; shot notte-edicola
+tap "RaiNews"; sleep 3; adb shell input tap $((W / 2)) $((H * 30 / 100)); sleep 3; shot notte-articolo
+tap "Indietro"; sleep 2; tap "Indietro"; sleep 2
+tap "Sommario" && sleep 2 && shot notte-sommario
 tap "Giochi" && sleep 2 && shot notte-giochi
 
 adb logcat -d > "$OUT/logcat.txt"

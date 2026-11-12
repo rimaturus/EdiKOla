@@ -4,21 +4,16 @@
 #   KO=~/kosim sh tools/screenshots/run.sh
 # Bigme B6 Pro Color (1072x1448, 300 dpi, color, pen ink, its patch) into docs/images/bigme:
 #   BIGME=1 KO=~/ko2607 sh tools/screenshots/run.sh
-# Android phone (1080x2340, 450 dpi: a Galaxy S25 Ultra at its default resolution) into docs/images/android:
-#   PHONE=1 KO=~/ko2607 sh tools/screenshots/run.sh
 set -e
 REPO=$(cd "$(dirname "$0")/../.." && pwd)
-if [ -n "$PHONE" ]; then W=1080 H=2340 DPI=450 COLOR=true PEN=true LANG_KO=it_IT IMAGES=docs/images/android
-elif [ -n "$BIGME" ]; then W=1072 H=1448 DPI=300 COLOR=true PEN=true LANG_KO=it_IT IMAGES=docs/images/bigme
+if [ -n "$BIGME" ]; then W=1072 H=1448 DPI=300 COLOR=true PEN=true LANG_KO=it_IT IMAGES=docs/images/bigme
 else W=758 H=1024 DPI=212 COLOR=false PEN=false LANG_KO=en IMAGES=docs/images; fi
-WORK=${WORK:-$HOME/.cache/edikola-shots${BIGME:+-bigme}${PHONE:+-phone}}
+WORK=${WORK:-$HOME/.cache/edikola-shots${BIGME:+-bigme}}
 rm -rf "$WORK" && mkdir -p "$WORK/home" "$WORK/cfg/koreader/patches" "$WORK/shots"
 
 python3 "$REPO/tools/screenshots/make_demo.py" "$WORK/home"
 rm -rf "$KO/lib/koreader/plugins/konewspaper.koplugin"
 cp -r "$REPO/konewspaper.koplugin" "$KO/lib/koreader/plugins/"
-# the voices for Ascolta (phone): a voci/ folder as android/build.sh makes it, plus lib/ with sherpa-onnx for Linux
-[ -n "$VOCI" ] && cp -r "$VOCI" "$KO/lib/koreader/plugins/konewspaper.koplugin/voci"
 cp "$REPO/tools/screenshots/2-edikola-shots.lua" "$WORK/cfg/koreader/patches/"
 [ -n "$BIGME" ] && cp "$REPO"/bigme/patches/*.lua "$WORK/cfg/koreader/patches/" # does nothing off Android: loads, at least
 # color_rendering=false: grayscale like the Nia (and no emulator-only color notice)
@@ -26,7 +21,7 @@ printf 'return { ["start_with"] = "filemanager", ["home_dir"] = "%s", ["lastdir"
     "$WORK/home" "$WORK/home" "$COLOR" "$PEN" "$LANG_KO" > "$WORK/cfg/koreader/settings.reader.lua"
 
 cd "$KO/lib/koreader"
-KO_HOME="$WORK/cfg/koreader" XDG_DOCUMENTS_DIR="$WORK/home" KNP_SHOTS="$WORK/shots" KNP_PHONE="$PHONE" \
+KO_HOME="$WORK/cfg/koreader" XDG_DOCUMENTS_DIR="$WORK/home" KNP_SHOTS="$WORK/shots" \
 EMULATE_READER_W=$W EMULATE_READER_H=$H EMULATE_READER_DPI=$DPI SDL_VIDEODRIVER=${SDL_VIDEODRIVER:-offscreen} \
     ./reader.lua "$WORK/home" > "$WORK/log.txt" 2>&1 || true
 

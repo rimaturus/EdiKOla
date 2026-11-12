@@ -72,7 +72,9 @@ object Voce {
         OfflineTts(assetManager = ctx.assets, config = config)
     }
 
-    /** Writes the piece's audio (WAV, with its pause after it) */
+    /** Writes the piece's audio (WAV, with its pause after it). One at a time: a jump to another article
+     *  waits for the piece being made (a native call can't be stopped halfway). */
+    @Synchronized
     fun synth(ctx: Context, chunk: Testo.Chunk, file: File) {
         val audio = engine(ctx, chunk.lang).generate(chunk.text)
         val tmp = File(file.path + ".tmp")
