@@ -1,0 +1,200 @@
+11-13 14:58:02.667  3208  3208 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 14:58:02.678  3208  3208 I AndroidRuntime: Using default boot image
+11-13 14:58:02.678  3208  3208 I AndroidRuntime: Leaving lock profiling enabled
+11-13 14:58:03.124  3208  3208 D AndroidRuntime: Calling main entry com.android.commands.monkey.Monkey
+11-13 14:58:03.125  3208  3208 W Monkey  : args: [-p, it.rimaturus.edikola, -c, android.intent.category.LAUNCHER, 1]
+11-13 14:58:03.125  3208  3208 W Monkey  :  arg: "it.rimaturus.edikola"
+11-13 14:58:03.125  3208  3208 W Monkey  : data="it.rimaturus.edikola"
+11-13 14:58:03.873   523   918 V SplashScreenExceptionList: SplashScreen checking exception for package it.rimaturus.edikola (target sdk:35) -> false
+11-13 14:58:03.876   844   874 V WindowManagerShell: Transition requested: android.os.BinderProxy@919ac85 TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=8 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 cmp=it.rimaturus.edikola/.MainActivity } baseActivity=ComponentInfo{it.rimaturus.edikola/it.rimaturus.edikola.MainActivity} topActivity=ComponentInfo{it.rimaturus.edikola/it.rimaturus.edikola.MainActivity} origActivity=null realActivity=ComponentInfo{it.rimaturus.edikola/it.rimaturus.edikola.MainActivity} numActivities=1 lastActiveTime=51780 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@65d2ada} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=Rect(0, 128 - 0, 0) topActivityInfo=ActivityInfo{755db0b it.rimaturus.edikola.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+11-13 14:58:03.890   523   918 I ActivityTaskManager: START u0 {act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 cmp=it.rimaturus.edikola/.MainActivity} with LAUNCH_SINGLE_TASK from uid 2000 (BAL_ALLOW_PERMISSION) result code=0
+11-13 14:58:03.969   523  2371 D CoreBackPreview: Window{b878ec8 u0 Splash Screen it.rimaturus.edikola}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@c9afda4, mPriority=0, mIsAnimationCallback=false}
+11-13 14:58:04.216   523   542 V WindowManager: Sent Transition #7 createdAt=11-13 14:58:03.764 via request=TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=8 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 cmp=it.rimaturus.edikola/.MainActivity } baseActivity=ComponentInfo{it.rimaturus.edikola/it.rimaturus.edikola.MainActivity} topActivity=ComponentInfo{it.rimaturus.edikola/it.rimaturus.edikola.MainActivity} origActivity=null realActivity=ComponentInfo{it.rimaturus.edikola/it.rimaturus.edikola.MainActivity} numActivities=1 lastActiveTime=51780 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{4a96121 Task{8eced26 #8 type=standard A=10192:it.rimaturus.edikola}}} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=Rect(0, 128 - 0, 0) topActivityInfo=ActivityInfo{83c9946 it.rimaturus.edikola.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+11-13 14:58:04.217   523   542 V WindowManager:     info={id=7 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{RemoteToken{4a96121 Task{8eced26 #8 type=standard A=10192:it.rimaturus.edikola}}} m=OPEN f=NONE leash=Surface(name=Task=8)/@0xb3c6fa5 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0},{WCT{RemoteToken{aa4c707 Task{7af57d6 #1 type=home}}} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0x24e7dfb sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0}]}
+11-13 14:58:04.449   523   554 I ActivityManager: Start proc 3353:it.rimaturus.edikola/u0a192 for next-top-activity {it.rimaturus.edikola/it.rimaturus.edikola.MainActivity}
+11-13 14:58:04.451  3208  3208 I AndroidRuntime: VM exiting with result code 0.
+11-13 14:58:04.991  3353  3353 D nativeloader: Configuring clns-6 for other apk /data/app/~~8IenzNW2KWX5tDL1j43zrQ==/it.rimaturus.edikola-svrmWWDPwRow86hOP5qPYw==/base.apk. target_sdk_version=35, uses_libraries=, library_path=/data/app/~~8IenzNW2KWX5tDL1j43zrQ==/it.rimaturus.edikola-svrmWWDPwRow86hOP5qPYw==/lib/arm64:/data/app/~~8IenzNW2KWX5tDL1j43zrQ==/it.rimaturus.edikola-svrmWWDPwRow86hOP5qPYw==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand:/data/user/0/it.rimaturus.edikola
+11-13 14:58:05.134  3353  3353 V GraphicsEnvironment: ANGLE GameManagerService for it.rimaturus.edikola: false
+11-13 14:58:05.134  3353  3353 V GraphicsEnvironment: it.rimaturus.edikola is not listed in per-application setting
+11-13 14:58:06.177   523   815 I SdkSandboxManager: No SDKs used. Skipping SDK data reconcilation for CallingInfo{mUid=10192, mPackageName='it.rimaturus.edikola, mAppProcessToken='null'}
+11-13 14:58:06.619   523  2371 D CoreBackPreview: Window{25c5e48 u0 it.rimaturus.edikola/it.rimaturus.edikola.MainActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@f73cad5, mPriority=0, mIsAnimationCallback=false}
+11-13 14:58:07.181  1060  1060 D CarrierSvcBindHelper: onPackageAdded: it.rimaturus.edikola
+11-13 14:58:07.186  1060  1359 D ImsResolver: maybeAddedImsService, packageName: it.rimaturus.edikola
+11-13 14:58:07.425   848   848 I SafetyLabelChangedBroadcastReceiver: received broadcast packageName: it.rimaturus.edikola, current user: UserHandle{0}, packageChangeEvent: NEW_INSTALL, intent user: UserHandle{0}
+11-13 14:58:07.471  1060  1060 D CarrierSvcBindHelper: onPackageModified: it.rimaturus.edikola
+11-13 14:58:07.716  1060  1359 D ImsResolver: maybeAddedImsService, packageName: it.rimaturus.edikola
+11-13 14:58:08.103   523   918 I WindowManager: finishDrawing of relaunch: Window{25c5e48 u0 it.rimaturus.edikola/it.rimaturus.edikola.MainActivity} 1874ms
+11-13 14:58:08.297   523   542 W system_server: Failed to determine oat file name for dex location /data/app/~~8IenzNW2KWX5tDL1j43zrQ==/it.rimaturus.edikola-svrmWWDPwRow86hOP5qPYw==/base.apk: Dalvik cache directory does not exist
+11-13 14:58:08.297   523   542 W ziparchive: Unable to open '/data/app/~~8IenzNW2KWX5tDL1j43zrQ==/it.rimaturus.edikola-svrmWWDPwRow86hOP5qPYw==/base.dm': No such file or directory
+11-13 14:58:08.298   523   542 I ActivityTaskManager: Displayed it.rimaturus.edikola/.MainActivity for user 0: +4s487ms
+11-13 14:58:08.298   523  2082 W InputManager-JNI: Input channel object 'b878ec8 Splash Screen it.rimaturus.edikola (client)' was disposed without first being removed with the input manager!
+11-13 14:58:08.309   523   538 D CoreBackPreview: Window{25c5e48 u0 it.rimaturus.edikola/it.rimaturus.edikola.MainActivity}: Setting back callback null
+11-13 14:58:08.567   523   538 W InputManager-JNI: Input channel object '25c5e48 it.rimaturus.edikola/it.rimaturus.edikola.MainActivity (client)' was disposed without first being removed with the input manager!
+11-13 14:58:08.688   523  2322 D CoreBackPreview: Window{4c494c5 u0 it.rimaturus.edikola/it.rimaturus.edikola.MainActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@11d977d, mPriority=0, mIsAnimationCallback=false}
+11-13 14:58:09.020   523  1416 I ImeTracker: it.rimaturus.edikola:87451712: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_UNSPECIFIED_WINDOW
+11-13 14:58:09.020   523  1416 I ImeTracker: it.rimaturus.edikola:87451712: onCancelled at PHASE_SERVER_SHOULD_HIDE
+11-13 14:58:09.024  1570  1570 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=it.rimaturus.edikola fieldId=0 fieldName=null extras=null}, false)
+11-13 14:58:11.647  3353  3926 D ProfileInstaller: Installing profile for it.rimaturus.edikola
+11-13 14:58:13.299  4031  4031 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 14:58:13.314  4031  4031 I AndroidRuntime: Using default boot image
+11-13 14:58:13.314  4031  4031 I AndroidRuntime: Leaving lock profiling enabled
+11-13 14:58:13.549  4031  4031 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-13 14:58:16.031  4031  4031 D AndroidRuntime: Shutting down VM
+11-13 14:58:23.844  4631  4631 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 14:58:23.949  4631  4631 I AndroidRuntime: Using default boot image
+11-13 14:58:23.949  4631  4631 I AndroidRuntime: Leaving lock profiling enabled
+11-13 14:58:24.310  4631  4631 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-13 14:58:25.159  1432  3735 I FontLog : Package it.rimaturus.edikola has no metadata [CONTEXT service_id=132 ]
+11-13 14:58:25.208  1480  3441 I BlockstoreStorage: Clearing Blockstore Data for package it.rimaturus.edikola [CONTEXT service_id=258 ]
+11-13 14:58:25.746  4631  4631 D AndroidRuntime: Shutting down VM
+11-13 14:58:31.276  1647  1647 I AiAiEcho: AppFetcherImplV2 updateApps package:[it.rimaturus.edikola], userId:[0], reason:[package is added.].
+11-13 14:58:31.278  1647  1647 I AiAiEcho: AppFetcherImpl onPackageChanged it.rimaturus.edikola.
+11-13 14:58:31.279  1647  3488 I AiAiEcho: AppIndexer Package:[it.rimaturus.edikola] UserProfile:[0] Enabled:[true].
+11-13 14:58:31.279  1647  3488 I AiAiEcho: AppFetcherImplV2 updateApps package:[it.rimaturus.edikola], userId:[0], reason:[package is updated.].
+11-13 14:58:47.436  5187  5187 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 14:58:47.454  5187  5187 I AndroidRuntime: Using default boot image
+11-13 14:58:47.454  5187  5187 I AndroidRuntime: Leaving lock profiling enabled
+11-13 14:58:47.707  5187  5187 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-13 14:58:49.005  5187  5187 D AndroidRuntime: Shutting down VM
+11-13 14:58:51.390   523  1944 I MediaSessionStack: addSession to bottom of stack | record: it.rimaturus.edikola/androidx.media3.session.id. (userId=0)
+11-13 14:58:51.439  1036  1036 D MediaPlayerList: onActiveSessionsChanged: controller: it.rimaturus.edikola
+11-13 14:58:51.439  1036  1036 I MediaPlayerList: Adding wrapped media player: it.rimaturus.edikola at key: 2
+11-13 14:58:51.443  1036  1036 D MediaPlayerList: onActiveSessionsChanged: controller: it.rimaturus.edikola
+11-13 14:58:51.443  1036  1036 I MediaPlayerList: Adding wrapped media player: it.rimaturus.edikola at key: 2
+11-13 14:59:37.039   523  2371 I MediaFocusControl: requestAudioFocus() from uid/pid 10192/3353 AA=USAGE_MEDIA/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@9126574androidx.media3.exoplayer.AudioFocusManager$AudioFocusListener@376ba9d callingPack=it.rimaturus.edikola req=1 flags=0x2 sdk=35
+11-13 14:59:37.061   523  2371 I MediaSessionStack: onPlaybackStateChanged - Pushing session to top | record: it.rimaturus.edikola/androidx.media3.session.id. (userId=0)
+11-13 14:59:37.078   523  1416 I ActivityManager: Background started FGS: Allowed [callingPackage: it.rimaturus.edikola; callingUid: 10192; uidState: TOP ; uidBFSL: [BFSL]; intent: Intent { act=androidx.media3.session.MediaSessionService cmp=it.rimaturus.edikola/.AscoltaService }; code:PROC_STATE_TOP; tempAllowListReason:<null>; targetSdkVersion:35; callerTargetSdkVersion:35; startForegroundCount:0; bindFromPackage:null: isBindService:true]
+11-13 14:59:37.080   523  2381 I ActivityManager: Background started FGS: Allowed [callingPackage: it.rimaturus.edikola; callingUid: 10192; uidState: TOP ; uidBFSL: [BFSL]; intent: Intent { act=androidx.media3.session.MediaSessionService cmp=it.rimaturus.edikola/.AscoltaService }; code:PROC_STATE_TOP; tempAllowListReason:<null>; targetSdkVersion:35; callerTargetSdkVersion:35; startForegroundCount:0; bindFromPackage:null: isBindService:false]; startForegroundDelayMs:46271
+11-13 14:59:37.305   523   523 V ActivityThread: getPackageInfo() caused update to cached ApplicationInfo for package it.rimaturus.edikola
+11-13 14:59:37.337   523   523 D MediaSessionService: Media button session is changed to it.rimaturus.edikola/androidx.media3.session.id. (userId=0)
+11-13 14:59:37.343  1036  1036 D MediaPlayerList: onActiveSessionsChanged: controller: it.rimaturus.edikola
+11-13 14:59:37.354  1036  1036 D MediaPlayerList: onActiveSessionsChanged: controller: it.rimaturus.edikola
+11-13 14:59:37.360  1036  1036 I MediaPlayerList: onMediaKeyEventSessionChanged: token=it.rimaturus.edikola
+11-13 14:59:37.372  1036  1036 D MediaPlayerList: setActivePlayer(): setting player to it.rimaturus.edikola
+11-13 14:59:37.374   523  2371 I MediaSessionService: tempAllowlistTargetPkgIfPossible callingPackage:com.google.android.bluetooth targetPackage:it.rimaturus.edikola reason:MediaSessionRecord:android.support.v4.media.session.command.GET_EXTRA_BINDER [WIU] [FGS]
+11-13 14:59:37.378  1036  1036 D AudioMediaPlayerWrapper: it.rimaturus.edikola Only Title and Artist info sync for metadata
+11-13 14:59:37.378  1036  1036 I MediaPlayerList: onMediaKeyEventSessionChanged: token=it.rimaturus.edikola
+11-13 14:59:37.379  1036  1036 D MediaPlayerList: setActivePlayer(): setting player to it.rimaturus.edikola
+11-13 14:59:37.379  1036  1036 D AudioMediaPlayerWrapper: it.rimaturus.edikola Only Title and Artist info sync for metadata
+11-13 14:59:37.627   844   844 D MediaResumeListener: Checking for service component for it.rimaturus.edikola
+11-13 14:59:40.379  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=PLAYING(3), position=3015, buffered position=3809, speed=1.0, updated=148282, actions=7339999, custom actions=[], active item id=0, error=null}
+11-13 14:59:40.381  1036  1036 D AudioMediaPlayerWrapper: it.rimaturus.edikola Only Title and Artist info sync for metadata
+11-13 14:59:40.385  1036  1036 V AudioMediaPlayerWrapper: trySendMediaUpdate(): Metadata has been updated for it.rimaturus.edikola
+11-13 14:59:40.387  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=PLAYING(3), position=3015, buffered position=3809, speed=1.0, updated=148282, actions=7339999, custom actions=[], active item id=0, error=null}
+11-13 14:59:40.388  1036  1036 D AudioMediaPlayerWrapper: it.rimaturus.edikola Only Title and Artist info sync for metadata
+11-13 14:59:40.388  1036  1036 V AudioMediaPlayerWrapper: trySendMediaUpdate(): Metadata has been updated for it.rimaturus.edikola
+11-13 14:59:41.179  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=STOPPED(1), position=3815, buffered position=3809, speed=0.0, updated=149082, actions=7339999, custom actions=[], active item id=0, error=null}
+11-13 14:59:41.180  1036  1036 D AudioMediaPlayerWrapper: it.rimaturus.edikola Only Title and Artist info sync for metadata
+11-13 14:59:41.180  1036  1036 V AudioMediaPlayerWrapper: trySendMediaUpdate(): Metadata has been updated for it.rimaturus.edikola
+11-13 14:59:41.186  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=STOPPED(1), position=3815, buffered position=3809, speed=0.0, updated=149082, actions=7339999, custom actions=[], active item id=0, error=null}
+11-13 14:59:41.190  1036  1036 D AudioMediaPlayerWrapper: it.rimaturus.edikola Only Title and Artist info sync for metadata
+11-13 14:59:41.190  1036  1036 V AudioMediaPlayerWrapper: trySendMediaUpdate(): Metadata has been updated for it.rimaturus.edikola
+11-13 14:59:41.190  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=STOPPED(1), position=3815, buffered position=3809, speed=0.0, updated=149082, actions=7339999, custom actions=[], active item id=0, error=null}
+11-13 14:59:41.190  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 14:59:41.190  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=STOPPED(1), position=3815, buffered position=3809, speed=0.0, updated=149082, actions=7339999, custom actions=[], active item id=0, error=null}
+11-13 14:59:41.190  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:07.309  1036  1036 V AudioMediaPlayerWrapper: onQueueChanged(): it.rimaturus.edikola
+11-13 15:00:07.310  1036  1036 D AudioMediaPlayerWrapper: it.rimaturus.edikola Only Title and Artist info sync for metadata
+11-13 15:00:07.313  1036  1036 V AudioMediaPlayerWrapper: trySendMediaUpdate(): Metadata has been updated for it.rimaturus.edikola
+11-13 15:00:07.314  1036  1036 V AudioMediaPlayerWrapper: onQueueChanged(): it.rimaturus.edikola
+11-13 15:00:07.315   523  2375 I MediaSessionStack: onPlaybackStateChanged - Pushing session to top | record: it.rimaturus.edikola/androidx.media3.session.id. (userId=0)
+11-13 15:00:07.319  1036  1036 V AudioMediaPlayerWrapper: trySendMediaUpdate(): Metadata has been updated for it.rimaturus.edikola
+11-13 15:00:07.319  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=STOPPED(1), position=3809, buffered position=3809, speed=0.0, updated=175213, actions=7340031, custom actions=[], active item id=0, error=null}
+11-13 15:00:07.319  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:07.321  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=STOPPED(1), position=3809, buffered position=3809, speed=0.0, updated=175213, actions=7340031, custom actions=[], active item id=0, error=null}
+11-13 15:00:07.330  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=BUFFERING(6), position=0, buffered position=0, speed=0.0, updated=175218, actions=7339671, custom actions=[], active item id=1, error=null}
+11-13 15:00:07.338  1036  1036 V AudioMediaPlayerWrapper: trySendMediaUpdate(): Metadata has been updated for it.rimaturus.edikola
+11-13 15:00:07.363  1036  1036 W AudioMediaPlayerWrapper: onMetadataChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:07.363  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=BUFFERING(6), position=0, buffered position=0, speed=0.0, updated=175218, actions=7339671, custom actions=[], active item id=1, error=null}
+11-13 15:00:07.364  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:07.364  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=BUFFERING(6), position=0, buffered position=0, speed=0.0, updated=175220, actions=7339671, custom actions=[], active item id=1, error=null}
+11-13 15:00:07.364  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:07.364  1036  1036 W AudioMediaPlayerWrapper: onMetadataChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:07.365  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=BUFFERING(6), position=0, buffered position=0, speed=0.0, updated=175220, actions=7339671, custom actions=[], active item id=1, error=null}
+11-13 15:00:07.365  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:07.365  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=BUFFERING(6), position=0, buffered position=0, speed=0.0, updated=175221, actions=7339671, custom actions=[], active item id=1, error=null}
+11-13 15:00:07.365  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:07.366  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=BUFFERING(6), position=0, buffered position=0, speed=0.0, updated=175221, actions=7339671, custom actions=[], active item id=1, error=null}
+11-13 15:00:07.366  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:07.366  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=BUFFERING(6), position=0, buffered position=0, speed=0.0, updated=175224, actions=7339671, custom actions=[], active item id=1, error=null}
+11-13 15:00:07.366  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:07.366  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=BUFFERING(6), position=0, buffered position=0, speed=0.0, updated=175224, actions=7339671, custom actions=[], active item id=1, error=null}
+11-13 15:00:07.366  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:07.370   523  1111 I ActivityManager: Background started FGS: Allowed [callingPackage: it.rimaturus.edikola; callingUid: 10192; uidState: TOP ; uidBFSL: [BFSL]; intent: Intent { cmp=it.rimaturus.edikola/.AscoltaService }; code:PROC_STATE_TOP; tempAllowListReason:<null>; targetSdkVersion:35; callerTargetSdkVersion:35; startForegroundCount:1; bindFromPackage:null: isBindService:false]
+11-13 15:00:07.392  1036  1036 V AudioMediaPlayerWrapper: onQueueChanged(): it.rimaturus.edikola
+11-13 15:00:07.392  1036  1036 W AudioMediaPlayerWrapper: onQueueChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:07.392  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=BUFFERING(6), position=0, buffered position=0, speed=0.0, updated=175280, actions=7339671, custom actions=[], active item id=1, error=null}
+11-13 15:00:07.392  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:07.393  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=BUFFERING(6), position=0, buffered position=0, speed=0.0, updated=175280, actions=7339671, custom actions=[], active item id=1, error=null}
+11-13 15:00:07.393  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:07.393  1036  1036 V AudioMediaPlayerWrapper: onQueueChanged(): it.rimaturus.edikola
+11-13 15:00:07.393  1036  1036 W AudioMediaPlayerWrapper: onQueueChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:07.393  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=BUFFERING(6), position=0, buffered position=0, speed=0.0, updated=175280, actions=7339671, custom actions=[], active item id=1, error=null}
+11-13 15:00:07.393  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:07.400  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=BUFFERING(6), position=0, buffered position=0, speed=0.0, updated=175280, actions=7339671, custom actions=[], active item id=1, error=null}
+11-13 15:00:07.443  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:07.444  1036  1036 V AudioMediaPlayerWrapper: onQueueChanged(): it.rimaturus.edikola
+11-13 15:00:07.451  1036  1036 W AudioMediaPlayerWrapper: onQueueChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:07.451  1036  1036 V AudioMediaPlayerWrapper: onQueueChanged(): it.rimaturus.edikola
+11-13 15:00:07.451  1036  1036 W AudioMediaPlayerWrapper: onQueueChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:07.452  1036  1036 D AudioMediaPlayerWrapper: it.rimaturus.edikola Only Title and Artist info sync for metadata
+11-13 15:00:07.452  1036  1036 V AudioMediaPlayerWrapper: trySendMediaUpdate(): Metadata has been updated for it.rimaturus.edikola
+11-13 15:00:07.453  1036  1036 D AudioMediaPlayerWrapper: it.rimaturus.edikola Only Title and Artist info sync for metadata
+11-13 15:00:07.453  1036  1036 V AudioMediaPlayerWrapper: trySendMediaUpdate(): Metadata has been updated for it.rimaturus.edikola
+11-13 15:00:07.455  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=BUFFERING(6), position=0, buffered position=0, speed=0.0, updated=175305, actions=7339999, custom actions=[], active item id=1, error=null}
+11-13 15:00:07.455  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:07.455  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=BUFFERING(6), position=0, buffered position=0, speed=0.0, updated=175305, actions=7339999, custom actions=[], active item id=1, error=null}
+11-13 15:00:07.455  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:07.474  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=PLAYING(3), position=74, buffered position=6577, speed=1.0, updated=175376, actions=7339999, custom actions=[], active item id=1, error=null}
+11-13 15:00:07.474  1036  1036 D AudioMediaPlayerWrapper: it.rimaturus.edikola Only Title and Artist info sync for metadata
+11-13 15:00:07.475  1036  1036 V AudioMediaPlayerWrapper: trySendMediaUpdate(): Metadata has been updated for it.rimaturus.edikola
+11-13 15:00:07.480  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=PLAYING(3), position=74, buffered position=6577, speed=1.0, updated=175377, actions=7339999, custom actions=[], active item id=1, error=null}
+11-13 15:00:07.480  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:07.485  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=PLAYING(3), position=74, buffered position=6577, speed=1.0, updated=175376, actions=7339999, custom actions=[], active item id=1, error=null}
+11-13 15:00:07.485  1036  1036 D AudioMediaPlayerWrapper: it.rimaturus.edikola Only Title and Artist info sync for metadata
+11-13 15:00:07.486  1036  1036 V AudioMediaPlayerWrapper: trySendMediaUpdate(): Metadata has been updated for it.rimaturus.edikola
+11-13 15:00:07.486  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=PLAYING(3), position=74, buffered position=6577, speed=1.0, updated=175377, actions=7339999, custom actions=[], active item id=1, error=null}
+11-13 15:00:07.486  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:10.474  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=PLAYING(3), position=3090, buffered position=6577, speed=1.0, updated=178378, actions=7339999, custom actions=[], active item id=1, error=null}
+11-13 15:00:10.475  1036  1036 D AudioMediaPlayerWrapper: it.rimaturus.edikola Only Title and Artist info sync for metadata
+11-13 15:00:10.475  1036  1036 V AudioMediaPlayerWrapper: trySendMediaUpdate(): Metadata has been updated for it.rimaturus.edikola
+11-13 15:00:10.476  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=PLAYING(3), position=3090, buffered position=6577, speed=1.0, updated=178378, actions=7339999, custom actions=[], active item id=1, error=null}
+11-13 15:00:10.477  1036  1036 D AudioMediaPlayerWrapper: it.rimaturus.edikola Only Title and Artist info sync for metadata
+11-13 15:00:10.478  1036  1036 V AudioMediaPlayerWrapper: trySendMediaUpdate(): Metadata has been updated for it.rimaturus.edikola
+11-13 15:00:13.478  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=PLAYING(3), position=6088, buffered position=6577, speed=1.0, updated=181382, actions=7339999, custom actions=[], active item id=1, error=null}
+11-13 15:00:13.479  1036  1036 D AudioMediaPlayerWrapper: it.rimaturus.edikola Only Title and Artist info sync for metadata
+11-13 15:00:13.479  1036  1036 V AudioMediaPlayerWrapper: trySendMediaUpdate(): Metadata has been updated for it.rimaturus.edikola
+11-13 15:00:13.481  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=PLAYING(3), position=6088, buffered position=6577, speed=1.0, updated=181382, actions=7339999, custom actions=[], active item id=1, error=null}
+11-13 15:00:13.481  1036  1036 D AudioMediaPlayerWrapper: it.rimaturus.edikola Only Title and Artist info sync for metadata
+11-13 15:00:13.482  1036  1036 V AudioMediaPlayerWrapper: trySendMediaUpdate(): Metadata has been updated for it.rimaturus.edikola
+11-13 15:00:13.967  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=STOPPED(1), position=6585, buffered position=6577, speed=0.0, updated=181870, actions=7339999, custom actions=[], active item id=1, error=null}
+11-13 15:00:13.968  1036  1036 D AudioMediaPlayerWrapper: it.rimaturus.edikola Only Title and Artist info sync for metadata
+11-13 15:00:13.968  1036  1036 V AudioMediaPlayerWrapper: trySendMediaUpdate(): Metadata has been updated for it.rimaturus.edikola
+11-13 15:00:13.970  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=STOPPED(1), position=6585, buffered position=6577, speed=0.0, updated=181870, actions=7339999, custom actions=[], active item id=1, error=null}
+11-13 15:00:13.974  1036  1036 D AudioMediaPlayerWrapper: it.rimaturus.edikola Only Title and Artist info sync for metadata
+11-13 15:00:13.978  1036  1036 V AudioMediaPlayerWrapper: trySendMediaUpdate(): Metadata has been updated for it.rimaturus.edikola
+11-13 15:00:13.978  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=STOPPED(1), position=6585, buffered position=6577, speed=0.0, updated=181871, actions=7339999, custom actions=[], active item id=1, error=null}
+11-13 15:00:13.978  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:13.979  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=STOPPED(1), position=6585, buffered position=6577, speed=0.0, updated=181871, actions=7339999, custom actions=[], active item id=1, error=null}
+11-13 15:00:13.979  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:19.038  6537  6537 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 15:00:19.077  6537  6537 I AndroidRuntime: Using default boot image
+11-13 15:00:19.077  6537  6537 I AndroidRuntime: Leaving lock profiling enabled
+11-13 15:00:19.316  6537  6537 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-13 15:00:20.539  6537  6537 D AndroidRuntime: Shutting down VM
+11-13 15:00:21.473  1036  1036 V AudioMediaPlayerWrapper: onQueueChanged(): it.rimaturus.edikola
+11-13 15:00:21.474  1036  1036 V AudioMediaPlayerWrapper: trySendMediaUpdate(): Metadata has been updated for it.rimaturus.edikola
+11-13 15:00:21.481  1036  1036 W AudioMediaPlayerWrapper: onMetadataChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:21.485  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=STOPPED(1), position=0, buffered position=0, speed=0.0, updated=189374, actions=7339655, custom actions=[], active item id=0, error=null}
+11-13 15:00:21.486  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:21.486  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=STOPPED(1), position=0, buffered position=0, speed=0.0, updated=189374, actions=7339655, custom actions=[], active item id=0, error=null}
+11-13 15:00:21.486  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:21.488  1036  1036 V AudioMediaPlayerWrapper: onQueueChanged(): it.rimaturus.edikola
+11-13 15:00:21.491  1036  1036 V AudioMediaPlayerWrapper: trySendMediaUpdate(): Metadata has been updated for it.rimaturus.edikola
+11-13 15:00:21.493  1036  1036 W AudioMediaPlayerWrapper: onMetadataChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:21.496  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=STOPPED(1), position=0, buffered position=0, speed=0.0, updated=189374, actions=7339655, custom actions=[], active item id=0, error=null}
+11-13 15:00:21.496  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:21.496  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=STOPPED(1), position=0, buffered position=0, speed=0.0, updated=189374, actions=7339655, custom actions=[], active item id=0, error=null}
+11-13 15:00:21.497  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data
+11-13 15:00:21.497  1036  1036 V AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola : PlaybackState {state=STOPPED(1), position=0, buffered position=0, speed=0.0, updated=189375, actions=7339655, custom actions=[], active item id=0, error=null}
+11-13 15:00:21.497  1036  1036 W AudioMediaPlayerWrapper: onPlaybackStateChanged(): it.rimaturus.edikola tried to update with no new data

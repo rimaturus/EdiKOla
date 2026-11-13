@@ -1,0 +1,32 @@
+screen 1080 x 2400
+tap Aggiorna at 880 212
+tap Ascolta at 189 1996
+tap Articolo successivo at 839 1012
+tap Indietro at 74 212
+NOT FOUND: Il Fatto Quotidiano
+UI hierchary dumped to: /sdcard/x.xml
+tap RaiNews at 158 1582
+tap Indietro at 74 212
+tap Indietro at 74 212
+tap Sommario at 402 2274
+tap Il podcast di oggi at 487 392
+tap 5 at 248 1191
+tap Crea e ascolta at 717 1585
+tap Indietro at 74 212
+tap Giochi at 677 2274
+tap Cruciverba del giorno at 407 444
+tap A at 78 1654
+tap Definizioni at 150 1911
+tap Indietro at 74 212
+tap Crucipuzzle at 255 842
+tap Indietro at 74 212
+tap Sudoku medio at 540 1261
+tap Indietro at 74 212
+tap Libri at 952 2274
+tap Edicola at 127 2274
+tap RaiNews at 158 1582
+tap Indietro at 74 212
+tap Indietro at 74 212
+tap Sommario at 402 2274
+tap Giochi at 677 2274
+done
