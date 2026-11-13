@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -189,13 +190,17 @@ fun LibriList() {
         }
         LazyColumn(contentPadding = PaddingValues(12.dp, 12.dp, 12.dp, 90.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(books, key = { it.name }) { f ->
-                Card(Modifier.fillMaxWidth().clickable { Libri.open(f) },
+                Card(Modifier.fillMaxWidth().clickable { Libri.open(f) }, shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
                     Row(Modifier.padding(start = 12.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                        Box(Modifier.width(6.dp).height(44.dp).background(MaterialTheme.colorScheme.primary, RoundedCornerShape(3.dp)))
-                        Spacer(Modifier.width(10.dp))
+                        Box(Modifier.size(44.dp, 58.dp).background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(6.dp)),
+                            contentAlignment = androidx.compose.ui.Alignment.Center) {
+                            Icon(androidx.compose.ui.res.painterResource(if (f.extension.lowercase() == "pdf") R.drawable.ic_menu_book else R.drawable.ic_auto_stories),
+                                null, tint = MaterialTheme.colorScheme.primary)
+                        }
+                        Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f).padding(vertical = 10.dp)) {
-                            Text(f.nameWithoutExtension, fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold)
+                            Text(f.nameWithoutExtension, fontFamily = Reading, fontWeight = FontWeight.Bold)
                             Text(f.extension.uppercase(), style = MaterialTheme.typography.labelSmall)
                         }
                         IconButton(onClick = { deleting = f }) { Icon(Icons.Default.Delete, "Elimina") }
@@ -234,7 +239,7 @@ fun PdfScreen(file: File) {
 
     Scaffold(topBar = {
         TopAppBar(
-            title = { Text(file.nameWithoutExtension, maxLines = 1, fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold) },
+            title = { Text(file.nameWithoutExtension, maxLines = 1, fontFamily = Reading, fontWeight = FontWeight.Bold) },
             navigationIcon = { IconButton(onClick = { Nav.back() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Indietro") } },
             actions = {
                 Box {

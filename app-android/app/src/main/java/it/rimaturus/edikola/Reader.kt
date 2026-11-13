@@ -1,7 +1,10 @@
 // The reader: one article (or one chapter of a book) at a time, clean text and photos, the pen on the page.
 package it.rimaturus.edikola
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -24,7 +27,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -97,7 +99,7 @@ fun ReaderScreen(doc: ReaderDoc, start: Int) {
             TopAppBar(
                 title = {
                     Column {
-                        Text(doc.title, maxLines = 1, overflow = TextOverflow.Ellipsis, fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold)
+                        Text(doc.title, maxLines = 1, overflow = TextOverflow.Ellipsis, fontFamily = Reading, fontWeight = FontWeight.Bold)
                         Text("${if (books) "Capitolo" else "Articolo"} ${section + 1} di ${doc.sections.size}",
                             style = MaterialTheme.typography.labelMedium)
                     }
@@ -125,7 +127,7 @@ fun ReaderScreen(doc: ReaderDoc, start: Int) {
                         }
                     }
                     if (doc.edition != null) IconButton(onClick = { Ascolta.listen(doc.edition, section); Nav.go(Screen.Player) }) {
-                        Icon(Icons.Default.PlayArrow, "Ascolta da qui")
+                        Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_headphones), "Ascolta da qui")
                     }
                 },
             )
@@ -142,8 +144,18 @@ fun ReaderScreen(doc: ReaderDoc, start: Int) {
     ) { pad ->
         LazyColumn(Modifier.padding(pad).fillMaxSize(), state = list, contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp)) {
             item(key = "title") {
-                Text(sec.title, Modifier.fillMaxWidth().ink(ink, "$font:$section:t", dark = dark).padding(bottom = 12.dp),
-                    fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold, fontSize = (font * 1.4f).sp, lineHeight = (font * 1.7f).sp)
+                val tone = doc.edition?.let { LocalPalette.current.section(Repo.paper(it.paper).section) }
+                Column(Modifier.fillMaxWidth().ink(ink, "$font:$section:t", dark = dark).padding(bottom = 14.dp)) {
+                    Text(doc.title.uppercase() + (doc.edition?.let { " · " + Store.dateLabel(it.date) } ?: ""),
+                        color = tone?.strong ?: MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(6.dp))
+                    Text(sec.title, fontFamily = Display, fontWeight = FontWeight.Bold, fontSize = (font * 1.45f).sp,
+                        lineHeight = (font * 1.8f).sp)
+                    Spacer(Modifier.height(10.dp))
+                    androidx.compose.foundation.layout.Box(Modifier.width(56.dp).height(4.dp)
+                        .background(tone?.strong ?: MaterialTheme.colorScheme.primary, RoundedCornerShape(2.dp)))
+                }
             }
             itemsIndexed(sec.blocks) { i, b ->
                 val m = Modifier.fillMaxWidth().ink(ink, "$font:$section:$i", dark = dark)
@@ -151,9 +163,9 @@ fun ReaderScreen(doc: ReaderDoc, start: Int) {
                     "img" -> AsyncImage(File(doc.base, b.text), null,
                         m.padding(vertical = 8.dp).clip(MaterialTheme.shapes.small).clickable { zoom = File(doc.base, b.text) },
                         contentScale = ContentScale.FillWidth)
-                    "h" -> Text(b.text, m.padding(top = 12.dp, bottom = 6.dp), fontFamily = FontFamily.Serif,
+                    "h" -> Text(b.text, m.padding(top = 12.dp, bottom = 6.dp), fontFamily = Display,
                         fontWeight = FontWeight.Bold, fontSize = (font * 1.15f).sp, lineHeight = (font * 1.45f).sp)
-                    else -> Text(b.text, m.padding(bottom = 12.dp), fontFamily = FontFamily.Serif, fontSize = font.sp,
+                    else -> Text(b.text, m.padding(bottom = 12.dp), fontFamily = Reading, fontSize = font.sp,
                         lineHeight = (font * 1.5f).sp, textAlign = TextAlign.Justify)
                 }
             }

@@ -99,6 +99,10 @@ tap "Indietro"; sleep 2
 tap "Indietro"; sleep 2
 
 tap "Sommario" && sleep 3 && shot sommario
+tap "Il podcast di oggi" && sleep 2 && shot podcast-durata
+tap "5′"; sleep 1; tap "Crea e ascolta" && sleep 40 && shot podcast-player
+adb shell dumpsys media_session > "$OUT/media_session-podcast.txt" 2>&1
+tap "Indietro"; sleep 2
 tap "Giochi" && sleep 2 && shot giochi
 tap "Cruciverba del giorno" && sleep 15 && shot cruciverba
 tap "A"; sleep 1; tap "Definizioni"; sleep 2; shot definizioni

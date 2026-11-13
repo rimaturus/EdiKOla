@@ -101,11 +101,11 @@ fun GiochiCover() {
 
 @Composable
 private fun GameCard(title: String, text: String?, status: String, tone: Tone, modifier: Modifier, onClick: () -> Unit) {
-    Card(modifier.clickable(onClick = onClick), colors = CardDefaults.cardColors(containerColor = tone.tint)) {
+    Card(modifier.clickable(onClick = onClick), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = tone.tint)) {
         Column(Modifier.padding(14.dp)) {
             Box(Modifier.width(46.dp).height(6.dp).background(tone.strong, RoundedCornerShape(3.dp)))
             Spacer(Modifier.height(8.dp))
-            Text(title, color = tone.strong, fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold, fontSize = if (text != null) 22.sp else 17.sp)
+            Text(title, color = tone.strong, fontFamily = Display, fontWeight = FontWeight.Black, fontSize = if (text != null) 24.sp else 18.sp)
             if (text != null) Text(text, style = MaterialTheme.typography.bodyMedium)
             Spacer(Modifier.height(6.dp))
             Text(status, color = tone.strong, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
@@ -171,7 +171,7 @@ fun GameScreen(which: String) {
     }
     val tone = when (which) { "cruciverba" -> pal.cruciverba; "crucipuzzle" -> pal.crucipuzzle; else -> pal.sudoku }
     Scaffold(topBar = {
-        TopAppBar(title = { Text(title, color = tone.strong, fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold) },
+        TopAppBar(title = { Text(title, color = tone.strong, fontFamily = Reading, fontWeight = FontWeight.Bold) },
             navigationIcon = { IconButton(onClick = { Nav.back() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Indietro") } },
             actions = { TextButton(onClick = { ask = true }) { Text("Nuovo") } })
     }) { pad ->
@@ -326,7 +326,7 @@ private fun CruciverbaGame(tone: Tone, renew: Int) {
             Text("${wd.getInt("num")} ${if (wd.getBoolean("a")) "orizzontale" else "verticale"} - ${wd.getString("word").length} lettere",
                 color = tone.strong, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
             Text(wd.getString("clue") + if (src.isNotEmpty()) "  (dal titolo di $src)" else "", maxLines = 3, overflow = TextOverflow.Ellipsis,
-                fontFamily = FontFamily.Serif)
+                fontFamily = Reading)
         }
         Board(w, h, look = { c, r ->
             if (!isLetter(c, r)) Look(block = true)
@@ -365,7 +365,7 @@ private fun CruciverbaGame(tone: Tone, renew: Int) {
                         modifier = Modifier.padding(top = 8.dp)) }
                     Text("${x.getInt("num")}. ${x.getString("clue")} (${x.getString("word").length})",
                         Modifier.fillMaxWidth().clickable { sx = x.getInt("x"); sy = x.getInt("y"); across = a; showClues = false }.padding(vertical = 6.dp),
-                        fontFamily = FontFamily.Serif)
+                        fontFamily = Reading)
                 }
             }
         },

@@ -33,6 +33,8 @@ object Repo {
     val progress = MutableStateFlow<String?>(null)
     val message = MutableStateFlow<String?>(null)
     val fontSize = MutableStateFlow(19)
+    /** Google AI Studio key (free) for the podcast written by Gemini; empty: EdiKOla writes it itself */
+    val geminiKey = MutableStateFlow("")
 
     fun init(ctx: Context) {
         app = ctx.applicationContext
@@ -40,6 +42,7 @@ object Repo {
         Store.root = File(app.filesDir, "edicola").apply { mkdirs() }
         selected.value = prefs.getStringSet("selected", null) ?: PAPERS.filter { it.default }.map { it.id }.toSet()
         fontSize.value = prefs.getInt("font", 19)
+        geminiKey.value = prefs.getString("gemini", "") ?: ""
         scope.launch(Dispatchers.IO) {
             editions.value = PAPERS.mapNotNull { p -> Store.latest(p)?.let { p.id to it } }.toMap()
         }
@@ -58,6 +61,11 @@ object Repo {
     fun setFont(size: Int) {
         fontSize.value = size.coerceIn(14, 32)
         prefs.edit().putInt("font", fontSize.value).apply()
+    }
+
+    fun setGeminiKey(k: String) {
+        geminiKey.value = k.trim()
+        prefs.edit().putString("gemini", geminiKey.value).apply()
     }
 
     fun position(doc: String): Pair<Int, Int> = prefs.getInt("sec:$doc", 0) to prefs.getInt("pos:$doc", 0)

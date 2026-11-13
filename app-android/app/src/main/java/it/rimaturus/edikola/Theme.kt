@@ -8,6 +8,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 
 /** A strong color (bands, stripes, buttons) and its tint (backgrounds behind text) */
 data class Tone(val strong: Color, val tint: Color, val onStrong: Color = Color.White)
@@ -67,6 +68,30 @@ fun EdikolaTheme(content: @Composable () -> Unit) {
         surfaceContainer = Color(0xFFF4F5F8), surfaceContainerHigh = Color(0xFFECEEF3),
     )
     androidx.compose.runtime.CompositionLocalProvider(LocalPalette provides p) {
-        MaterialTheme(colorScheme = scheme, content = content)
+        val t = androidx.compose.material3.Typography()
+        val type = t.copy(
+            displaySmall = t.displaySmall.copy(fontFamily = Display, fontWeight = FontWeight.Black),
+            headlineLarge = t.headlineLarge.copy(fontFamily = Display, fontWeight = FontWeight.Bold),
+            headlineMedium = t.headlineMedium.copy(fontFamily = Display, fontWeight = FontWeight.Bold),
+            headlineSmall = t.headlineSmall.copy(fontFamily = Display, fontWeight = FontWeight.Bold),
+            titleLarge = t.titleLarge.copy(fontFamily = Display, fontWeight = FontWeight.Bold),
+            titleMedium = t.titleMedium.copy(fontFamily = Reading, fontWeight = FontWeight.SemiBold),
+            bodyLarge = t.bodyLarge.copy(fontFamily = Reading),
+            bodyMedium = t.bodyMedium.copy(fontFamily = Reading),
+        )
+        MaterialTheme(colorScheme = scheme, typography = type, content = content)
     }
 }
+
+// Type: Playfair Display for mastheads and big titles, Literata (made for reading on screens) for the text.
+// Both are variable fonts in res/font (SIL Open Font License), one file each for every weight.
+@OptIn(androidx.compose.ui.text.ExperimentalTextApi::class)
+private fun variable(res: Int, vararg weights: Int) = androidx.compose.ui.text.font.FontFamily(
+    weights.map { w ->
+        androidx.compose.ui.text.font.Font(res, androidx.compose.ui.text.font.FontWeight(w),
+            variationSettings = androidx.compose.ui.text.font.FontVariation.Settings(androidx.compose.ui.text.font.FontVariation.weight(w)))
+    }
+)
+
+val Display = variable(R.font.playfair, 400, 700, 900)
+val Reading = variable(R.font.literata, 400, 500, 600, 700)
