@@ -407,9 +407,12 @@ fun PodcastDialog(close: () -> Unit) {
                 Spacer(Modifier.height(10.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     for (m in listOf(5, 10, 15, 20, 30)) {
-                        FilterChip(selected = minutes == m, onClick = { minutes = m }, label = { Text("$m′") }, enabled = !busy)
+                        FilterChip(selected = minutes == m, onClick = { minutes = m }, enabled = !busy, modifier = Modifier.weight(1f),
+                            label = { Text("$m", Modifier.fillMaxWidth(), maxLines = 1, textAlign = androidx.compose.ui.text.style.TextAlign.Center) })
                     }
                 }
+                Text("minuti", Modifier.fillMaxWidth().padding(top = 2.dp), style = MaterialTheme.typography.labelSmall,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(12.dp))
                 Text(if (key.isNotEmpty()) "Lo scrive Gemini (online, con la tua chiave gratuita) dalle notizie di oggi; " +
                         "la voce poi è tutta sul telefono."

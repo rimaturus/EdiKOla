@@ -18,6 +18,12 @@ volume che girano pagina, notte = colori invertiti, niente audio in background).
   multimediale: altoparlante, tasti del volume, controlli nella notifica e sulla schermata di blocco, continua a
   schermo spento e in altre app, si ferma per una chiamata o se stacchi le cuffie. Dal lettore, **▶** legge
   dall'articolo aperto.
+- **Il podcast di oggi** (in cima al Sommario): scegli la durata (5, 10, 15, 20 o 30 minuti) e Giulia e Marco ti
+  raccontano le notizie del giorno, una conversazione a due voci (Paola e Riccardo). Senza configurare niente lo
+  scrive EdiKOla: le notizie riportate da più giornali per prime, argomento per argomento, quante ne stanno nel
+  tempo. Con una chiave gratuita di Gemini (Google AI Studio, nell'ingranaggio) lo scrive Gemini, come le audio
+  overview di NotebookLM: spiega, collega, commenta, sempre e solo dalle notizie di oggi. Le notizie in quel caso
+  vanno a Google; la voce resta sul telefono. Se Gemini non risponde (quota finita, offline) lo scrive EdiKOla.
 - **Giochi** (La Settimana di EdiKOla): cruciverba del giorno con le definizioni dai titoli di oggi,
   crucipuzzle con la chiave, sudoku facile, medio, difficile. Ogni mossa è salvata.
 - **Libri**: EPUB e PDF, da **Aggiungi** o condivisi da un'altra app (LocalSend, browser, posta). L'EPUB si
@@ -25,7 +31,8 @@ volume che girano pagina, notte = colori invertiti, niente audio in background).
 - **Penna** (S Pen o altro pennino): scrive direttamente su articoli, libri e PDF; le dita scorrono e toccano
   come sempre. Gommino o tasto della penna cancellano il tratto, la pressione ingrossa la linea. La matita in
   alto: colore, annulla, cancella gli appunti.
-- **Luminosità**: quella di sistema. **Tema scuro**: segue quello di Android.
+- **Luminosità**: quella di sistema. **Tema scuro**: segue quello di Android. Caratteri: Playfair Display per le
+  testate e i titoli, Literata (pensato per leggere sullo schermo) per il testo.
 
 ## Installare
 
@@ -57,10 +64,12 @@ installino sopra. Per una chiave tua: secret `EDIKOLA_KEYSTORE` (percorso) e `ED
 | `Extract.kt` | RSS/Atom e estrazione dell'articolo (port di `knp_extract.lua`, con jsoup) |
 | `Store.kt`, `Repo.kt` | download, cache degli articoli, edizioni (JSON per giornale e giorno, ultime 3), stato dell'app |
 | `Testo.kt`, `Ascolta.kt` | lingua per articolo, pezzi da leggere, WAV; voci sherpa-onnx e `AscoltaService` (media3) |
+| `Podcast.kt` | il podcast: notizie raggruppate per storia, copione di Gemini o scritto in locale, battute alle due voci |
 | `Giochi.kt`, `GiochiUi.kt` | generatori (port di `knp_sudoku`, `knp_crucipuzzle`, `knp_cruciverba`) e schermate |
 | `Libri.kt`, `Reader.kt`, `Ink.kt` | libri EPUB/PDF, lettore, penna |
 | `Home.kt`, `Player.kt`, `Theme.kt`, `MainActivity.kt` | schermate e colori (chiari e scuri) |
 | `com/k2fsa/sherpa/onnx/Tts.kt` | API Kotlin di sherpa-onnx v1.13.6 (Apache-2.0), deve corrispondere alla libreria |
 
-Voci: Paola (`it_IT-paola-medium`, licenza del dataset alla sua pagina) e Alba (`en_GB-alba-medium`, CC BY 4.0),
+Voci: Paola (`it_IT-paola-medium`, licenza del dataset alla sua pagina), Riccardo (`it_IT-riccardo-x_low`) e Alba
+(`en_GB-alba-medium`, CC BY 4.0),
 del progetto Piper, convertite da sherpa-onnx.

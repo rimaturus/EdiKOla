@@ -166,7 +166,7 @@ fun ReaderScreen(doc: ReaderDoc, start: Int) {
                     "h" -> Text(b.text, m.padding(top = 12.dp, bottom = 6.dp), fontFamily = Display,
                         fontWeight = FontWeight.Bold, fontSize = (font * 1.15f).sp, lineHeight = (font * 1.45f).sp)
                     else -> Text(b.text, m.padding(bottom = 12.dp), fontFamily = Reading, fontSize = font.sp,
-                        lineHeight = (font * 1.5f).sp, textAlign = TextAlign.Justify)
+                        lineHeight = (font * 1.55f).sp)
                 }
             }
             item(key = "end") { Spacer(Modifier.height(24.dp)) }
