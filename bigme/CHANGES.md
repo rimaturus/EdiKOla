@@ -331,3 +331,55 @@ On the PC: `lua5.1 tests/notes-test.lua`, `lua5.1 tests/giochi-test.lua` and the
 `adb shell rm -rf /sdcard/koreader/plugins/konewspaper.koplugin` and
 `adb push konewspaper.koplugin /sdcard/koreader/plugins/`. Ink and puzzle files can stay or go:
 `adb shell rm -r /sdcard/Appunti /sdcard/koreader/settings/edikola_giochi.lua`.
+
+## 2026-11-15 - Change set 11: speed, colour and privacy tuning (ADB + Magisk module)
+
+**Found**: animations were already off; the CPU is not capped (2.0 / 2.6 GHz); the UFS storage used the
+`cfq` scheduler; KOReader's E-Ink Center profile had dropped from HD to Fast (cause: change set 12's
+`fastPanel` bug); no SIM in the device, yet telephony and cell-broadcast apps ran. Bigme's apps call home to
+`*.bigme.vip`, `*.xrztech.com` (also system updates: `/json/osupgrade.action`), Tencent Bugly and iFlytek speech.
+The full `xrz_display_policy_service` AIDL was decoded from `framework.jar` (codes, `DisplayPolicy` parcel,
+colour modes 0 default / 1 magazine / 2 comic / 3 video / 4 custom). `odrefresh` segfaults on every boot
+(stock: the boot classpath names a missing `framework-pdf.jar`); harmless, Android uses the prebuilt image.
+
+**What** (scripts and backup in `~/Desktop/kobo/backup/2026-11-15_bigme-tune/` on the PC)
+- E-Ink Center, colour mode Custom: KOReader HD, full refresh every 6, contrast 30, colour 60; Kiwix,
+  AntennaPod, launcher Fast 25/50; browser Hyper 25/50 (`tune.sh`).
+- 19 more packages uninstalled for user 0 (telephony, cell broadcast, emergency, NFC tags, ad services,
+  federated compute, health connect, MediaTek engineer/factory mode and location helpers).
+  `devicelockcontroller` stays: APEX, protected even from root.
+- Full AOT (`cmd package compile -m speed`) of launcher, SystemUI, both Settings, E-Ink Center, KOReader,
+  Kiwix, AntennaPod, browser, file manager.
+- Magisk module `bigme-tune` (`/data/adb/modules/bigme-tune`): at boot sets `deadline` on `sda`/`sdc`, re-applies
+  the E-Ink profiles of an app whose colour is back at the vendor default 30 (so E-Ink Center tweaks survive),
+  and a systemless `/system/etc/hosts` blocking 18 Bigme cloud/OTA, Bugly and iFlytek hosts. Bigme's store,
+  cloud, OTA and voice dictation stop working; handwriting recognition and offline features don't.
+
+**Checked**: three reboots, clean; profiles and scheduler survive; a faked reset of Kiwix is re-applied at
+boot while KOReader is left alone; blocked hosts resolve to 0.0.0.0, `example.com` still resolves.
+
+**Revert**: `adb push restore.sh /data/local/tmp/ && adb shell sh /data/local/tmp/restore.sh` (from the
+backup folder), then reboot: E-Ink values, packages and compilation go back, and the module is removed.
+
+## 2026-11-15 - Change set 12: the pen in the puzzles, one edition per paper
+
+**Found**: the puzzles took only the keyboard (the pen WIP on `bigme-giochi` was never tried on the device);
+`KoNewspaper` held 140 MB: 3 days of editions per paper, each EPUB with its own copy of every photo, plus
+folders of papers no longer on the shelves. The pen's `fastPanel` restored the reading mode only when it was
+`> 0`, so after writing KOReader fell from HD (`0x800000b1`, negative as int32) to Fast.
+
+**What** (branch `bigme-penna`, from `Android` plus the WIP commit; changed files pushed to
+`/sdcard/koreader/plugins/konewspaper.koplugin`)
+- Sudoku and crossword read a digit or capital written in a square, on the device (`knp_scrittura.lua`, $P
+  recognizer); a key typed right after over a misread square teaches it the user's hand. In the crucipuzzle a
+  pen line over a word finds it. The eraser end empties a square.
+- `KEEP_DAYS` 3 -> 1 (the newsstand only opens the newest edition); **Aggiorna** deletes folders of catalog
+  papers that are off the shelves (`Build.dropUnshelved`).
+- `fastPanel` restores any non-zero mode.
+
+**Checked**: on the PC `lua5.1 tests/{scrittura,prune,giochi,notes,konewspaper}-test.lua` pass, and no
+changed file reads an undeclared global (`luac5.1 -l`). **To check** on the Bigme (it was locked): the Edicola
+opens, and writing in the sudoku and crossword with the pen.
+
+**Revert**: `adb shell rm -rf /sdcard/koreader/plugins/konewspaper.koplugin` and push back the copy saved in
+`~/Desktop/kobo/backup/2026-11-15_edikola-before/konewspaper.koplugin`.

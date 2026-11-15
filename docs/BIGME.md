@@ -128,15 +128,22 @@ How the pen part works:
 offline, and every move is saved at once (`koreader/settings/edikola_giochi.lua`), so a puzzle waits where it
 was left until it is solved or **Nuovo** starts another.
 - **Cruciverba del giorno**: a "schema libero" crossword. Many clues are the day's headlines with the answer
-  blanked out, the rest come from a dictionary of definitions written for EdiKOla. Tap a square to choose it
-  (tap again to switch across/down), type on the keyboard below. **Definizioni** lists every clue,
-  **Controlla** turns wrong letters red, **Aiuto** fills in the square.
-- **Crucipuzzle**: tap the first and the last letter of a word in the grid; each word found takes its own
-  color. When all are found, the letters left over, read in order, spell the key.
-- **Sudoku** facile, medio, difficile: always one solution. Tap a square, then a number; **Controlla**,
-  **Aiuto**, **Cancella**.
+  blanked out, the rest come from a dictionary of definitions written for EdiKOla. Write a capital letter in a
+  square with the pen, or tap a square (tap again to switch across/down) and type on the keyboard below.
+  **Definizioni** lists every clue, **Controlla** turns wrong letters red, **Aiuto** fills in the square.
+- **Crucipuzzle**: draw a line with the pen over a word, or tap its first and last letter; each word found
+  takes its own color. When all are found, the letters left over, read in order, spell the key.
+- **Sudoku** facile, medio, difficile: always one solution. Write a digit in a square with the pen, or tap a
+  square, then a number; **Controlla**, **Aiuto**, **Cancella**.
 
-**Check**: open Giochi, solve a word of the crossword, close it: the cover says how many squares are left.
+**The pen in the puzzles**: what you write is read on the Bigme itself (`knp_scrittura.lua`, nothing goes
+online) 0.8 s after the pen lifts, or at once when you move to another square; the ink stays visible until
+then. Block capitals and plain digits read best. The pen's eraser end empties a square. If a square is read
+wrong, type the right key on the keyboard straight after (within a minute): EdiKOla keeps that writing as one
+of your shapes for the character (the last five per character), so your hand is read better each time.
+
+**Check**: open Giochi, write a word of the crossword with the pen, close it: the cover says how many squares
+are left. In the sudoku, write a digit in an empty square: it appears in print.
 
 ## If something is off
 

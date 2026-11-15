@@ -427,6 +427,7 @@ function Edicola:init()
             for _, s in ipairs(SECTIONS) do
                 for _, p in ipairs(shelf(s.id)) do table.insert(all, p) end
             end
+            Build.dropUnshelved(giornali, selection())
             self:fetch(all, function() self:showNews() end)
         end, true },
         { "Sommario", function() self:showNews() end },

@@ -19,7 +19,7 @@ local X = require("knp_extract")
 local Build = {}
 
 Build.root = (Device.home_dir or "/mnt/onboard") .. "/KoNewspaper"
-local KEEP_DAYS = 3
+local KEEP_DAYS = 1 -- the newsstand only opens the newest; prune runs after a good download, so a failed one keeps it
 local MAX_IMAGES = 3
 local MAX_IMAGE_BYTES = 1500 * 1024
 local UA = "Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
@@ -349,6 +349,15 @@ function Build.prune(paper)
             local path = dir .. "/" .. f
             if lfs.attributes(path, "mode") == "directory" then ffiutil.purgeDir(path) else os.remove(path) end
         end
+    end
+end
+
+--- Deletes the folders (editions, photos, cache) of catalog papers no longer on the shelves.
+-- catalog: every paper; shelved: { [id] = true }. Folders that aren't a catalog paper are never touched.
+function Build.dropUnshelved(catalog, shelved)
+    for _, p in ipairs(catalog) do
+        local dir = Build.root .. "/" .. p.id
+        if not shelved[p.id] and lfs.attributes(dir, "mode") == "directory" then ffiutil.purgeDir(dir) end
     end
 end
 

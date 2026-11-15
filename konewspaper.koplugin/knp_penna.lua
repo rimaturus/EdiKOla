@@ -111,7 +111,8 @@ function Ink:fastPanel(on)
     if not Device:isAndroid() then return end
     local A = require("knp_android")
     self.restore = self.restore or function()
-        if self.eink_old then A.einkMode(self.eink_old > 0 and self.eink_old or 178) end
+        -- ~= 0, not > 0: HD is 0x800000b1, negative as an int32
+        if self.eink_old then A.einkMode(self.eink_old ~= 0 and self.eink_old or 178) end
         self.eink_old = nil
     end
     UIManager:unschedule(self.restore)

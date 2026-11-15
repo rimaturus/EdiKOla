@@ -49,8 +49,8 @@ are fictional demo content (`tools/screenshots/make_demo.py`).*
   downloaded first if needed: Wi-Fi turns on by itself, then turns off again.
 - **Clean articles**: each edition is one EPUB. A front page lists the headlines, then there's one
   chapter per article with just the text and up to 3 photos. Menus, ads, sidebars, cookie walls and
-  outbound links are removed by a small text-density extractor (`knp_extract.lua`). The last 3 days
-  are kept.
+  outbound links are removed by a small text-density extractor (`knp_extract.lua`). Only the newest
+  edition is kept, and **Aggiorna** deletes the folders of papers taken off the shelves.
 - **Quick updates**: **Aggiorna** downloads 4 newspapers at a time, and only articles it doesn't have yet.
   Downloaded articles and photos are kept per newspaper, so a paper with no new articles costs just its feed.
 - **Sommario**: after **Aggiorna** (or from its button), the day's news in Italian, a little of everything first:
