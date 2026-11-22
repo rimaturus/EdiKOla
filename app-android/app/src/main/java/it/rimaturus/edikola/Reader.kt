@@ -1,10 +1,15 @@
-// The reader: one article (or one chapter of a book) at a time, clean text and photos, the pen on the page.
+// The reader: one article (or chapter) per page, swiped sideways; clean text and photos, the pen on the page.
 package it.rimaturus.edikola
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -66,48 +71,64 @@ import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import java.io.File
 
-/** Something to read: sections (articles or chapters) of blocks; image blocks are file names under base */
+/** Something to read: sections (articles or chapters) of blocks; image blocks are file names under the section's
+ *  base (or the document's). label: what goes above an article's title (its paper, its topic). */
 class ReaderDoc(val key: String, val title: String, val sections: List<Section>, val base: File, val edition: Edition? = null) {
-    class Section(val title: String, val blocks: List<Block>)
+    class Section(val title: String, val blocks: List<Block>, val base: File? = null, val label: String? = null, val id: String = title)
 
     companion object {
         fun of(ed: Edition) = ReaderDoc("giornale_${ed.paper}_${ed.date}", Repo.paper(ed.paper).name,
-            ed.articles.map { Section(it.title, it.blocks) }, ed.dir, ed)
+            ed.articles.map { Section(it.title, it.blocks, id = it.link) }, ed.dir, ed)
+
+        /** Today's stories, one article each, in the order of the home screen */
+        fun oggi(stories: List<Story>) = ReaderDoc("oggi_" + Store.today(), "Le notizie di oggi",
+            stories.map { s ->
+                val r = s.main
+                Section(r.article.title, r.article.blocks, r.ed.dir,
+                    (s.papers.take(3).joinToString(" · ") + if (s.papers.size > 3) " +${s.papers.size - 3}" else "") + " — " + s.topic,
+                    r.article.link)
+            }, Store.root)
     }
 }
 
+/** The reader: one article (or chapter) per page, a swipe to the side for the next one. Little around the text:
+ *  back, where you are, the type size, the voice, the pen. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReaderScreen(doc: ReaderDoc, start: Int) {
-    var section by rememberSaveable(doc.key) { mutableIntStateOf(start.coerceIn(0, doc.sections.size - 1)) }
+    val books = doc.edition == null && !doc.key.startsWith("oggi_")
+    val first = if (books && Repo.position(doc.key).first in doc.sections.indices) Repo.position(doc.key).first else start
+    val pager = rememberPagerState(first.coerceIn(0, doc.sections.size - 1)) { doc.sections.size }
+    val scope = rememberCoroutineScope()
     val font by Repo.fontSize.collectAsState()
     val ink = remember(doc.key) { InkDoc.open(doc.key) }
     val dark = isSystemInDarkTheme()
     var zoom by remember { mutableStateOf<File?>(null) }
     var pen by remember { mutableStateOf(false) }
-    val sec = doc.sections[section]
-    val books = doc.edition == null
-    val list = remember(doc.key, section) {
-        LazyListState(if (books && Repo.position(doc.key).first == section) Repo.position(doc.key).second else 0)
-    }
-    if (books) DisposableEffect(doc.key, section) {
-        onDispose { Repo.savePosition(doc.key, section, list.firstVisibleItemIndex) }
-    }
+    var type by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Column {
-                        Text(doc.title, maxLines = 1, overflow = TextOverflow.Ellipsis, fontFamily = Reading, fontWeight = FontWeight.Bold)
-                        Text("${if (books) "Capitolo" else "Articolo"} ${section + 1} di ${doc.sections.size}",
-                            style = MaterialTheme.typography.labelMedium)
+                        Text(doc.title, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium)
+                        Text("${pager.currentPage + 1} di ${doc.sections.size}", style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 },
                 navigationIcon = { IconButton(onClick = { Nav.back() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Indietro") } },
                 actions = {
-                    TextButton(onClick = { Repo.setFont(font - 1) }) { Text("A−", fontSize = 15.sp) }
-                    TextButton(onClick = { Repo.setFont(font + 1) }) { Text("A+", fontSize = 19.sp) }
+                    Box {
+                        TextButton(onClick = { type = true }) { Text("Aa", fontSize = 18.sp) }
+                        DropdownMenu(expanded = type, onDismissRequest = { type = false }) {
+                            DropdownMenuItem(text = { Text("Testo più grande") }, onClick = { Repo.setFont(font + 1) })
+                            DropdownMenuItem(text = { Text("Testo più piccolo") }, onClick = { Repo.setFont(font - 1) })
+                        }
+                    }
+                    if (!books) IconButton(onClick = { Ascolta.listen(doc, pager.currentPage); Nav.tab.intValue = 1; Nav.home() }) {
+                        Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_headphones), "Ascolta da qui")
+                    }
                     Box {
                         IconButton(onClick = { pen = true }) { Icon(Icons.Default.Edit, "Penna") }
                         DropdownMenu(expanded = pen, onDismissRequest = { pen = false }) {
@@ -126,50 +147,58 @@ fun ReaderScreen(doc: ReaderDoc, start: Int) {
                             DropdownMenuItem(text = { Text("Cancella gli appunti") }, onClick = { ink.clear(); pen = false })
                         }
                     }
-                    if (doc.edition != null) IconButton(onClick = { Ascolta.listen(doc.edition, section); Nav.go(Screen.Player) }) {
-                        Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_headphones), "Ascolta da qui")
-                    }
                 },
             )
         },
-        bottomBar = {
-            Surface(tonalElevation = 2.dp) {
-                Row(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 8.dp, vertical = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween) {
-                    TextButton(onClick = { section-- }, enabled = section > 0) { Text("◀ Precedente") }
-                    TextButton(onClick = { section++ }, enabled = section < doc.sections.size - 1) { Text("Successivo ▶") }
-                }
-            }
-        },
     ) { pad ->
-        LazyColumn(Modifier.padding(pad).fillMaxSize(), state = list, contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp)) {
-            item(key = "title") {
-                val tone = doc.edition?.let { LocalPalette.current.section(Repo.paper(it.paper).section) }
-                Column(Modifier.fillMaxWidth().ink(ink, "$font:$section:t", dark = dark).padding(bottom = 14.dp)) {
-                    Text(doc.title.uppercase() + (doc.edition?.let { " · " + Store.dateLabel(it.date) } ?: ""),
-                        color = tone?.strong ?: MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.height(6.dp))
-                    Text(sec.title, fontFamily = Display, fontWeight = FontWeight.Bold, fontSize = (font * 1.45f).sp,
-                        lineHeight = (font * 1.8f).sp)
-                    Spacer(Modifier.height(10.dp))
-                    androidx.compose.foundation.layout.Box(Modifier.width(56.dp).height(4.dp)
-                        .background(tone?.strong ?: MaterialTheme.colorScheme.primary, RoundedCornerShape(2.dp)))
+        HorizontalPager(pager, Modifier.padding(pad).fillMaxSize(), beyondViewportPageCount = 1, key = { doc.sections[it].id }) { page ->
+            val sec = doc.sections[page]
+            val base = sec.base ?: doc.base
+            val list = remember(doc.key, page) {
+                LazyListState(if (books && Repo.position(doc.key).first == page) Repo.position(doc.key).second else 0)
+            }
+            if (books) DisposableEffect(doc.key, page) {
+                onDispose { if (pager.currentPage == page) Repo.savePosition(doc.key, page, list.firstVisibleItemIndex) }
+            }
+            val tone = if (sec.label != null) MaterialTheme.colorScheme.primary
+                else doc.edition?.let { LocalPalette.current.section(Repo.paper(it.paper).section).strong } ?: MaterialTheme.colorScheme.primary
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+                LazyColumn(Modifier.widthIn(max = 680.dp).fillMaxSize(), state = list,
+                    contentPadding = PaddingValues(start = 22.dp, end = 22.dp, top = 8.dp, bottom = 24.dp)) {
+                    item(key = "title") {
+                        Column(Modifier.fillMaxWidth().ink(ink, "$font:${sec.id}:t", dark = dark).padding(bottom = 18.dp)) {
+                            val label = sec.label ?: doc.edition?.let { Repo.paper(it.paper).name + " · " + Store.dateLabel(it.date) }
+                            if (label != null) Text(label.uppercase(), color = tone, style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
+                            Spacer(Modifier.height(8.dp))
+                            Text(sec.title, fontFamily = Display, fontWeight = FontWeight.Bold, fontSize = (font * 1.4f).sp,
+                                lineHeight = (font * 1.75f).sp)
+                        }
+                    }
+                    itemsIndexed(sec.blocks) { i, b ->
+                        val m = Modifier.fillMaxWidth().ink(ink, "$font:${sec.id}:$i", dark = dark)
+                        when (b.kind) {
+                            "img" -> AsyncImage(File(base, b.text), null,
+                                m.padding(vertical = 10.dp).clip(RoundedCornerShape(10.dp)).clickable { zoom = File(base, b.text) },
+                                contentScale = ContentScale.FillWidth)
+                            "h" -> Text(b.text, m.padding(top = 14.dp, bottom = 6.dp), fontFamily = Reading,
+                                fontWeight = FontWeight.Bold, fontSize = (font * 1.1f).sp, lineHeight = (font * 1.45f).sp)
+                            else -> Text(b.text, m.padding(bottom = 14.dp), fontFamily = Reading, fontSize = font.sp,
+                                lineHeight = (font * 1.6f).sp)
+                        }
+                    }
+                    if (page < doc.sections.size - 1) item(key = "next") {
+                        HorizontalDivider(Modifier.padding(top = 12.dp, bottom = 4.dp))
+                        Column(Modifier.fillMaxWidth().clickable { scope.launch { pager.animateScrollToPage(page + 1) } }.padding(vertical = 14.dp)) {
+                            Text(if (books) "CAPITOLO SUCCESSIVO  →" else "PROSSIMA NOTIZIA  →", color = tone,
+                                style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                            Spacer(Modifier.height(4.dp))
+                            Text(doc.sections[page + 1].title, fontFamily = Reading, fontWeight = FontWeight.SemiBold,
+                                maxLines = 3, overflow = TextOverflow.Ellipsis)
+                        }
+                    }
                 }
             }
-            itemsIndexed(sec.blocks) { i, b ->
-                val m = Modifier.fillMaxWidth().ink(ink, "$font:$section:$i", dark = dark)
-                when (b.kind) {
-                    "img" -> AsyncImage(File(doc.base, b.text), null,
-                        m.padding(vertical = 8.dp).clip(MaterialTheme.shapes.small).clickable { zoom = File(doc.base, b.text) },
-                        contentScale = ContentScale.FillWidth)
-                    "h" -> Text(b.text, m.padding(top = 12.dp, bottom = 6.dp), fontFamily = Display,
-                        fontWeight = FontWeight.Bold, fontSize = (font * 1.15f).sp, lineHeight = (font * 1.45f).sp)
-                    else -> Text(b.text, m.padding(bottom = 12.dp), fontFamily = Reading, fontSize = font.sp,
-                        lineHeight = (font * 1.55f).sp)
-                }
-            }
-            item(key = "end") { Spacer(Modifier.height(24.dp)) }
         }
     }
     zoom?.let { f -> ZoomImage(f) { zoom = null } }

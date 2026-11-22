@@ -26,6 +26,7 @@ import com.k2fsa.sherpa.onnx.OfflineTtsModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsVitsModelConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -77,9 +78,15 @@ object Voce {
      *  waits for the piece being made (a native call can't be stopped halfway). */
     @Synchronized
     fun synth(ctx: Context, chunk: Testo.Chunk, file: File) {
-        val audio = engine(ctx, chunk.lang).generate(chunk.text)
         val tmp = File(file.path + ".tmp")
-        Testo.writeWav(tmp, audio.samples, audio.sampleRate, chunk.pause)
+        if (chunk.sound != null) {
+            Testo.writeWav(tmp, Testo.jingle(chunk.sound), Testo.RATE, chunk.pause)
+        } else {
+            // the Italian voices say English words the Italian way ("Nature": nèiciur, not natùre)
+            val text = if (chunk.lang.startsWith("it")) Pronuncia.italiano(chunk.text) else chunk.text
+            val audio = engine(ctx, chunk.lang).generate(text)
+            Testo.writeWav(tmp, audio.samples, audio.sampleRate, chunk.pause)
+        }
         tmp.renameTo(file)
     }
 }
@@ -119,55 +126,66 @@ class AscoltaService : MediaSessionService() {
 object Ascolta {
     /** What the player screen shows */
     data class State(
-        val title: String,         // the paper, or "Il podcast di oggi"
-        val titles: List<String>,  // articles, or the podcast's topics
+        val title: String,         // "Notizie di oggi", a paper, "Radio EdiKOla"
+        val titles: List<String>,  // articles, or the radio's sections
         val article: Int,
         val playing: Boolean,
-        val waiting: Boolean,      // the voice hasn't made the next piece yet
+        val waiting: Boolean,      // the voice (or the radio's authors) haven't made the next piece yet
         val voice: String,         // who is speaking: "Voce italiana", "Giulia"…
-        val podcast: Boolean,
+        val line: String,          // what is being said (shown by the radio)
+        val radio: Boolean,
     )
 
     val state = MutableStateFlow<State?>(null)
     private var controller: MediaController? = null
-    private var chunks: List<Testo.Chunk> = emptyList()
+    private val chunks = mutableListOf<Testo.Chunk>() // touched on the main thread only
+    private val titles = mutableListOf<String>()
     private var name = ""
-    private var titles: List<String> = emptyList()
     private var voices: Map<String, String> = emptyMap()
-    private var podcast = false
+    private var radio = false
+    private var more = false // the radio is still being written: more pieces will come
     private var key = "" // what is being read
     private var job: Job? = null
     private var made = 0 // pieces in the playlist
     private val dir get() = File(Repo.app.cacheDir, "ascolta")
     private val NEWS_VOICES = mapOf("it" to "Voce italiana", "en" to "Voce inglese")
 
-    fun isReading(edition: Edition) = state.value != null && key == edition.paper + edition.date
+    fun isReading(doc: ReaderDoc) = state.value != null && key == doc.key
 
-    /** Reads an edition aloud from article `from`. If it's the one being read: jumps there, or with no `from`
-     *  just goes on (the player screen shows it). */
-    fun listen(edition: Edition, from: Int? = null) {
-        val p = Repo.paper(edition.paper)
-        if (isReading(edition) && from == null) return
-        if (!isReading(edition)) {
-            load(edition.paper + edition.date, p.name, edition.articles.map { it.title },
-                Testo.chunks(edition.articles.map { it.title to it.paragraphs }, "${p.name}. ${Store.dateLabel(edition.date)}."),
-                NEWS_VOICES, false)
+    /** Reads a document aloud (today's news, a paper) from section `from`; if it's already being read, jumps there */
+    fun listen(doc: ReaderDoc, from: Int = 0) {
+        if (!isReading(doc)) {
+            val date = doc.edition?.date ?: Store.today()
+            load(doc.key, doc.title, doc.sections.map { it.title },
+                Testo.chunks(doc.sections.map { s -> s.title to s.blocks.filter { it.kind != "img" }.map { it.text } },
+                    "${doc.title}. ${Store.dateLabel(date)}."),
+                NEWS_VOICES, false, false)
         }
-        withController { go(from ?: 0) }
+        withController { go(from) }
     }
 
-    /** Plays a podcast: its topics are the "articles" */
-    fun play(script: Podcast.Script) {
-        load("podcast" + System.currentTimeMillis(), script.title, script.segments, Podcast.chunks(script),
-            Podcast.VOICE_NAMES, true)
-        withController { go(0) }
+    /** The radio: starts with nothing, its sections come with add() while they are written, then done() */
+    fun startRadio(title: String) {
+        load("radio" + System.currentTimeMillis(), title, emptyList(), emptyList(), Radio.VOICE_NAMES, true, true)
     }
 
-    private fun load(k: String, n: String, t: List<String>, c: List<Testo.Chunk>, v: Map<String, String>, pod: Boolean) {
+    fun add(section: String, pieces: List<Testo.Chunk>) {
+        if (!radio || !more) return
+        val n = titles.size
+        titles += section
+        chunks += pieces.map { it.copy(article = n) }
+        if (job?.isActive != true) withController { go(n) } else publish()
+    }
+
+    fun done() { more = false; publish() }
+
+    private fun load(k: String, n: String, t: List<String>, c: List<Testo.Chunk>, v: Map<String, String>, r: Boolean, m: Boolean) {
         stop()
-        key = k; name = n; titles = t; chunks = c; voices = v; podcast = pod
+        key = k; name = n; voices = v; radio = r; more = m
+        titles.addAll(t); chunks.addAll(c)
         dir.deleteRecursively()
         dir.mkdirs()
+        publish()
     }
 
     private fun withController(then: () -> Unit) {
@@ -192,18 +210,26 @@ object Ascolta {
             .build()
     }
 
-    /** Starts reading at article n: the playlist starts over from its first piece */
+    /** Starts reading at section n: the playlist starts over from its first piece */
     fun go(n: Int) {
         val c = controller ?: return
+        if (titles.isEmpty()) return
         val first = chunks.indexOfFirst { it.article == n.coerceIn(0, titles.size - 1) }.coerceAtLeast(0)
         job?.cancel()
         c.clearMediaItems()
         made = 0
         val ctx = Repo.app
         job = Repo.scope.launch {
-            for (k in first until chunks.size) {
+            var k = first
+            while (isActive) {
+                if (k >= chunks.size) {
+                    if (!more) break
+                    delay(300) // the radio's next section is being written
+                    continue
+                }
                 val f = File(dir, "$k.wav")
-                if (!f.exists()) withContext(Dispatchers.Default) { Voce.synth(ctx, chunks[k], f) }
+                val chunk = chunks[k]
+                if (!f.exists()) withContext(Dispatchers.Default) { Voce.synth(ctx, chunk, f) }
                 if (!isActive) return@launch
                 c.addMediaItem(item(k))
                 made++
@@ -212,30 +238,32 @@ object Ascolta {
                     c.seekTo(c.mediaItemCount - 1, 0)
                     c.play()
                 }
+                k++
                 publish()
             }
+            publish()
         }
         publish()
     }
 
-    private fun current(): Int {
-        val c = controller ?: return 0
-        return c.currentMediaItem?.mediaId?.toIntOrNull() ?: 0
-    }
+    private fun current(): Int = controller?.currentMediaItem?.mediaId?.toIntOrNull() ?: 0
 
     private fun publish() {
+        if (key.isEmpty()) { state.value = null; return }
         val c = controller
-        if (c == null || chunks.isEmpty()) { state.value = null; return }
-        val k = current().coerceIn(0, chunks.size - 1)
+        val k = current().coerceIn(0, (chunks.size - 1).coerceAtLeast(0))
+        val chunk = chunks.getOrNull(k)
+        val working = job?.isActive == true
         state.value = State(
-            title = name, titles = titles, article = chunks[k].article,
-            playing = c.playWhenReady || made == 0, // before the first piece it's about to play, not paused
-            waiting = made == 0 || (c.playbackState == Player.STATE_ENDED && job?.isActive == true) ||
+            title = name, titles = titles.toList(), article = chunk?.article ?: 0,
+            playing = c == null || c.playWhenReady || made == 0, // before the first piece it's about to play, not paused
+            waiting = c == null || made == 0 || (c.playbackState == Player.STATE_ENDED && working) ||
                 c.playbackState == Player.STATE_BUFFERING,
-            voice = voices[chunks[k].lang] ?: "",
-            podcast = podcast,
+            voice = if (chunk?.sound != null) "Sigla" else chunk?.lang?.let { voices[it] } ?: "",
+            line = if (radio && chunk?.sound == null) chunk?.text.orEmpty() else "",
+            radio = radio,
         )
-        if (c.playbackState == Player.STATE_ENDED && job?.isCompleted == true && k == chunks.size - 1) stop() // the end
+        if (c != null && c.playbackState == Player.STATE_ENDED && !working && !more && made > 0 && k == chunks.size - 1) stop() // the end
     }
 
     fun toggle() {
@@ -248,8 +276,11 @@ object Ascolta {
         job = null
         controller?.run { stop(); clearMediaItems(); release() }
         controller = null
-        chunks = emptyList()
+        chunks.clear()
+        titles.clear()
+        more = false
         key = ""
+        made = 0
         state.value = null
         dir.deleteRecursively()
     }

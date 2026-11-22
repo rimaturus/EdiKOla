@@ -1,5 +1,6 @@
 // Downloads newspapers and keeps their editions on the phone, as knp_build.lua: one JSON file per paper and day,
-// the photos next to it. Only articles not downloaded before use the network; the last 3 days are kept.
+// the photos next to it, all in the app's private storage (the gallery never sees them). Only articles not
+// downloaded before use the network. Each update keeps only the newest edition: older ones and their photos go.
 package it.rimaturus.edikola
 
 import org.json.JSONArray
@@ -32,7 +33,7 @@ data class Edition(val paper: String, val date: String, val articles: List<Artic
 
 object Store {
     lateinit var root: File
-    private const val KEEP_DAYS = 3
+    private const val KEEP_DAYS = 1
     private const val MAX_IMAGES = 3
     private const val MAX_IMAGE_BYTES = 1500 * 1024
     private const val UA = "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Mobile Safari/537.36"
@@ -204,7 +205,7 @@ object Store {
         return Edition(paper.id, date, articles, d) to null
     }
 
-    // The last few editions; photos no edition or cached article uses any more go
+    // The newest edition only; photos it doesn't use go
     private fun prune(paper: Paper, cached: Set<String>) {
         val d = dir(paper)
         val eds = d.listFiles { f -> f.name.matches(Regex("\\d{4}-\\d{2}-\\d{2}\\.json")) }?.sortedByDescending { it.name } ?: return

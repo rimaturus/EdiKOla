@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.withContext
 import java.io.File
 
 class EdikolaApp : Application() {
@@ -43,9 +44,12 @@ object Repo {
         selected.value = prefs.getStringSet("selected", null) ?: PAPERS.filter { it.default }.map { it.id }.toSet()
         fontSize.value = prefs.getInt("font", 19)
         geminiKey.value = prefs.getString("gemini", "") ?: ""
-        scope.launch(Dispatchers.IO) {
-            editions.value = PAPERS.mapNotNull { p -> Store.latest(p)?.let { p.id to it } }.toMap()
+        scope.launch {
+            editions.value = withContext(Dispatchers.IO) { PAPERS.mapNotNull { p -> Store.latest(p)?.let { p.id to it } }.toMap() }
+            Notizie.refresh()
+            if (todays().isEmpty()) update(PAPERS.filter { it.id in selected.value }) // the first opening of the day
         }
+        scope.launch { Llm.prepare(); Notizie.refresh() }
     }
 
     fun paper(id: String) = PAPERS.first { it.id == id }
@@ -93,8 +97,12 @@ object Repo {
                     }
                 }
             }.awaitAll()
+            // papers taken off the shelves: their editions and photos go too
+            Store.root.listFiles()?.forEach { if (it.isDirectory && it.name !in selected.value) it.deleteRecursively() }
+            editions.value = editions.value.filterKeys { it in selected.value }
             progress.value = null
             if (failed.isNotEmpty()) message.value = "Non aggiornati: " + failed.joinToString("; ")
+            Notizie.refresh()
             done()
         }
     }

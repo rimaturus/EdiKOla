@@ -1,10 +1,10 @@
-# Builds the native Android app (app-android/) on every push to the Android branch.
-# Success: the APK goes to the pre-release "android-latest". Either way the build log and the result go to
+# Builds the native Android app (app-android/) on every push to the Android branch (and to android-* work branches).
+# Success on Android: the APK goes to the pre-release "android-latest"; work branches only build and test. Either way the build log and the result go to
 # the branch "ci-report" (build.log, status.txt), so they can be read without the Actions UI.
 name: android
 on:
   push:
-    branches: [Android]
+    branches: [Android, "android-*"]
     paths: ["app-android/**", ".github/workflows/android.yml"]
   workflow_dispatch:
 permissions:
@@ -32,11 +32,13 @@ jobs:
         run: |
           set -o pipefail
           gradle --no-daemon --console=plain assembleRelease 2>&1 | tee build.log
+      - name: The APK
+        run: cp app-android/app/build/outputs/apk/release/app-release.apk EdiKOla-android.apk
       - name: Publish the APK
+        if: github.ref == 'refs/heads/Android'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp app-android/app/build/outputs/apk/release/app-release.apk EdiKOla-android.apk
           gh release delete android-latest -y --cleanup-tag || true
           gh release create android-latest EdiKOla-android.apk --prerelease --target "${{ github.sha }}" \
             --title "EdiKOla per Android ($(git rev-parse --short HEAD))" \

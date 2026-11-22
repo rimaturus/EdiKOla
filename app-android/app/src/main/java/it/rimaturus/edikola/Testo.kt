@@ -22,8 +22,29 @@ object Testo {
         return if (en > it) "en" else "it"
     }
 
-    /** A piece to say: its text, voice, the article it belongs to (0-based), seconds of silence after it */
-    data class Chunk(val text: String, val lang: String, val article: Int, val pause: Float)
+    /** A piece to say: its text, voice, the article it belongs to (0-based), seconds of silence after it;
+     *  or, with sound, the radio's jingle ("sigla") or the short one between its sections ("stacco") */
+    data class Chunk(val text: String, val lang: String, val article: Int, val pause: Float, val sound: String? = null)
+
+    const val RATE = 22050
+
+    /** The radio's jingles, made here: a few soft bell-like notes (sine and an octave, quick attack, slow decay) */
+    fun jingle(sound: String): FloatArray {
+        // (start in seconds, frequency) of each note
+        val notes = if (sound == "sigla") listOf(0.0 to 523.25, 0.16 to 659.25, 0.32 to 783.99, 0.48 to 1046.5, 0.9 to 783.99, 1.05 to 1046.5)
+            else listOf(0.0 to 783.99, 0.14 to 1046.5)
+        val len = notes.last().first + 1.6
+        val out = FloatArray((len * RATE).toInt())
+        for ((t0, f) in notes) {
+            val start = (t0 * RATE).toInt()
+            for (i in 0 until out.size - start) {
+                val t = i.toDouble() / RATE
+                val env = minOf(1.0, t / 0.01) * Math.exp(-t * 3.2)
+                out[start + i] += (0.22 * env * (Math.sin(2 * Math.PI * f * t) + 0.3 * Math.sin(4 * Math.PI * f * t))).toFloat()
+            }
+        }
+        return out
+    }
 
     private const val CHUNK = 700 // characters: a few sentences, so a skip is quick
     private const val FIRST = 250 // an article's first piece is shorter, so its voice is ready soon after the title

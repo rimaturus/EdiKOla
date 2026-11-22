@@ -18,15 +18,15 @@ sealed class Screen {
     data class Read(val doc: ReaderDoc, val section: Int) : Screen()
     data class Pdf(val file: java.io.File) : Screen()
     data object Catalog : Screen()
-    data object Player : Screen()
     data class Game(val which: String) : Screen()
 }
 
 object Nav {
     val stack = mutableStateListOf<Screen>(Screen.Home)
-    /** the bottom bar's tab on the home screen */
+    /** the bottom bar's tab on the home screen: 0 Oggi, 1 Radio, 2 Giochi e libri */
     val tab = androidx.compose.runtime.mutableIntStateOf(0)
     fun go(s: Screen) { stack += s }
+    fun home() { while (stack.size > 1) stack.removeAt(stack.size - 1) }
     fun back(): Boolean = if (stack.size > 1) { stack.removeAt(stack.size - 1); true } else false
 }
 
@@ -37,6 +37,11 @@ class MainActivity : ComponentActivity() {
         volumeControlStream = AudioManager.STREAM_MUSIC // the volume keys set the voice's volume
         handle(intent)
         setContent { EdikolaTheme { Root() } }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Notizie.refresh() // the model sorts only while EdiKOla is on screen: what it missed, it does now
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -54,7 +59,7 @@ class MainActivity : ComponentActivity() {
             else -> null
         } ?: return
         val f = Libri.import(this, uri) ?: return
-        Nav.tab.intValue = 3
+        Nav.tab.intValue = 2
         Libri.open(f)
     }
 }
@@ -68,7 +73,6 @@ fun Root() {
         is Screen.Read -> ReaderScreen(s.doc, s.section)
         is Screen.Pdf -> PdfScreen(s.file)
         Screen.Catalog -> CatalogScreen()
-        Screen.Player -> PlayerScreen()
         is Screen.Game -> GameScreen(s.which)
     }
 }

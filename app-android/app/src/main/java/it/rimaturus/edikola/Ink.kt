@@ -1,5 +1,7 @@
-// The pen writes straight on what you read: articles, books, PDF pages. Only a stylus draws (fingers scroll and
-// tap as usual); its eraser end, or its button held, erases whole strokes. Pressure makes the line thicker.
+// The pen writes straight on what you read: articles, books, PDF pages, and the puzzles' grids. Only a stylus
+// draws (fingers scroll and tap as usual), except on the grids, where a finger writes too; the stylus's eraser end,
+// its button held, or the eraser tool erase whole strokes. Pressure makes the line thicker. Nothing is recognized:
+// what you write stays a stroke, as on paper.
 // Ink belongs to a block of text (or a PDF page) and is kept per document in files/appunti/<doc>.json.
 package it.rimaturus.edikola
 
@@ -92,23 +94,28 @@ class InkDoc(private val file: File) {
         val INKS = listOf(0xFF000000.toInt(), 0xFF1A3FA8.toInt(), 0xFFC62828.toInt(), 0xFF2E7D32.toInt())
         val INK_NAMES = listOf("Nero", "Blu", "Rosso", "Verde")
         val color = mutableStateOf(INKS[0])
-        fun open(doc: String) = InkDoc(File(Repo.app.filesDir, "appunti/" + doc.replace(Regex("[^\\w.-]"), "_") + ".json"))
+        /** the eraser tool of the puzzles: strokes, by finger or pen, erase */
+        val rubber = mutableStateOf(false)
+        private fun file(doc: String) = File(Repo.app.filesDir, "appunti/" + doc.replace(Regex("[^\\w.-]"), "_") + ".json")
+        fun delete(doc: String) { file(doc).delete() }
+        fun open(doc: String) = InkDoc(file(doc))
     }
 }
 
 /**
  * Draws the block's ink and lets a stylus write on it. relative: points are fractions of the size (PDF pages).
- * dark: ink black becomes white, so it stays visible on a dark page.
+ * dark: ink black becomes white, so it stays visible on a dark page. fingers: a finger writes too (the grids).
  */
 @OptIn(ExperimentalComposeUiApi::class)
-fun Modifier.ink(doc: InkDoc, block: String, relative: Boolean = false, dark: Boolean = false): Modifier = composed {
+fun Modifier.ink(doc: InkDoc, block: String, relative: Boolean = false, dark: Boolean = false, fingers: Boolean = false): Modifier = composed {
     val live = remember { mutableStateOf<FloatArray?>(null) }
     this
         .pointerInput(doc, block) {
             awaitEachGesture {
                 val down = awaitFirstDown(requireUnconsumed = false)
-                if (down.type != PointerType.Stylus && down.type != PointerType.Eraser) return@awaitEachGesture
-                val erasing = down.type == PointerType.Eraser || currentEvent.buttons.isSecondaryPressed
+                if (down.type != PointerType.Stylus && down.type != PointerType.Eraser && !(fingers && down.type == PointerType.Touch))
+                    return@awaitEachGesture
+                val erasing = down.type == PointerType.Eraser || currentEvent.buttons.isSecondaryPressed || (fingers && InkDoc.rubber.value)
                 down.consume()
                 val w = size.width.toFloat(); val h = size.height.toFloat()
                 fun conv(o: Offset) = if (relative) Offset(o.x / w, o.y / h) else Offset(o.x / density, o.y / density)
