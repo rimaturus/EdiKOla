@@ -229,7 +229,11 @@ object Ascolta {
                 }
                 val f = File(dir, "$k.wav")
                 val chunk = chunks[k]
-                if (!f.exists()) withContext(Dispatchers.Default) { Voce.synth(ctx, chunk, f) }
+                if (!f.exists()) try {
+                    withContext(Dispatchers.Default) { Voce.synth(ctx, chunk, f) }
+                } catch (e: java.io.IOException) {
+                    return@launch // stopped while the voice was speaking: its folder is gone
+                }
                 if (!isActive) return@launch
                 c.addMediaItem(item(k))
                 made++

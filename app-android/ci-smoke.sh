@@ -79,7 +79,7 @@ shot edicola-vuota
 
 # the first opening of the day downloads the papers by itself
 sleep 5 && shot aggiornamento
-wait_for "In primo piano" 300
+wait_for "IN PRIMO PIANO" 300
 sleep 25 # the rest of the papers
 shot oggi
 adb shell input swipe $((W / 2)) $((H * 75 / 100)) $((W / 2)) $((H * 25 / 100)) 300; sleep 2; shot oggi-giu
