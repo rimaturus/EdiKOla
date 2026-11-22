@@ -190,7 +190,10 @@ fun GameScreen(which: String) {
     Scaffold(topBar = {
         TopAppBar(title = { Text(title, color = tone.strong, fontFamily = Display, fontWeight = FontWeight.Bold) },
             navigationIcon = { IconButton(onClick = { Nav.back() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Indietro") } },
-            actions = { TextButton(onClick = { ask = "nuovo" }) { Text("Nuovo") } })
+            actions = {
+                TextButton(onClick = { ask = "cancella" }) { Text("Cancella") }
+                TextButton(onClick = { ask = "nuovo" }) { Text("Nuovo") }
+            })
     }) { pad ->
         Column(Modifier.padding(pad).padding(horizontal = 12.dp)) {
             if (s == null || ink == null) {
@@ -212,9 +215,7 @@ fun GameScreen(which: String) {
                 if (i == sel && which == "cruciverba") across = !across
                 sel = i
             }
-            Tools(ink, keys.takeIf { which != "crucipuzzle" }, { keys = it; GiochiStore.keyboard = it; sel = -1 }) {
-                ask = "cancella"
-            }
+            Tools(ink, keys.takeIf { which != "crucipuzzle" }) { keys = it; GiochiStore.keyboard = it; sel = -1 }
             if (keys && sel >= 0) KeyInput(sel, digits = which != "cruciverba",
                 onChar = { ch ->
                     type(sel, ch)
@@ -339,9 +340,9 @@ private fun KeyInput(at: Int, digits: Boolean, onChar: (Char) -> Unit, onDelete:
             autoCorrectEnabled = false))
 }
 
-/** Penna or Tastiera (null: only the pen), eraser for the pen, undo, clear */
+/** Penna or Tastiera (null: only the pen); with the pen, its eraser and undo */
 @Composable
-private fun Tools(ink: InkDoc, keys: Boolean?, setKeys: (Boolean) -> Unit, clear: () -> Unit) {
+private fun Tools(ink: InkDoc, keys: Boolean?, setKeys: (Boolean) -> Unit) {
     var rubber by InkDoc.rubber
     Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
         if (keys != null) {
@@ -353,7 +354,6 @@ private fun Tools(ink: InkDoc, keys: Boolean?, setKeys: (Boolean) -> Unit, clear
         if (keys != true) FilterChip(selected = rubber, onClick = { rubber = !rubber }, label = { Text("Gomma") })
         Spacer(Modifier.weight(1f))
         if (keys != true) TextButton(onClick = { ink.undo() }) { Text("Annulla") }
-        TextButton(onClick = clear) { Text("Cancella") }
     }
 }
 
