@@ -9,6 +9,10 @@ import com.google.mlkit.genai.common.DownloadStatus
 import com.google.mlkit.genai.common.FeatureStatus
 import com.google.mlkit.genai.prompt.Generation
 import com.google.mlkit.genai.prompt.GenerativeModel
+import com.google.mlkit.genai.prompt.ModelPreference
+import com.google.mlkit.genai.prompt.ModelReleaseStage
+import com.google.mlkit.genai.prompt.generationConfig
+import com.google.mlkit.genai.prompt.modelConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
@@ -26,36 +30,50 @@ object Llm {
     /** What Android says about Nano, in words, for the settings */
     val nanoState = MutableStateFlow("Controllo Gemini Nano…")
 
+    // The models to try: the phone's stable Nano, then the preview ones (Gemini Nano 4 / Gemma 4), which on phones
+    // other than Pixel come through the AICore Developer Preview (Developer options > AICore Settings)
+    private val MODELS: List<Pair<String, () -> GenerativeModel>> = listOf(
+        "Gemini Nano" to { Generation.getClient() },
+        "Gemini Nano in anteprima" to { Generation.getClient(generationConfig {
+            modelConfig = modelConfig { releaseStage = ModelReleaseStage.PREVIEW; preference = ModelPreference.FULL } }) },
+        "Gemini Nano in anteprima (veloce)" to { Generation.getClient(generationConfig {
+            modelConfig = modelConfig { releaseStage = ModelReleaseStage.PREVIEW; preference = ModelPreference.FAST } }) },
+    )
+
     /** Is Nano on the phone? Asked at start and every time EdiKOla comes back on screen, until it is.
      *  If it can be downloaded, the system downloads it (once): the state shows how far it got. */
     suspend fun prepare() = checking.withLock {
         if (nanoOk) return@withLock
-        try {
-            val m = nano ?: Generation.getClient().also { nano = it }
-            when (val st = m.checkStatus()) {
-                FeatureStatus.AVAILABLE -> nanoOk = true
-                FeatureStatus.DOWNLOADABLE, FeatureStatus.DOWNLOADING -> {
-                    nanoState.value = "Android sta scaricando Gemini Nano…"
-                    m.download().collect { d ->
-                        when (d) {
-                            is DownloadStatus.DownloadProgress ->
-                                nanoState.value = "Android sta scaricando Gemini Nano: ${d.totalBytesDownloaded / 1_000_000} MB"
-                            is DownloadStatus.DownloadFailed ->
-                                nanoState.value = "Download di Gemini Nano non riuscito: ${d.e.message}"
-                            else -> {}
+        val errors = mutableListOf<String>()
+        for ((name, make) in MODELS) {
+            try {
+                val m = make()
+                when (m.checkStatus()) {
+                    FeatureStatus.AVAILABLE -> { nano = m; nanoOk = true }
+                    FeatureStatus.DOWNLOADABLE, FeatureStatus.DOWNLOADING -> {
+                        nanoState.value = "Android sta scaricando $name…"
+                        m.download().collect { d ->
+                            when (d) {
+                                is DownloadStatus.DownloadProgress ->
+                                    nanoState.value = "Android sta scaricando $name: ${d.totalBytesDownloaded / 1_000_000} MB"
+                                is DownloadStatus.DownloadFailed -> errors += "download di $name non riuscito: ${d.e.message}"
+                                else -> {}
+                            }
                         }
+                        if (m.checkStatus() == FeatureStatus.AVAILABLE) { nano = m; nanoOk = true }
                     }
-                    nanoOk = m.checkStatus() == FeatureStatus.AVAILABLE
+                    else -> errors += "$name: non disponibile"
                 }
-                FeatureStatus.UNAVAILABLE -> nanoState.value = "Android risponde che Gemini Nano non è disponibile per le app " +
-                    "su questo telefono (UNAVAILABLE). Succede anche quando AICore non ha ancora ricevuto la configurazione: " +
-                    "riavvia il telefono e riprova più tardi."
-                else -> nanoState.value = "Stato di Gemini Nano sconosciuto ($st)."
+                if (nanoOk) { nanoState.value = "$name è pronto: radio e argomenti si scrivono sul telefono, anche offline."; break }
+                m.close()
+            } catch (e: Throwable) {
+                errors += "$name: ${e.message ?: e.javaClass.simpleName}"
             }
-        } catch (e: Throwable) {
-            nanoState.value = "AICore ha risposto con un errore: ${e.message ?: e.javaClass.simpleName}"
         }
-        if (nanoOk) nanoState.value = "Gemini Nano è pronto: radio e argomenti si scrivono sul telefono, anche offline."
+        if (!nanoOk) nanoState.value = "Android risponde che Gemini Nano non è disponibile per le app (" + errors.joinToString("; ") +
+            "). Sui Samsung il modello nuovo passa dall'anteprima di AICore: Opzioni sviluppatore > AICore Settings > " +
+            "Enable AICore Developer Preview, poi nell'app AICore, scheda Test, scegli un modello Preview e scaricalo; " +
+            "infine tocca Riprova."
     }
 
     /** Who answers, for the screens: "Gemini Nano", "Gemini", or null */

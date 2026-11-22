@@ -351,7 +351,7 @@ fun CatalogScreen() {
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
                     Column(Modifier.padding(14.dp)) {
                         val nanoState by Llm.nanoState.collectAsState()
-                        val nanoReady = nanoState.startsWith("Gemini Nano è pronto")
+                        val nanoReady = nanoState.contains(" è pronto")
                         Text("Radio e argomenti", style = MaterialTheme.typography.titleMedium)
                         Text(nanoState, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         if (!nanoReady) TextButton(onClick = { Repo.scope.launch { Llm.prepare(); Notizie.refresh() } },
