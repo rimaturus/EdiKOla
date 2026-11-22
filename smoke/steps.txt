@@ -1,0 +1,88 @@
+screen 1080 x 2400
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+system dialog: isn't responding
+NOT FOUND: Indietro
+UI hierchary dumped to: /sdcard/x.xml
+tap Per giornale at 788 370
+tap RaiNews at 462 623
+tap Indietro at 74 212
+tap Indietro at 74 212
+tap Per argomento at 292 375
+tap Radio at 540 2274
+tap 5′ at 178 979
+tap Accendi la radio at 582 1152
+tap Spegni at 571 2043
+tap Ascolta at 288 1721
+NOT FOUND: Spegni
+UI hierchary dumped to: /sdcard/x.xml
+NOT FOUND: Giochi e libri
+UI hierchary dumped to: /sdcard/x.xml
+NOT FOUND: Cruciverba del giorno
+UI hierchary dumped to: /sdcard/x.xml
+NOT FOUND: Indietro
+UI hierchary dumped to: /sdcard/x.xml
+NOT FOUND: Crucipuzzle
+UI hierchary dumped to: /sdcard/x.xml
+NOT FOUND: Indietro
+UI hierchary dumped to: /sdcard/x.xml
+NOT FOUND: Sudoku medio
+UI hierchary dumped to: /sdcard/x.xml
+NOT FOUND: Indietro
+UI hierchary dumped to: /sdcard/x.xml
+NOT FOUND: Kakuro facile
+UI hierchary dumped to: /sdcard/x.xml
+NOT FOUND: Tastiera
+UI hierchary dumped to: /sdcard/x.xml
+NOT FOUND: Penna
+UI hierchary dumped to: /sdcard/x.xml
+NOT FOUND: Indietro
+UI hierchary dumped to: /sdcard/x.xml
+NOT FOUND: Cruciverba del giorno
+UI hierchary dumped to: /sdcard/x.xml
+NOT FOUND: Tastiera
+UI hierchary dumped to: /sdcard/x.xml
+NOT FOUND: Penna
+UI hierchary dumped to: /sdcard/x.xml
+NOT FOUND: Indietro
+UI hierchary dumped to: /sdcard/x.xml
+NOT FOUND: Libri
+UI hierchary dumped to: /sdcard/x.xml
+NOT FOUND: Oggi
+UI hierchary dumped to: /sdcard/x.xml
+NOT FOUND: Indietro
+UI hierchary dumped to: /sdcard/x.xml
+NOT FOUND: Radio
+UI hierchary dumped to: /sdcard/x.xml
+NOT FOUND: Giochi e libri
+UI hierchary dumped to: /sdcard/x.xml
+NOT FOUND: Giochi
+UI hierchary dumped to: /sdcard/x.xml
+NOT FOUND: Sudoku medio
+UI hierchary dumped to: /sdcard/x.xml
+done

@@ -1,0 +1,200 @@
+11-22 18:01:24.906  3694  3694 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:01:24.910  3694  3694 I AndroidRuntime: Using default boot image
+11-22 18:01:24.912  3694  3694 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:01:25.515  3694  3694 D AndroidRuntime: Calling main entry com.android.commands.monkey.Monkey
+11-22 18:01:25.516  3694  3694 W Monkey  : args: [-p, it.rimaturus.edikola, -c, android.intent.category.LAUNCHER, 1]
+11-22 18:01:25.516  3694  3694 W Monkey  :  arg: "it.rimaturus.edikola"
+11-22 18:01:25.516  3694  3694 W Monkey  : data="it.rimaturus.edikola"
+11-22 18:01:25.815   521   803 I SdkSandboxManager: No SDKs used. Skipping SDK data reconcilation for CallingInfo{mUid=10192, mPackageName='it.rimaturus.edikola, mAppProcessToken='null'}
+11-22 18:01:26.807   521  2245 V SplashScreenExceptionList: SplashScreen checking exception for package it.rimaturus.edikola (target sdk:35) -> false
+11-22 18:01:26.861   521  2245 I ActivityTaskManager: START u0 {act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 cmp=it.rimaturus.edikola/.MainActivity} with LAUNCH_SINGLE_TASK from uid 2000 (BAL_ALLOW_PERMISSION) result code=0
+11-22 18:01:26.897   833   868 V WindowManagerShell: Transition requested: android.os.BinderProxy@398455f TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=8 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 cmp=it.rimaturus.edikola/.MainActivity } baseActivity=ComponentInfo{it.rimaturus.edikola/it.rimaturus.edikola.MainActivity} topActivity=ComponentInfo{it.rimaturus.edikola/it.rimaturus.edikola.MainActivity} origActivity=null realActivity=ComponentInfo{it.rimaturus.edikola/it.rimaturus.edikola.MainActivity} numActivities=1 lastActiveTime=59664 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@372abac} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=Rect(0, 128 - 0, 0) topActivityInfo=ActivityInfo{b29b075 it.rimaturus.edikola.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+11-22 18:01:27.042   521  2025 D CoreBackPreview: Window{1568495 u0 Splash Screen it.rimaturus.edikola}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@c64199b, mPriority=0, mIsAnimationCallback=false}
+11-22 18:01:27.075  1047  1047 D CarrierSvcBindHelper: onPackageAdded: it.rimaturus.edikola
+11-22 18:01:27.123  1047  1336 D ImsResolver: maybeAddedImsService, packageName: it.rimaturus.edikola
+11-22 18:01:27.168  3694  3694 I AndroidRuntime: VM exiting with result code 0.
+11-22 18:01:27.168   521   549 I ActivityManager: Start proc 3795:it.rimaturus.edikola/u0a192 for next-top-activity {it.rimaturus.edikola/it.rimaturus.edikola.MainActivity}
+11-22 18:01:27.682   521   538 V WindowManager: Sent Transition #8 createdAt=11-22 18:01:26.795 via request=TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=8 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 cmp=it.rimaturus.edikola/.MainActivity } baseActivity=ComponentInfo{it.rimaturus.edikola/it.rimaturus.edikola.MainActivity} topActivity=ComponentInfo{it.rimaturus.edikola/it.rimaturus.edikola.MainActivity} origActivity=null realActivity=ComponentInfo{it.rimaturus.edikola/it.rimaturus.edikola.MainActivity} numActivities=1 lastActiveTime=59664 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{1191806 Task{54a4825 #8 type=standard A=10192:it.rimaturus.edikola}}} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=Rect(0, 128 - 0, 0) topActivityInfo=ActivityInfo{7a53ec7 it.rimaturus.edikola.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+11-22 18:01:27.683   521   538 V WindowManager:     info={id=8 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{RemoteToken{1191806 Task{54a4825 #8 type=standard A=10192:it.rimaturus.edikola}}} m=OPEN f=NONE leash=Surface(name=Task=8)/@0x14540e7 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0},{WCT{RemoteToken{f668cf4 Task{1bf6b7c #1 type=home}}} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0x7d1ea51 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0}]}
+11-22 18:01:28.062  3795  3795 D nativeloader: Configuring clns-6 for other apk /data/app/~~BD4SrwSeRMowDNRr4cw2JQ==/it.rimaturus.edikola-jLq2W5UyxAbo1bLDwJX3SQ==/base.apk. target_sdk_version=35, uses_libraries=, library_path=/data/app/~~BD4SrwSeRMowDNRr4cw2JQ==/it.rimaturus.edikola-jLq2W5UyxAbo1bLDwJX3SQ==/lib/arm64:/data/app/~~BD4SrwSeRMowDNRr4cw2JQ==/it.rimaturus.edikola-jLq2W5UyxAbo1bLDwJX3SQ==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand:/data/user/0/it.rimaturus.edikola
+11-22 18:01:28.109  3795  3795 V GraphicsEnvironment: ANGLE GameManagerService for it.rimaturus.edikola: false
+11-22 18:01:28.109  3795  3795 V GraphicsEnvironment: it.rimaturus.edikola is not listed in per-application setting
+11-22 18:01:28.302  1047  1047 D CarrierSvcBindHelper: onPackageModified: it.rimaturus.edikola
+11-22 18:01:28.306  1047  1336 D ImsResolver: maybeAddedImsService, packageName: it.rimaturus.edikola
+11-22 18:01:28.639   521  2217 D CoreBackPreview: Window{5d0eee3 u0 it.rimaturus.edikola/it.rimaturus.edikola.MainActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@ddb477d, mPriority=0, mIsAnimationCallback=false}
+11-22 18:01:29.687   834   834 I SafetyLabelChangedBroadcastReceiver: received broadcast packageName: it.rimaturus.edikola, current user: UserHandle{0}, packageChangeEvent: NEW_INSTALL, intent user: UserHandle{0}
+11-22 18:01:30.226   521   538 W system_server: Failed to determine oat file name for dex location /data/app/~~BD4SrwSeRMowDNRr4cw2JQ==/it.rimaturus.edikola-jLq2W5UyxAbo1bLDwJX3SQ==/base.apk: Dalvik cache directory does not exist
+11-22 18:01:30.226   521   538 W ziparchive: Unable to open '/data/app/~~BD4SrwSeRMowDNRr4cw2JQ==/it.rimaturus.edikola-jLq2W5UyxAbo1bLDwJX3SQ==/base.dm': No such file or directory
+11-22 18:01:30.227   521   538 I ActivityTaskManager: Displayed it.rimaturus.edikola/.MainActivity for user 0: +3s570ms
+11-22 18:01:30.540   521  1704 D CoreBackPreview: Window{1568495 u0 Splash Screen it.rimaturus.edikola EXITING}: Setting back callback null
+11-22 18:01:30.540   521  2290 W InputManager-JNI: Input channel object '1568495 Splash Screen it.rimaturus.edikola (client)' was disposed without first being removed with the input manager!
+11-22 18:01:31.085   521  2025 E JobScheduler.JobStatus: App it.rimaturus.edikola became active but still in NEVER bucket
+11-22 18:01:31.675  1663  1663 I AiAiEcho: AppFetcherImplV2 updateApps package:[it.rimaturus.edikola], userId:[0], reason:[package is added.].
+11-22 18:01:32.346  1663  1663 I AiAiEcho: AppFetcherImpl onPackageChanged it.rimaturus.edikola.
+11-22 18:01:32.348  1663  2664 I AiAiEcho: AppIndexer Package:[it.rimaturus.edikola] UserProfile:[0] Enabled:[true].
+11-22 18:01:32.349  1663  2664 I AiAiEcho: AppFetcherImplV2 updateApps package:[it.rimaturus.edikola], userId:[0], reason:[package is updated.].
+11-22 18:01:34.156  3795  4342 D ProfileInstaller: Installing profile for it.rimaturus.edikola
+11-22 18:01:42.776  4695  4695 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:01:42.822  4695  4695 I AndroidRuntime: Using default boot image
+11-22 18:01:42.822  4695  4695 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:01:43.215  4695  4695 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:01:44.687  4695  4695 D AndroidRuntime: Shutting down VM
+11-22 18:01:45.077  1454  4651 I BlockstoreStorage: Clearing Blockstore Data for package it.rimaturus.edikola [CONTEXT service_id=258 ]
+11-22 18:01:46.594   521   592 I ImeTracker: it.rimaturus.edikola:411c95a1: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_UNSPECIFIED_WINDOW
+11-22 18:01:46.598   521   592 I ImeTracker: it.rimaturus.edikola:411c95a1: onCancelled at PHASE_SERVER_SHOULD_HIDE
+11-22 18:01:46.656  1551  1551 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=it.rimaturus.edikola fieldId=0 fieldName=null extras=null}, false)
+11-22 18:01:47.943  4808  4808 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:01:47.947  4808  4808 I AndroidRuntime: Using default boot image
+11-22 18:01:47.947  4808  4808 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:01:48.239  4808  4808 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:01:49.693  4808  4808 D AndroidRuntime: Shutting down VM
+11-22 18:01:52.371  4941  4941 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:01:52.377  4941  4941 I AndroidRuntime: Using default boot image
+11-22 18:01:52.377  4941  4941 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:01:52.579  4941  4941 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:01:54.249  4941  4941 D AndroidRuntime: Shutting down VM
+11-22 18:01:55.402   521  2285 I ImeTracker: it.rimaturus.edikola:ad9951a1: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_SAME_WINDOW_FOCUSED_WITHOUT_EDITOR
+11-22 18:01:55.402   521  2285 I ImeTracker: it.rimaturus.edikola:ad9951a1: onCancelled at PHASE_SERVER_SHOULD_HIDE
+11-22 18:01:55.405  1551  1551 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=it.rimaturus.edikola fieldId=0 fieldName=null extras=null}, false)
+11-22 18:01:57.453  5116  5116 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:01:57.459  5116  5116 I AndroidRuntime: Using default boot image
+11-22 18:01:57.460  5116  5116 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:01:57.664  5116  5116 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:01:58.814  5116  5116 D AndroidRuntime: Shutting down VM
+11-22 18:02:00.862  5178  5178 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:02:00.867  5178  5178 I AndroidRuntime: Using default boot image
+11-22 18:02:00.867  5178  5178 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:02:01.005  5178  5178 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:02:02.043  5178  5178 D AndroidRuntime: Shutting down VM
+11-22 18:02:03.149   521  1954 I ImeTracker: it.rimaturus.edikola:7e5bee0f: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_SAME_WINDOW_FOCUSED_WITHOUT_EDITOR
+11-22 18:02:03.149   521  1954 I ImeTracker: it.rimaturus.edikola:7e5bee0f: onCancelled at PHASE_SERVER_SHOULD_HIDE
+11-22 18:02:03.150  1551  1551 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=it.rimaturus.edikola fieldId=0 fieldName=null extras=null}, false)
+11-22 18:02:05.217  5270  5270 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:02:05.222  5270  5270 I AndroidRuntime: Using default boot image
+11-22 18:02:05.222  5270  5270 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:02:05.352  5270  5270 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:02:06.398  5270  5270 D AndroidRuntime: Shutting down VM
+11-22 18:02:08.488  5326  5326 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:02:08.496  5326  5326 I AndroidRuntime: Using default boot image
+11-22 18:02:08.497  5326  5326 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:02:08.643  5326  5326 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:02:09.870  5326  5326 D AndroidRuntime: Shutting down VM
+11-22 18:02:11.122   521  2285 I ImeTracker: it.rimaturus.edikola:d743709b: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_SAME_WINDOW_FOCUSED_WITHOUT_EDITOR
+11-22 18:02:11.122   521  2285 I ImeTracker: it.rimaturus.edikola:d743709b: onCancelled at PHASE_SERVER_SHOULD_HIDE
+11-22 18:02:11.130  1551  1551 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=it.rimaturus.edikola fieldId=0 fieldName=null extras=null}, false)
+11-22 18:02:13.404  5427  5427 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:02:13.433  5427  5427 I AndroidRuntime: Using default boot image
+11-22 18:02:13.434  5427  5427 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:02:14.075  5427  5427 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:02:15.344  5427  5427 D AndroidRuntime: Shutting down VM
+11-22 18:02:17.561  5516  5516 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:02:17.578  5516  5516 I AndroidRuntime: Using default boot image
+11-22 18:02:17.579  5516  5516 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:02:17.724  5516  5516 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:02:18.828  5516  5516 D AndroidRuntime: Shutting down VM
+11-22 18:02:19.874   521  2264 I ImeTracker: it.rimaturus.edikola:9bfe856b: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_SAME_WINDOW_FOCUSED_WITHOUT_EDITOR
+11-22 18:02:19.874   521  2264 I ImeTracker: it.rimaturus.edikola:9bfe856b: onCancelled at PHASE_SERVER_SHOULD_HIDE
+11-22 18:02:19.883  1551  1551 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=it.rimaturus.edikola fieldId=0 fieldName=null extras=null}, false)
+11-22 18:02:21.919  5615  5615 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:02:21.925  5615  5615 I AndroidRuntime: Using default boot image
+11-22 18:02:21.925  5615  5615 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:02:22.092  5615  5615 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:02:23.160  5615  5615 D AndroidRuntime: Shutting down VM
+11-22 18:02:25.217  5765  5765 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:02:25.222  5765  5765 I AndroidRuntime: Using default boot image
+11-22 18:02:25.222  5765  5765 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:02:25.351  5765  5765 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:02:26.533  5765  5765 D AndroidRuntime: Shutting down VM
+11-22 18:02:27.545   521  1704 I ImeTracker: it.rimaturus.edikola:d3b96773: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_SAME_WINDOW_FOCUSED_WITHOUT_EDITOR
+11-22 18:02:27.545   521  1704 I ImeTracker: it.rimaturus.edikola:d3b96773: onCancelled at PHASE_SERVER_SHOULD_HIDE
+11-22 18:02:27.547  1551  1551 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=it.rimaturus.edikola fieldId=0 fieldName=null extras=null}, false)
+11-22 18:02:29.560  6053  6053 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:02:29.563  6053  6053 I AndroidRuntime: Using default boot image
+11-22 18:02:29.565  6053  6053 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:02:29.717  6053  6053 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:02:30.789  6053  6053 D AndroidRuntime: Shutting down VM
+11-22 18:02:32.989  6189  6189 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:02:32.995  6189  6189 I AndroidRuntime: Using default boot image
+11-22 18:02:32.995  6189  6189 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:02:33.105  6189  6189 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:02:34.202  6189  6189 D AndroidRuntime: Shutting down VM
+11-22 18:02:35.328   521   952 I ImeTracker: it.rimaturus.edikola:bbe32db1: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_SAME_WINDOW_FOCUSED_WITHOUT_EDITOR
+11-22 18:02:35.329   521   952 I ImeTracker: it.rimaturus.edikola:bbe32db1: onCancelled at PHASE_SERVER_SHOULD_HIDE
+11-22 18:02:35.331  1551  1551 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=it.rimaturus.edikola fieldId=0 fieldName=null extras=null}, false)
+11-22 18:02:37.389  6226  6226 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:02:37.406  6226  6226 I AndroidRuntime: Using default boot image
+11-22 18:02:37.406  6226  6226 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:02:37.589  6226  6226 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:02:38.638  6226  6226 D AndroidRuntime: Shutting down VM
+11-22 18:02:40.692  6253  6253 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:02:40.696  6253  6253 I AndroidRuntime: Using default boot image
+11-22 18:02:40.696  6253  6253 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:02:40.811  6253  6253 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:02:41.845  6253  6253 D AndroidRuntime: Shutting down VM
+11-22 18:02:42.900   521  2242 I ImeTracker: it.rimaturus.edikola:e93342fd: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_SAME_WINDOW_FOCUSED_WITHOUT_EDITOR
+11-22 18:02:42.900   521  2242 I ImeTracker: it.rimaturus.edikola:e93342fd: onCancelled at PHASE_SERVER_SHOULD_HIDE
+11-22 18:02:42.914  1551  1551 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=it.rimaturus.edikola fieldId=0 fieldName=null extras=null}, false)
+11-22 18:02:44.822  6325  6325 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:02:44.828  6325  6325 I AndroidRuntime: Using default boot image
+11-22 18:02:44.828  6325  6325 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:02:44.937  6325  6325 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:02:45.994  6325  6325 D AndroidRuntime: Shutting down VM
+11-22 18:02:48.206  6377  6377 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:02:48.211  6377  6377 I AndroidRuntime: Using default boot image
+11-22 18:02:48.211  6377  6377 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:02:48.325  6377  6377 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:02:49.373  6377  6377 D AndroidRuntime: Shutting down VM
+11-22 18:02:50.384   521  2245 I ImeTracker: it.rimaturus.edikola:79f2c977: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_SAME_WINDOW_FOCUSED_WITHOUT_EDITOR
+11-22 18:02:50.385   521  2245 I ImeTracker: it.rimaturus.edikola:79f2c977: onCancelled at PHASE_SERVER_SHOULD_HIDE
+11-22 18:02:50.386  1551  1551 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=it.rimaturus.edikola fieldId=0 fieldName=null extras=null}, false)
+11-22 18:02:52.360  6419  6419 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:02:52.363  6419  6419 I AndroidRuntime: Using default boot image
+11-22 18:02:52.363  6419  6419 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:02:52.444  6419  6419 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:02:53.489  6419  6419 D AndroidRuntime: Shutting down VM
+11-22 18:02:55.585  6443  6443 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:02:55.590  6443  6443 I AndroidRuntime: Using default boot image
+11-22 18:02:55.590  6443  6443 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:02:55.733  6443  6443 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:02:56.752  6443  6443 D AndroidRuntime: Shutting down VM
+11-22 18:02:57.714   521  2049 I ImeTracker: it.rimaturus.edikola:849107d3: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_SAME_WINDOW_FOCUSED_WITHOUT_EDITOR
+11-22 18:02:57.714   521  2049 I ImeTracker: it.rimaturus.edikola:849107d3: onCancelled at PHASE_SERVER_SHOULD_HIDE
+11-22 18:02:57.716  1551  1551 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=it.rimaturus.edikola fieldId=0 fieldName=null extras=null}, false)
+11-22 18:02:59.696  6465  6465 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:02:59.700  6465  6465 I AndroidRuntime: Using default boot image
+11-22 18:02:59.700  6465  6465 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:02:59.780  6465  6465 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:03:00.841  6465  6465 D AndroidRuntime: Shutting down VM
+11-22 18:03:02.946  6489  6489 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:03:02.967  6489  6489 I AndroidRuntime: Using default boot image
+11-22 18:03:02.967  6489  6489 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:03:03.084  6489  6489 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:03:04.113  6489  6489 D AndroidRuntime: Shutting down VM
+11-22 18:03:05.061   521  2283 I ImeTracker: it.rimaturus.edikola:55ae4268: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_SAME_WINDOW_FOCUSED_WITHOUT_EDITOR
+11-22 18:03:05.064   521  2283 I ImeTracker: it.rimaturus.edikola:55ae4268: onCancelled at PHASE_SERVER_SHOULD_HIDE
+11-22 18:03:05.065  1551  1551 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=it.rimaturus.edikola fieldId=0 fieldName=null extras=null}, false)
+11-22 18:03:07.034  6522  6522 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:03:07.038  6522  6522 I AndroidRuntime: Using default boot image
+11-22 18:03:07.038  6522  6522 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:03:07.118  6522  6522 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:03:08.149  6522  6522 D AndroidRuntime: Shutting down VM
+11-22 18:03:10.211  6542  6542 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:03:10.217  6542  6542 I AndroidRuntime: Using default boot image
+11-22 18:03:10.217  6542  6542 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:03:10.534  6542  6542 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:03:11.555  6542  6542 D AndroidRuntime: Shutting down VM
+11-22 18:03:12.542   521  2283 I ImeTracker: it.rimaturus.edikola:e070d8fa: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_SAME_WINDOW_FOCUSED_WITHOUT_EDITOR
+11-22 18:03:12.542   521  2283 I ImeTracker: it.rimaturus.edikola:e070d8fa: onCancelled at PHASE_SERVER_SHOULD_HIDE
+11-22 18:03:12.547  1551  1551 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=it.rimaturus.edikola fieldId=0 fieldName=null extras=null}, false)
+11-22 18:03:14.523  6568  6568 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:03:14.527  6568  6568 I AndroidRuntime: Using default boot image
+11-22 18:03:14.527  6568  6568 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:03:14.601  6568  6568 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:03:15.639  6568  6568 D AndroidRuntime: Shutting down VM
+11-22 18:03:17.695  6587  6587 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 18:03:17.724  6587  6587 I AndroidRuntime: Using default boot image
+11-22 18:03:17.724  6587  6587 I AndroidRuntime: Leaving lock profiling enabled
+11-22 18:03:17.878  6587  6587 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 18:03:18.918  6587  6587 D AndroidRuntime: Shutting down VM
+11-22 18:03:19.882   521   601 I ImeTracker: it.rimaturus.edikola:b1b650d0: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_SAME_WINDOW_FOCUSED_WITHOUT_EDITOR
+11-22 18:03:19.882   521   601 I ImeTracker: it.rimaturus.edikola:b1b650d0: onCancelled at PHASE_SERVER_SHOULD_HIDE
