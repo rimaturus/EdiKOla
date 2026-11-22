@@ -146,7 +146,8 @@ fun GameScreen(which: String) {
     LaunchedEffect(renew) {
         InkDoc.rubber.value = false
         val old = GiochiStore.get(which)
-        st = (if (renew == 0 && old?.has("id") == true) old else null) ?: // older versions: a new one withContext(Dispatchers.Default) { make(which, renew > 0) }?.also {
+        // a saved one of older versions (no "id") is replaced by a new one
+        st = (if (renew == 0 && old?.has("id") == true) old else null) ?: withContext(Dispatchers.Default) { make(which, renew > 0) }?.also {
             if (old?.has("id") == true) InkDoc.delete(GiochiStore.ink(which, old))
             GiochiStore.put(which, it)
         }
