@@ -16,7 +16,12 @@ Tre schede: **Oggi**, **Radio**, **Giochi e libri**.
     Prompt API): tutto resta sul telefono. Dove Nano non c'è, li assegnano le parole chiave di `Topics.kt`.
   - **Per giornale**: gli scaffali (Italia, Mondo, Buone notizie, Scienza), ogni giornale con i primi titoli; toccandolo
     si apre la sua edizione, con le cuffie per ascoltarla.
-  L'ingranaggio sceglie i giornali.
+  L'ingranaggio sceglie i giornali. Sezioni: Italia, Mondo, Buone notizie, Scienza, Ingegneria (IEEE Spectrum, Hackaday,
+  EE Times, New Atlas, Elettronica News, Interesting Engineering, Electrek, Tom's Hardware). Preselezionati 21
+  giornali aggiornati ogni giorno: politica, geopolitica ed economia (RaiNews, Il Post, Corriere, Formiche, Startmag,
+  BBC, Guardian, DW, Politico Europe, War on the Rocks), scienza (ANSA Scienza, Guardian Science, Ars Technica,
+  Media Inaf, Quanta), ingegneria (i primi cinque) e una fonte di buone notizie (Reasons to be Cheerful). Quando la
+  preselezione cambia (`CATALOG` in `Catalog.kt`), gli scaffali ripartono da quella nuova.
 - **Lettore**: un articolo per pagina, si passa al successivo scorrendo di lato (o con «Prossima notizia» in fondo),
   nello stesso ordine di Oggi. In alto solo: indietro, «Aa» per la grandezza del testo, le cuffie (ascolta da qui), la
   penna. Una foto toccata si apre a schermo intero con lo zoom.

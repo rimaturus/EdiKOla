@@ -41,7 +41,10 @@ object Repo {
         app = ctx.applicationContext
         prefs = app.getSharedPreferences("edikola", Context.MODE_PRIVATE)
         Store.root = File(app.filesDir, "edicola").apply { mkdirs() }
-        selected.value = prefs.getStringSet("selected", null) ?: PAPERS.filter { it.default }.map { it.id }.toSet()
+        // the preselection of the catalog; shelves chosen with an older catalog start over from the new one
+        selected.value = prefs.getStringSet("selected", null)?.takeIf { prefs.getInt("catalog", 1) >= CATALOG }
+            ?: PAPERS.filter { it.default }.map { it.id }.toSet()
+        prefs.edit().putStringSet("selected", selected.value).putInt("catalog", CATALOG).apply()
         fontSize.value = prefs.getInt("font", 19)
         geminiKey.value = prefs.getString("gemini", "") ?: ""
         scope.launch {

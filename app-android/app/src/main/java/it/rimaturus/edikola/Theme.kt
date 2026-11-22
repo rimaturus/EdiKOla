@@ -21,6 +21,7 @@ class Palette(val dark: Boolean) {
     val mondo = t(0xFF1565C0, 0xFFD6E4F7, 0xFF90CAF9, 0xFF1E2A3A)
     val buone = t(0xFF2E7D32, 0xFFDAEEDB, 0xFFA5D6A7, 0xFF1F3121)
     val scienza = t(0xFF6A1B9A, 0xFFE8D9F1, 0xFFCE93D8, 0xFF2E2236)
+    val ingegneria = t(0xFF455A64, 0xFFDDE3E6, 0xFFB0BEC5, 0xFF263238)
     val ink = t(0xFF1C2E4A, 0xFFDCE3EE, 0xFFB5C7E3, 0xFF222A36)
     val giochi = t(0xFFD84315, 0xFFFBE0D3, 0xFFFFAB91, 0xFF3A2620)
     val sudoku = t(0xFF00695C, 0xFFD3ECE8, 0xFF80CBC4, 0xFF1C302D)
@@ -32,7 +33,7 @@ class Palette(val dark: Boolean) {
     val found = if (dark) listOf(0xFF6D5A1E, 0xFF2E5530, 0xFF27496D, 0xFF6A2F45, 0xFF6B4A1E, 0xFF4E2E5A, 0xFF1F5450, 0xFF55581F).map { Color(it) }
         else listOf(0xFFFFE082, 0xFFA5D6A7, 0xFF90CAF9, 0xFFF48FB1, 0xFFFFCC80, 0xFFCE93D8, 0xFF80CBC4, 0xFFE6EE9C).map { Color(it) }
 
-    fun section(id: String) = when (id) { "italia" -> italia; "mondo" -> mondo; "buone" -> buone; else -> scienza }
+    fun section(id: String) = when (id) { "italia" -> italia; "mondo" -> mondo; "buone" -> buone; "ingegneria" -> ingegneria; else -> scienza }
 
     fun topic(name: String): Color = when (name) {
         "Politica" -> italia.strong
