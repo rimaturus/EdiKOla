@@ -4,6 +4,7 @@ import android.content.Intent
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Bundle
+import kotlinx.coroutines.launch
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -41,7 +42,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        Notizie.refresh() // the model sorts only while EdiKOla is on screen: what it missed, it does now
+        // Nano may have arrived since (downloaded, configured); the model sorts only while EdiKOla is on screen
+        Repo.scope.launch { Llm.prepare(); Notizie.refresh() }
     }
 
     override fun onNewIntent(intent: Intent) {

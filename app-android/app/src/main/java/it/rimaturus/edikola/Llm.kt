@@ -5,10 +5,14 @@
 // callers fall back to what EdiKOla does by itself (keywords, the round-up written from templates).
 package it.rimaturus.edikola
 
+import com.google.mlkit.genai.common.DownloadStatus
 import com.google.mlkit.genai.common.FeatureStatus
 import com.google.mlkit.genai.prompt.Generation
 import com.google.mlkit.genai.prompt.GenerativeModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -18,17 +22,40 @@ import java.net.URL
 object Llm {
     private var nano: GenerativeModel? = null
     @Volatile private var nanoOk = false
+    private val checking = Mutex()
+    /** What Android says about Nano, in words, for the settings */
+    val nanoState = MutableStateFlow("Controllo Gemini Nano…")
 
-    /** At start: is Nano on the phone? If it can be downloaded, the system downloads it (once, in the background). */
-    suspend fun prepare() {
+    /** Is Nano on the phone? Asked at start and every time EdiKOla comes back on screen, until it is.
+     *  If it can be downloaded, the system downloads it (once): the state shows how far it got. */
+    suspend fun prepare() = checking.withLock {
+        if (nanoOk) return@withLock
         try {
             val m = nano ?: Generation.getClient().also { nano = it }
-            when (m.checkStatus()) {
+            when (val st = m.checkStatus()) {
                 FeatureStatus.AVAILABLE -> nanoOk = true
-                FeatureStatus.DOWNLOADABLE -> { m.download().collect { }; nanoOk = m.checkStatus() == FeatureStatus.AVAILABLE }
-                else -> {}
+                FeatureStatus.DOWNLOADABLE, FeatureStatus.DOWNLOADING -> {
+                    nanoState.value = "Android sta scaricando Gemini Nano…"
+                    m.download().collect { d ->
+                        when (d) {
+                            is DownloadStatus.DownloadProgress ->
+                                nanoState.value = "Android sta scaricando Gemini Nano: ${d.totalBytesDownloaded / 1_000_000} MB"
+                            is DownloadStatus.DownloadFailed ->
+                                nanoState.value = "Download di Gemini Nano non riuscito: ${d.e.message}"
+                            else -> {}
+                        }
+                    }
+                    nanoOk = m.checkStatus() == FeatureStatus.AVAILABLE
+                }
+                FeatureStatus.UNAVAILABLE -> nanoState.value = "Android risponde che Gemini Nano non è disponibile per le app " +
+                    "su questo telefono (UNAVAILABLE). Succede anche quando AICore non ha ancora ricevuto la configurazione: " +
+                    "riavvia il telefono e riprova più tardi."
+                else -> nanoState.value = "Stato di Gemini Nano sconosciuto ($st)."
             }
-        } catch (e: Throwable) { /* no AICore on this phone */ }
+        } catch (e: Throwable) {
+            nanoState.value = "AICore ha risposto con un errore: ${e.message ?: e.javaClass.simpleName}"
+        }
+        if (nanoOk) nanoState.value = "Gemini Nano è pronto: radio e argomenti si scrivono sul telefono, anche offline."
     }
 
     /** Who answers, for the screens: "Gemini Nano", "Gemini", or null */
@@ -39,7 +66,9 @@ object Llm {
         if (nanoOk) try {
             val t = nano!!.generateContent(prompt).candidates.firstOrNull()?.text?.trim()
             if (!t.isNullOrEmpty()) return t
-        } catch (e: Throwable) { /* busy, quota, background: try the next way */ }
+        } catch (e: Throwable) {
+            nanoState.value = "Gemini Nano è pronto, ma l'ultima risposta non è riuscita: ${e.message ?: e.javaClass.simpleName}"
+        }
         val key = Repo.geminiKey.value
         return if (key.isNotEmpty()) withContext(Dispatchers.IO) { online(key, prompt) } else null
     }

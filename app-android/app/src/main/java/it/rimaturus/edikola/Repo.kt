@@ -49,7 +49,6 @@ object Repo {
             Notizie.refresh()
             if (todays().isEmpty()) update(PAPERS.filter { it.id in selected.value }) // the first opening of the day
         }
-        scope.launch { Llm.prepare(); Notizie.refresh() }
     }
 
     fun paper(id: String) = PAPERS.first { it.id == id }

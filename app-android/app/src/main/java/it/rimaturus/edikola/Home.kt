@@ -72,6 +72,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -349,13 +350,16 @@ fun CatalogScreen() {
                 Card(Modifier.padding(12.dp), shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
                     Column(Modifier.padding(14.dp)) {
+                        val nanoState by Llm.nanoState.collectAsState()
+                        val nanoReady = nanoState.startsWith("Gemini Nano è pronto")
                         Text("Radio e argomenti", style = MaterialTheme.typography.titleMedium)
-                        Text(if (Llm.who() == "Gemini Nano") "Li scrive Gemini Nano, il modello dentro il telefono: tutto resta qui, anche offline."
-                            else "Gemini Nano non è disponibile su questo telefono. Con una chiave gratuita di Google AI Studio " +
-                                "li scrive Gemini online (le notizie di oggi vanno a Google, la voce resta sul telefono); " +
-                                "senza, li scrive EdiKOla in modo più semplice.",
+                        Text(nanoState, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        if (!nanoReady) TextButton(onClick = { Repo.scope.launch { Llm.prepare(); Notizie.refresh() } },
+                            contentPadding = PaddingValues(0.dp)) { Text("Riprova") }
+                        if (!nanoReady) Text("Intanto, con una chiave gratuita di Google AI Studio li scrive Gemini online (le notizie " +
+                            "di oggi vanno a Google, la voce resta sul telefono); senza, li scrive EdiKOla in modo più semplice.",
                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        if (Llm.who() != "Gemini Nano") {
+                        if (!nanoReady) {
                             Spacer(Modifier.height(8.dp))
                             OutlinedTextField(draft, { draft = it }, Modifier.fillMaxWidth(), singleLine = true,
                                 label = { Text("Chiave API di Gemini (facoltativa)") },
