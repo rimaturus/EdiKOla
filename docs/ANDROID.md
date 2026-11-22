@@ -6,33 +6,46 @@ volume che girano pagina, notte = colori invertiti, niente audio in background).
 
 ## Cosa fa
 
-- **Edicola**: gli scaffali Italia, Mondo, Buone notizie, Scienza; ogni giornale con la prima pagina di oggi
-  (titolo e foto). **Aggiorna** (in alto) scarica tutti i giornali scelti, 6 alla volta; un giornale mai
-  scaricato si scarica toccandolo. **Ingranaggio**: scegli i giornali (lo stesso catalogo di `giornali.lua`).
-- **Lettore**: articoli puliti (solo testo e foto), A− A+, articolo precedente e successivo, una foto toccata
-  si apre a schermo intero con lo zoom.
-- **Sommario**: le notizie di oggi di tutti i giornali, per argomento; quelle inglesi con titolo e riassunto in
-  italiano.
-- **Ascolta**: legge il giornale ad alta voce come un audiolibro, tutto sul telefono (sherpa-onnx con le voci
-  Piper Paola per l'italiano e Alba per l'inglese, scelte articolo per articolo). Suona come un contenuto
-  multimediale: altoparlante, tasti del volume, controlli nella notifica e sulla schermata di blocco, continua a
-  schermo spento e in altre app, si ferma per una chiamata o se stacchi le cuffie. Dal lettore, **▶** legge
-  dall'articolo aperto.
-- **Il podcast di oggi** (in cima al Sommario): scegli la durata (5, 10, 15, 20 o 30 minuti) e Giulia e Marco ti
-  raccontano le notizie del giorno, una conversazione a due voci (Paola e Riccardo). Senza configurare niente lo
-  scrive EdiKOla: le notizie riportate da più giornali per prime, argomento per argomento, quante ne stanno nel
-  tempo. Con una chiave gratuita di Gemini (Google AI Studio, nell'ingranaggio) lo scrive Gemini, come le audio
-  overview di NotebookLM: spiega, collega, commenta, sempre e solo dalle notizie di oggi. Le notizie in quel caso
-  vanno a Google; la voce resta sul telefono. Se Gemini non risponde (quota finita, offline) lo scrive EdiKOla.
-- **Giochi** (La Settimana di EdiKOla): cruciverba del giorno con le definizioni dai titoli di oggi,
-  crucipuzzle con la chiave, sudoku facile, medio, difficile. Ogni mossa è salvata.
-- **Libri**: EPUB e PDF, da **Aggiungi** o condivisi da un'altra app (LocalSend, browser, posta). L'EPUB si
-  legge come gli articoli, il PDF pagina per pagina (due dita per lo zoom). Riprende dove eri rimasto.
-- **Penna** (S Pen o altro pennino): scrive direttamente su articoli, libri e PDF; le dita scorrono e toccano
-  come sempre. Gommino o tasto della penna cancellano il tratto, la pressione ingrossa la linea. La matita in
-  alto: colore, annulla, cancella gli appunti.
-- **Luminosità**: quella di sistema. **Tema scuro**: segue quello di Android. Caratteri: Playfair Display per le
-  testate e i titoli, Literata (pensato per leggere sullo schermo) per il testo.
+Tre schede: **Oggi**, **Radio**, **Giochi e libri**.
+
+- **Oggi**, all'apertura del giorno si aggiorna da solo (poi con ↻ in alto). Due viste:
+  - **Per argomento**: la stessa notizia raccontata da più giornali compare una volta sola. In cima **In primo piano**,
+    la notizia riportata da più giornali (non più la prima scaricata), poi **Le notizie del giorno** (le altre che
+    escono su più testate) e un argomento dopo l'altro (Politica, Economia e lavoro, Esteri…), con «Altre N notizie».
+    Gli argomenti li assegna **Gemini Nano**, il modello linguistico dentro il telefono (Galaxy S25 e simili, ML Kit
+    Prompt API): tutto resta sul telefono. Dove Nano non c'è, li assegnano le parole chiave di `Topics.kt`.
+  - **Per giornale**: gli scaffali (Italia, Mondo, Buone notizie, Scienza), ogni giornale con i primi titoli; toccandolo
+    si apre la sua edizione, con le cuffie per ascoltarla.
+  L'ingranaggio sceglie i giornali.
+- **Lettore**: un articolo per pagina, si passa al successivo scorrendo di lato (o con «Prossima notizia» in fondo),
+  nello stesso ordine di Oggi. In alto solo: indietro, «Aa» per la grandezza del testo, le cuffie (ascolta da qui), la
+  penna. Una foto toccata si apre a schermo intero con lo zoom.
+- **Radio EdiKOla**: Giulia e Marco raccontano le notizie di oggi come un programma radiofonico: sigla, apertura con le
+  notizie principali, la notizia d'apertura, poi un argomento dopo l'altro (uno stacco musicale a ogni cambio), per
+  ogni notizia un botta e risposta con domande, contesto e un commento, i saluti e la sigla. Durata 5–30 minuti. La
+  scrive Gemini Nano sul telefono, una notizia alla volta mentre la precedente è già in onda, solo con i fatti degli
+  articoli; sullo schermo si legge la battuta che stanno dicendo. Nano risponde solo con EdiKOla aperta: se esci
+  dall'app, le notizie che mancano le scrive EdiKOla (più semplici) e la radio va avanti. Senza Nano: Gemini online con
+  una chiave gratuita (ingranaggio), altrimenti EdiKOla. Le voci sono sul telefono (sherpa-onnx, Piper: Paola per
+  Giulia, Riccardo per Marco). Sigla e stacchi sono generati dall'app.
+- **Leggimi le notizie** (nella scheda Radio): gli articoli di oggi interi, uno dopo l'altro, come un audiolibro
+  (Paola in italiano, Alba per l'inglese). Suona come un contenuto multimediale: tasti del volume, controlli nella
+  notifica e sulla schermata di blocco, continua a schermo spento.
+- **Parole inglesi**: le voci italiane le dicono all'italiana, «Nature» come «nèiciur» e non «natùre», «Google» come
+  «gùgol». `app/src/main/assets/inglese.tsv` (circa 20.000 parole inglesi rare in italiano, ciascuna riscritta come la
+  legge un italiano) è generato da `tools/pronuncia.py` a partire da CMUdict; le sigle in maiuscolo restano come sono.
+- **Giochi** (La Settimana di EdiKOla): cruciverba del giorno con le definizioni dai titoli di oggi, crucipuzzle,
+  sudoku facile, medio, difficile. Come sulla rivista: lo schema e le definizioni, e si scrive sullo schema con la penna
+  o con il dito. Il tratto resta tratto: niente riconoscimento delle lettere, niente controlli, niente soluzioni.
+  Penna/Gomma, Annulla, Cancella; il gommino della S Pen cancella sempre. «Nuovo» cambia schema.
+- **Libri**: EPUB e PDF, da **Aggiungi** o condivisi da un'altra app (LocalSend, browser, posta). Riprende dove eri.
+- **Penna** (S Pen): scrive anche su articoli, libri e PDF; lì le dita scorrono e toccano come sempre.
+- **Foto**: stanno nella memoria privata dell'app (la galleria non le vede) e a ogni aggiornamento restano solo quelle
+  dell'ultima edizione; quelle di un giornale tolto dagli scaffali spariscono al primo aggiornamento.
+  Se in galleria vedi ancora foto di giornali, vengono dal vecchio EdiKOla dentro KOReader (cartella `KoNewspaper`):
+  disinstalla KOReader dal telefono e cancella quella cartella.
+- **Luminosità** di sistema, **tema scuro** quello di Android. Caratteri: Playfair Display per le testate e i titoli,
+  Literata per il testo.
 
 ## Installare
 
@@ -43,12 +56,14 @@ Dal telefono apri https://github.com/rimaturus/EdiKOla/releases/tag/android-late
 ## Come si compila
 
 GitHub Actions (`.github/workflows/android.yml`) a ogni push su `Android` che tocca `app-android/`:
+Lo stesso workflow gira sui branch `android-*` (prove): compila e prova sull'emulatore senza pubblicare l'APK.
+
 1. `app-android/fetch-native.sh` scarica (SHA-256 fissati) sherpa-onnx v1.13.6 per Android e le due voci
    (int8, circa 18 MB l'una) con i dati di espeak-ng solo per italiano e inglese;
-2. `gradle assembleRelease` (AGP 8.7, Kotlin 2.1, Compose BOM 2024.12, media3 1.5, jsoup, coil);
+2. `gradle assembleRelease` (AGP 8.7, Kotlin 2.3, Compose BOM 2024.12, media3 1.5, jsoup, coil, ML Kit GenAI Prompt);
 3. pubblica l'APK nella pre-release `android-latest`;
-4. prova l'app su un emulatore Pixel 6 (`app-android/ci-smoke.sh`): aggiorna i giornali, fa partire Ascolta,
-   apre un articolo, i giochi, i libri, il tema scuro; screenshot, albero dell'interfaccia e log finiscono nel
+4. prova l'app su un emulatore Pixel 6 (`app-android/ci-smoke.sh`): Oggi nelle due viste, il lettore, la radio (sull'emulatore
+   senza Nano, quindi scritta da EdiKOla), Leggimi le notizie, i giochi scritti col dito, i libri, il tema scuro; screenshot, albero dell'interfaccia e log finiscono nel
    branch `ci-report` insieme al log della compilazione.
 
 In locale: `sh app-android/fetch-native.sh`, poi apri `app-android/` con Android Studio.
@@ -60,14 +75,17 @@ installino sopra. Per una chiave tua: secret `EDIKOLA_KEYSTORE` (percorso) e `ED
 
 | File | |
 |---|---|
-| `Catalog.kt`, `Topics.kt`, `ParoleData.kt` | catalogo, argomenti del Sommario, parole dei giochi (da `giornali.lua`, `knp_topics.lua`, `knp_parole.lua`) |
+| `Catalog.kt`, `Topics.kt`, `ParoleData.kt` | catalogo, argomenti a parole chiave, parole dei giochi (da `giornali.lua`, `knp_topics.lua`, `knp_parole.lua`) |
 | `Extract.kt` | RSS/Atom e estrazione dell'articolo (port di `knp_extract.lua`, con jsoup) |
-| `Store.kt`, `Repo.kt` | download, cache degli articoli, edizioni (JSON per giornale e giorno, ultime 3), stato dell'app |
-| `Testo.kt`, `Ascolta.kt` | lingua per articolo, pezzi da leggere, WAV; voci sherpa-onnx e `AscoltaService` (media3) |
-| `Podcast.kt` | il podcast: notizie raggruppate per storia, copione di Gemini o scritto in locale, battute alle due voci |
-| `Giochi.kt`, `GiochiUi.kt` | generatori (port di `knp_sudoku`, `knp_crucipuzzle`, `knp_cruciverba`) e schermate |
-| `Libri.kt`, `Reader.kt`, `Ink.kt` | libri EPUB/PDF, lettore, penna |
-| `Home.kt`, `Player.kt`, `Theme.kt`, `MainActivity.kt` | schermate e colori (chiari e scuri) |
+| `Store.kt`, `Repo.kt` | download, cache degli articoli, edizione (JSON per giornale, solo l'ultima), stato dell'app |
+| `Notizie.kt` | le storie di oggi: articoli uguali di giornali diversi insieme, ordine d'importanza, argomenti |
+| `Llm.kt` | il modello linguistico: Gemini Nano (ML Kit Prompt API), o Gemini online con la chiave |
+| `Radio.kt` | Radio EdiKOla: scaletta, battute scritte dal modello (o da EdiKOla), sigle |
+| `Testo.kt`, `Ascolta.kt`, `Pronuncia.kt` | pezzi da leggere, WAV e sigle; voci sherpa-onnx e `AscoltaService` (media3); parole inglesi all'italiana |
+| `Giochi.kt`, `GiochiUi.kt` | generatori (port di `knp_sudoku`, `knp_crucipuzzle`, `knp_cruciverba`) e schemi da scrivere |
+| `Libri.kt`, `Reader.kt`, `Ink.kt` | libri EPUB/PDF, lettore a pagine, penna |
+| `Home.kt`, `Player.kt`, `Theme.kt`, `MainActivity.kt` | Oggi, Radio, Giochi e libri, impostazioni; colori (chiari e scuri) |
+| `tools/pronuncia.py` | genera `assets/inglese.tsv` (CMUdict, BSD; scelta delle parole con le frequenze di FrequencyWords/OpenSubtitles) |
 | `com/k2fsa/sherpa/onnx/Tts.kt` | API Kotlin di sherpa-onnx v1.13.6 (Apache-2.0), deve corrispondere alla libreria |
 
 Voci: Paola (`it_IT-paola-medium`, licenza del dataset alla sua pagina), Riccardo (`it_IT-riccardo-x_low`) e Alba
