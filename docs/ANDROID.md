@@ -40,9 +40,13 @@ Tre schede: **Oggi**, **Radio**, **Giochi e libri**.
   «gùgol». `app/src/main/assets/inglese.tsv` (circa 20.000 parole inglesi rare in italiano, ciascuna riscritta come la
   legge un italiano) è generato da `tools/pronuncia.py` a partire da CMUdict; le sigle in maiuscolo restano come sono.
 - **Giochi** (La Settimana di EdiKOla): cruciverba del giorno con le definizioni dai titoli di oggi, crucipuzzle,
-  sudoku facile, medio, difficile. Come sulla rivista: lo schema e le definizioni, e si scrive sullo schema con la penna
-  o con il dito. Il tratto resta tratto: niente riconoscimento delle lettere, niente controlli, niente soluzioni.
-  Penna/Gomma, Annulla, Cancella; il gommino della S Pen cancella sempre. «Nuovo» cambia schema.
+  sudoku facile, medio, difficile, kakuro facile (7×7) e kakuro (9×9), generati sul telefono con una sola soluzione
+  (nel kakuro, se le somme da sole non bastano, qualche cifra è già scritta, come sulle riviste). Niente controlli e
+  niente soluzioni. Due modi di compilare, scelti in alto e ricordati per tutti i giochi: **Penna**, si scrive sullo
+  schema con la penna o con il dito e il tratto resta tratto (niente riconoscimento delle lettere; Gomma, Annulla);
+  **Tastiera**, si tocca una casella e si scrive (nel cruciverba si va avanti lungo la parola, un secondo tocco cambia
+  direzione e sopra le definizioni compare quella della parola). La S Pen scrive in entrambi i modi. Il crucipuzzle è
+  solo a penna. «Nuovo» cambia schema.
 - **Libri**: EPUB e PDF, da **Aggiungi** o condivisi da un'altra app (LocalSend, browser, posta). Riprende dove eri.
 - **Penna** (S Pen): scrive anche su articoli, libri e PDF; lì le dita scorrono e toccano come sempre.
 - **Foto**: stanno nella memoria privata dell'app (la galleria non le vede) e a ogni aggiornamento restano solo quelle

@@ -338,3 +338,121 @@ object Cruciverba {
         return finish(best!!)
     }
 }
+
+/** Kakuro: fill the white cells with 1..9 so that every run (across or down, between black cells) has no repeated
+ *  digit and adds up to the number in the black cell before it. The grid is symmetric and has exactly one solution:
+ *  when the sums alone allow more than one, a few digits are given, as in the magazines. */
+object Kakuro {
+    /** w × h cells, row by row; down[i], across[i]: the sums written in black cell i (0: none) */
+    class Puzzle(val w: Int, val h: Int, val white: BooleanArray, val down: IntArray, val across: IntArray, val given: IntArray)
+
+    private class Run(val cells: IntArray, var sum: Int = 0)
+
+    /** The runs of a pattern: across ones first, then down ones; each white cell is in one of each */
+    private fun runs(w: Int, h: Int, white: BooleanArray): List<Run> {
+        val out = mutableListOf<Run>()
+        for (r in 0 until h) { var c = 0
+            while (c < w) { if (!white[r * w + c]) { c++; continue }
+                val s = c; while (c < w && white[r * w + c]) c++
+                out += Run(IntArray(c - s) { r * w + s + it }) } }
+        for (c in 0 until w) { var r = 0
+            while (r < h) { if (!white[r * w + c]) { r++; continue }
+                val s = r; while (r < h && white[r * w + c]) r++
+                out += Run(IntArray(r - s) { (s + it) * w + c }) } }
+        return out
+    }
+
+    /** A pattern: black first row and column, black squares mirrored around the centre, runs of 2..maxRun cells,
+     *  all white cells connected. Null when this attempt doesn't make one. */
+    private fun pattern(w: Int, h: Int, rng: Rng, maxRun: Int): BooleanArray? {
+        val white = BooleanArray(w * h) { it / w > 0 && it % w > 0 }
+        // mirror of (r, c) inside the white area 1..h-1 × 1..w-1 is (h - r, w - c)
+        fun blackSym(i: Int) { val r = i / w; val c = i % w; white[i] = false; white[(h - r) * w + (w - c)] = false }
+        repeat((w - 1) * (h - 1) / 5) { val i = (rng.next(h - 1)) * w + rng.next(w - 1); blackSym(i) }
+        var changed = true
+        while (changed) {
+            changed = false
+            for (run in runs(w, h, white)) {
+                if (run.cells.size == 1) { blackSym(run.cells[0]); changed = true }
+                else if (run.cells.size > maxRun) { blackSym(run.cells[1 + rng.next(run.cells.size - 2) - 1]); changed = true }
+                if (changed) break
+            }
+        }
+        val whites = (0 until w * h).filter { white[it] }
+        if (whites.size < (w - 1) * (h - 1) / 2) return null
+        val seen = BooleanArray(w * h); val todo = ArrayDeque(listOf(whites[0])); seen[whites[0]] = true; var n = 0
+        while (todo.isNotEmpty()) { val i = todo.removeFirst(); n++
+            for (j in intArrayOf(i - 1, i + 1, i - w, i + w)) if (j in 0 until w * h && white[j] && !seen[j] &&
+                (j / w == i / w || j % w == i % w)) { seen[j] = true; todo.add(j) } }
+        return if (n == whites.size) white else null
+    }
+
+    /** Number of fillings of the runs with their sums, counting no further than limit */
+    private fun count(w: Int, h: Int, runs: List<Run>, limit: Int, g: IntArray = IntArray(w * h), rng: Rng? = null,
+                      found: MutableList<IntArray>? = null): Int {
+        val of = HashMap<Int, MutableList<Run>>()
+        for (run in runs) for (i in run.cells) of.getOrPut(i) { mutableListOf() } += run
+        val cells = of.keys.toIntArray()
+        fun fits(run: Run, i: Int, d: Int): Boolean {
+            var used = 0; var sum = d; var left = 0
+            for (j in run.cells) { val v = if (j == i) d else g[j]
+                if (v == 0) left++ else { if (j != i && v == d) return false; used = used or (1 shl v); if (j != i) sum += v } }
+            used = used or (1 shl d)
+            if (run.sum == 0) return true // filling a pattern: no sums yet
+            val rest = run.sum - sum
+            if (left == 0) return rest == 0
+            var lo = 0; var hi = 0; var k = 0
+            for (v in 1..9) if (used and (1 shl v) == 0 && k < left) { lo += v; k++ }
+            if (k < left) return false
+            k = 0; for (v in 9 downTo 1) if (used and (1 shl v) == 0 && k < left) { hi += v; k++ }
+            return rest in lo..hi
+        }
+        fun cands(i: Int) = (1..9).filter { d -> of.getValue(i).all { fits(it, i, d) } }
+        fun go(lim: Int): Int {
+            var best = -1; var bestC: List<Int> = emptyList()
+            for (i in cells) if (g[i] == 0) { val c = cands(i); if (c.isEmpty()) return 0
+                if (best < 0 || c.size < bestC.size) { best = i; bestC = c } }
+            if (best < 0) { found?.add(g.copyOf()); return 1 }
+            var n = 0
+            for (d in if (rng != null) bestC.toMutableList().shuffleWith(rng) else bestC) {
+                g[best] = d; n += go(lim - n); if (n >= lim) break
+            }
+            if (rng == null || n == 0) g[best] = 0 // a random filling keeps its digits
+            return n
+        }
+        return go(limit)
+    }
+
+    /** A puzzle of w × h cells (first row and column included) */
+    fun generate(seed: Long, w: Int, h: Int, maxRun: Int = 5, tries: Int = 400): Puzzle {
+        val rng = Rng(seed)
+        repeat(tries) {
+            val white = pattern(w, h, rng, maxRun) ?: return@repeat
+            val runs = runs(w, h, white)
+            repeat(4) {
+                val g = IntArray(w * h)
+                runs.forEach { it.sum = 0 }
+                if (count(w, h, runs, 1, g, rng) == 0) return@repeat
+                runs.forEach { r -> r.sum = r.cells.sumOf { g[it] } }
+                // digits given where two solutions differ, until there is one
+                val given = IntArray(w * h)
+                while (true) {
+                    val sols = mutableListOf<IntArray>()
+                    count(w, h, runs, 2, given.copyOf(), found = sols)
+                    if (sols.size < 2) break
+                    val diff = (0 until w * h).filter { sols[0][it] != sols[1][it] }
+                    val i = diff[rng.next(diff.size) - 1]
+                    given[i] = g[i]
+                }
+                if (given.count { it > 0 } > 5) return@repeat // too many: another filling
+                val down = IntArray(w * h); val across = IntArray(w * h)
+                for (r in runs) {
+                    val first = r.cells[0]
+                    if (r.cells[1] == first + 1) across[first - 1] = r.sum else down[first - w] = r.sum
+                }
+                return Puzzle(w, h, white, down, across, given)
+            }
+        }
+        error("no kakuro")
+    }
+}

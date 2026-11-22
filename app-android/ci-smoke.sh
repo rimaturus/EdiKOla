@@ -122,6 +122,21 @@ tap "Indietro"; sleep 2
 tap "Sudoku medio" && sleep 10
 adb shell input swipe $((W * 20 / 100)) $((H * 20 / 100)) $((W * 22 / 100)) $((H * 26 / 100)) 300; sleep 1; shot sudoku
 tap "Indietro"; sleep 2
+tap "Kakuro facile" && sleep 15 && shot kakuro
+# the keyboard: a square, then a digit
+tap "Tastiera"; sleep 1
+adb shell input tap $((W * 50 / 100)) $((H * 30 / 100)); sleep 2
+adb shell input text 7; sleep 1; shot kakuro-tastiera
+tap "Penna"; sleep 1
+adb shell input keyevent KEYCODE_BACK; sleep 1
+tap "Indietro"; sleep 2
+tap "Cruciverba del giorno" && sleep 3
+tap "Tastiera"; sleep 1
+adb shell input tap $((W * 12 / 100)) $((H * 20 / 100)); sleep 2
+adb shell input text CASA; sleep 1; shot cruciverba-tastiera
+tap "Penna"; sleep 1
+adb shell input keyevent KEYCODE_BACK; sleep 1
+tap "Indietro"; sleep 2
 tap "Libri" && sleep 2 && shot libri
 
 adb shell cmd uimode night yes
