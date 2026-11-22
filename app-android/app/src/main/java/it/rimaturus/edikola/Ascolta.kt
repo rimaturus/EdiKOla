@@ -74,6 +74,13 @@ object Voce {
         OfflineTts(assetManager = ctx.assets, config = config)
     }
 
+    /** Frees the voices not in langs: each one takes a lot of memory, and two at a time are enough
+     *  (the radio: Giulia and Marco; the news: Italian and English) */
+    @Synchronized
+    fun keep(langs: Set<String>) {
+        engines.keys.filter { it !in langs }.forEach { engines.remove(it)?.release() }
+    }
+
     /** Writes the piece's audio (WAV, with its pause after it). One at a time: a jump to another article
      *  waits for the piece being made (a native call can't be stopped halfway). */
     @Synchronized
@@ -219,7 +226,9 @@ object Ascolta {
         c.clearMediaItems()
         made = 0
         val ctx = Repo.app
+        val langs = voices.keys
         job = Repo.scope.launch {
+            withContext(Dispatchers.Default) { Voce.keep(langs) }
             var k = first
             while (isActive) {
                 if (k >= chunks.size) {
